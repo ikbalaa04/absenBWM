@@ -5,9 +5,9 @@
   include_once 'sw-library/sw-function.php';
   //ob_start("minify_html");
   $dbhostsql      = "127.0.0.1";
-  $dbusersql      = "root";
-  $dbpasswordsql  = "";
-  $dbnamesql      = "db_bwm";
+  $dbusersql      = "webs1621_admin_bwm";
+  $dbpasswordsql  = "Kayla210421";
+  $dbnamesql      = "webs1621_db_bwm";
   $connection     = mysqli_connect($dbhostsql, $dbusersql, $dbpasswordsql, $dbnamesql) or die( mysqli_error($connection));
 
    if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
