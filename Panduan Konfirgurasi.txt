@@ -1,0 +1,86 @@
+Cara Konfigurasi Aplikasi Absensi V.3
+________________________________________________________________________
+
+1. Buat Folder dengan nama (absensi.v3) di C:\xampp\htdocs\absensi.v3
+2. Lalu Extrak dalam folder tersebut.
+3. Buat Database dangan nama (absensi.v3) dan import database absensi_v3.sql pada folder (Database).
+4. Setelah Berhasil Inport Silahkan Setting Url
+   Buka Databasenya (absensi_v3) -> lalu pilih tabel site :
+   Silahkan ubah fiel(site_url)nya sesuakan dengan alamat web kalian.
+	Example :
+		Localhost : http://localhost/absensi.v3
+		Online 	: https://domain.com
+
+5. Setting Koneksi Database
+   Buka Folder sw-library -> lalu buka file config.php
+	$DB_HOST 	= "localhost";
+	$DB_USER 	= "root";
+	$DB_PASSWD  	= "";
+	$DB_NAME 	= "absensi_v3";
+
+   Sesuaikan koneksi database kalian, jika di localhost tidak perlu menambah password dan user
+   Jika kalian hosting silahkan sesuaikan dengan username, nama database, dan password hosting kalian
+
+6. Setting Konfirgurasi Google
+   Buka Folder sw-library - > lalu buka file google-config.php
+	$client_id = ''; 
+	$client_secret = '';
+
+   Silahkan sesuaikan Cliend ID dan Client Secret Google Anda bisa langsung buat melalui link di bawah ini :
+   https://console.cloud.google.com/apis/dashboard?hl=ID
+   Untuk Medapatkan Client_id silahkan buka Panduan Konfigurasi Login Dengan Google
+
+
+7. Password Admin (alamatweb/sw-admin) dihalaman url web untuk masuk ke halaman admin
+		 Username : Widodo
+		 Password : admin123
+
+YANG SERING DITANYAKAN
+	a. Webcame tidak tampil?
+	   Silahkan ubah domain Anda menjadi https
+	b. Foto Absensi tidak tampil?
+	   Silahkan ubah halaman url di pengaturan website pada admin sesuaikan dengan urlnya.
+
+
+======== DEMO LOCALHOST ========================
+	http://localhost/absensi.v3
+------- USER
+	Email : swidodo.com@gmail.com
+	Pass : user12345
+	
+------- ADMIN
+	http://localhost/absensi.v3/sw-admin
+	User : Widodo
+	Pass : admin123
+	
+======== DEMO ONLINE ==========================
+	http://absenv3.s-widodo.com
+------- USER
+	Email : swidodo.com@gmail.com
+	Pass  : BVIMTQ9K
+	
+------- ADMIN
+	http://absenv3.s-widodo.com/sw-admin
+	User : Widodo
+	Pass : admin123
+===============================================
+.
+.
+Jika ada waktu bantu menulis testimoni yang membangun ya kang lelalaui link dibawah ini:
+https://g.page/swidodocom?gm
+.
+.
+Terimakasih.....
+--
+Salam Kami,
+S. Widodo
+S-widodo.com (Web development service)
+Your website and web apps solutions
+Office:  Jl. Zainal Abidin Labuhan Ratu Gg. Harapan 1 No 18 Bandar Lampung
+
+
+Kontak 
+Telp : 089666665781 
+Facebook: https://web.facebook.com/swidodocom
+Jasa Pembuatan Website :
+Website : https://s-widodo.com
