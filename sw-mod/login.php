@@ -5,6 +5,7 @@ if ($mod ==''){
 }else{
     include_once 'sw-mod/sw-header.php';
 if(!isset($_COOKIE['COOKIES_MEMBER'])){
+$selected_role = (isset($_GET['role']) && $_GET['role'] == 'admin') ? 'admin' : 'user';
 
 $query = mysqli_query($connection, "SELECT max( employees_code) as kodeTerbesar FROM employees");
 $data = mysqli_fetch_array($query);
@@ -30,15 +31,25 @@ $kode_karyawan = $huruf . sprintf("%03s", $urutan);
                     <div class="card-body pb-1">
                         <div class="form-group basic">
                             <div class="input-wrapper">
-                                <label class="label" for="email1">E-mail</label>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="E-mail Anda">
+                                <label class="label" for="email">E-mail / Username</label>
+                                <input type="text" class="form-control" id="email" name="email" placeholder="E-mail atau username Anda">
                                 <i class="clear-input"><ion-icon name="close-circle"></ion-icon></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group basic">
+                            <div class="input-wrapper">
+                                <label class="label" for="role">Role</label>
+                                <select class="form-control custom-select" id="role" name="role">
+                                    <option value="user" '.($selected_role == 'user' ? 'selected' : '').'>User</option>
+                                    <option value="admin" '.($selected_role == 'admin' ? 'selected' : '').'>Admin</option>
+                                </select>
                             </div>
                         </div>
         
                         <div class="form-group basic">
                             <div class="input-wrapper">
-                                <label class="label" for="password1">Password</label>
+                                <label class="label" for="password">Password</label>
                                 <input type="password" class="form-control" id="password" name="password" placeholder="Kata sandi Anda">
                                 <i class="clear-input"><ion-icon name="close-circle"></ion-icon></i>
                             </div>
@@ -47,7 +58,7 @@ $kode_karyawan = $huruf . sprintf("%03s", $urutan);
                 </div>
 
 
-                <div class="form-links mt-2">
+                <div class="form-links mt-2 user-login-links">
                     <div>
                         <a href="registrasi">Mendaftar</a>
                     </div>
@@ -56,7 +67,7 @@ $kode_karyawan = $huruf . sprintf("%03s", $urutan);
 
                 <div class="form-button-group transparent">
                    <button type="submit" class="btn btn-success btn-block"><ion-icon name="log-in-outline"></ion-icon> Masuk</button>
-                   <a href="'.$base_url.'action/sw-google.php" class="btn btn-danger btn-block"><ion-icon name="logo-google"></ion-icon> Masuk Dengan Google</a>
+                   <a href="'.$base_url.'action/sw-google.php" class="btn btn-danger btn-block user-login-links"><ion-icon name="logo-google"></ion-icon> Masuk Dengan Google</a>
                 </div>
 
             </form>

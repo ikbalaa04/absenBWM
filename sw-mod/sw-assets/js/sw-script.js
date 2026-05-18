@@ -2,22 +2,64 @@ $(document).ready(function() {
 var swBaseUrl = window.swBaseUrl || './';
 var swProcessUrl = swBaseUrl + 'action/sw-proses.php';
 var swPrintUrl = swBaseUrl + 'action/sw-print.php';
+var swAdminLoginUrl = swBaseUrl + 'sw-admin/login/login-proses.php';
 
 function loading(){
     $(".loading").show();
     $(".loading").delay(2000).fadeOut(600);
 }
 
+function syncLoginRole() {
+    var role = $('#role').val() || 'user';
+    if (role === 'admin') {
+        $('.user-login-links').hide();
+    } else {
+        $('.user-login-links').show();
+    }
+}
+
+syncLoginRole();
+$('#role').on('change', syncLoginRole);
+
 /* ----------- LOGIN ------------*/
 $('#form-login').submit(function (e) {
     e.preventDefault();
-    if($('#email').val()=='' && $('#password').val()==''){    
+    if($('#email').val()=='' || $('#password').val()==''){
          swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
         return false;
-        loading();
     }
     else{
+        var role = $('#role').val() || 'user';
         loading();
+        if (role === 'admin') {
+            $.ajax({
+                url: swAdminLoginUrl,
+                type: "POST",
+                dataType: "json",
+                data: {
+                    username: $('#email').val(),
+                    password: $('#password').val()
+                },
+                beforeSend: function () {
+                    loading();
+                },
+                success: function (json) {
+                    if (json.response && json.response.error == "1") {
+                        swal({title: 'Berhasil!', text: 'Selamat datang admin.!', icon: 'success', timer: 1500,});
+                        setTimeout(function(){ location.href = swBaseUrl + 'sw-admin/'; }, 2000);
+                    } else {
+                        swal({title: 'Oops!', text: 'Periksa username dan password admin Anda.', icon: 'error', timer: 1500,});
+                    }
+                },
+                error: function () {
+                    swal({title: 'Oops!', text: 'Login admin tidak dapat diproses.', icon: 'error', timer: 1500,});
+                },
+                complete: function () {
+                    $(".loading").hide();
+                }
+            });
+            return false;
+        }
         $.ajax({
             url: swProcessUrl+"?action=login",
             type: "POST",

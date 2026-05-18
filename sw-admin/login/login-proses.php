@@ -7,20 +7,20 @@ include_once'../../sw-library/sw-function.php';
 	$iB 			= getBrowser();
 	$browser 		= $iB['name'].' '.$iB['version'];
 
-if (isset($_GET['username'])){
+if (isset($_REQUEST['username'])){
 
-	$username 	= htmlentities($_GET['username']);
-	$password 	= hash('sha256',$salt.$_GET['password']);
+	$username 	= htmlentities($_REQUEST['username']);
+	$password 	= hash('sha256',$salt.$_REQUEST['password']);
 	$session	= md5(rand(1000,9999).rand(19078,9999).date('ymdhisss'));
 
-	$update = mysqli_query($connection,"UPDATE user set created_login='$created_login',session='-' where password='$password'") or die (mysqli_error($connection));
+	$update = mysqli_query($connection,"UPDATE user set created_login='$created_login',session='$session' where username='$username' AND password='$password'") or die (mysqli_error($connection));
 
 $query_login = "SELECT * FROM user WHERE username='$username' AND password='$password'";
 	$result_login = $connection->query($query_login);
 	$login_num = $result_login->num_rows;
 	$row 	= $result_login->fetch_assoc();
 
-	$SESSION_USER		= 	$row['session'];
+	$SESSION_USER		= 	$session;
 	$SESSION_ID 		=	strip_tags($row['user_id']);
 	$fullname			=	$row['fullname'];
 	$username			=	strip_tags($row['username']);

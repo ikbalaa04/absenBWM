@@ -4,6 +4,8 @@ if(!empty($_SESSION['SESSION_USER']) && !empty($_SESSION['SESSION_ID'])){
  exit;}
  else{
      require_once'../../sw-library/sw-config.php';
+     header('location:'.$base_url.'?mod=login&role=admin');
+     exit;
 ?>
 <!DOCTYPE html>
 <html>

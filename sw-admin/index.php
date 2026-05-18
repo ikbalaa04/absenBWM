@@ -6,7 +6,7 @@
 require_once'../sw-library/sw-config.php';
 include_once '../sw-library/sw-function.php';
 if(empty($_SESSION['SESSION_USER']) && empty($_SESSION['SESSION_ID'])){
-    header('location:./login/');
+    header('location:'.$base_url.'?mod=login&role=admin');
  exit;}
 
 else{
