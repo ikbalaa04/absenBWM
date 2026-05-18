@@ -3,6 +3,10 @@
   session_start();
   include_once 'sw-library/sw-config.php';
   include_once 'sw-library/sw-function.php';
+  if (!empty($_GET['mod']) && $_GET['mod'] === 'logout') {
+    require_once 'sw-mod/out/logout.php';
+    exit();
+  }
   //ob_start("minify_html");
   $dbhostsql      = "127.0.0.1";
   $dbusersql      = "abseni_db";

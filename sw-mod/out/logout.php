@@ -1,6 +1,6 @@
 <?PHP session_start();
-require_once '../../sw-library/sw-config.php';
-require_once '../../sw-library/sw-function.php';
+require_once __DIR__.'/../../sw-library/sw-config.php';
+require_once __DIR__.'/../../sw-library/sw-function.php';
 
 $COOKIES_MEMBER = '';
 $COOKIES_COOKIES = '';
