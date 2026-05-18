@@ -20,10 +20,10 @@ echo'
   <meta name="googlebot" content="noindex">
   <meta name="mobile-web-app-capable" content="yes">
   
-  <link rel="shortcut icon" href="'.$base_url.'sw-content/favicon.png">
-  <link rel="apple-touch-icon" href="'.$base_url.'sw-content/favicon.png">
-  <link rel="apple-touch-icon" sizes="72x72" href="'.$base_url.'sw-content/favicon.png">
-  <link rel="apple-touch-icon" sizes="114x114" href="'.$base_url.'sw-content/favicon.png">
+  <link rel="shortcut icon" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
+  <link rel="apple-touch-icon" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
+  <link rel="apple-touch-icon" sizes="72x72" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
+  <link rel="apple-touch-icon" sizes="114x114" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
   <link rel="stylesheet" href="./sw-assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="./sw-assets/css/AdminLTE.min.css">
   <link rel="stylesheet" href="./sw-assets/css/skin-blue-light.css">

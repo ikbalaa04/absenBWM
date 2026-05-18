@@ -20,8 +20,8 @@ if(!empty($_SESSION['SESSION_USER']) && !empty($_SESSION['SESSION_ID'])){
     <meta name="robots" content="noindex, nofollow">
 
     <!-- Icons -->
-    <link rel="shortcut icon" href="../../sw-content/favicon.png">
-    <link rel="apple-touch-icon" href="../../sw-content/favicon.png">
+    <link rel="shortcut icon" href="../../sw-content/favicon.png?v=20260518-indecon">
+    <link rel="apple-touch-icon" href="../../sw-content/favicon.png?v=20260518-indecon">
 
   <link rel="stylesheet" href="../sw-assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="../sw-assets/css/AdminLTE.min.css">
@@ -42,7 +42,7 @@ if(!empty($_SESSION['SESSION_USER']) && !empty($_SESSION['SESSION_ID'])){
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-    <a href="./"><img src="../../sw-content/'.$site_logo.'"  oncontextmenu="return false;" height="50"></a>
+    <a href="./"><img src="../../sw-content/'.$site_logo.'?v=20260518-indecon"  oncontextmenu="return false;" height="50"></a>
   </div>
   <!-- /.login-logo -->
   <div class="login-box-body">

@@ -15,10 +15,10 @@ echo'
   <meta name="apple-mobile-web-app-status-bar-style" content="#63ab45">
 
     <!-- Favicons -->
-  <link rel="shortcut icon" href="'.$base_url.'sw-content/favicon.png">
-  <link rel="apple-touch-icon" href="'.$base_url.'sw-content/favicon.png">
-  <link rel="apple-touch-icon" sizes="72x72" href="'.$base_url.'sw-content/favicon.png">
-  <link rel="apple-touch-icon" sizes="114x114" href="'.$base_url.'sw-content/favicon.png">
+  <link rel="shortcut icon" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
+  <link rel="apple-touch-icon" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
+  <link rel="apple-touch-icon" sizes="72x72" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
+  <link rel="apple-touch-icon" sizes="114x114" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
   
   <meta name="robots" content="index, follow">
   <meta name="description" content="'.$meta_description.'">
@@ -45,7 +45,7 @@ echo'
 <div class="loading"><div class="spinner-border text-primary" role="status"></div></div>
   <!-- loader -->
     <div id="loader">
-        <img src="'.$base_url.'sw-mod/sw-assets/img/logo-icon.png" alt="icon" class="loading-icon">
+        <img src="'.$base_url.'sw-content/favicon.png?v=20260518-indecon" alt="icon" class="loading-icon">
     </div>
     <!-- * loader -->';
 if(isset($_COOKIE['COOKIES_MEMBER'])){
@@ -58,7 +58,7 @@ if(isset($_COOKIE['COOKIES_MEMBER'])){
             </a>
         </div>
         <div class="pageTitle">
-            <img src="'.$base_url.'sw-content/'.$site_logo.'" alt="logo" class="logo">
+            <img src="'.$base_url.'sw-content/'.$site_logo.'?v=20260518-indecon" alt="logo" class="logo">
         </div>
         <div class="right">
             <div class="headerButton" data-toggle="dropdown" id="dropdownMenuLink" aria-haspopup="true">';
