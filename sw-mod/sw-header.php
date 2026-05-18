@@ -66,7 +66,7 @@ if(isset($_COOKIE['COOKIES_MEMBER'])){
                 echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w32">';
               }else{
                 echo'
-                <img src="timthumb?src='.$base_url.'sw-content/karyawan/'.$row_user['photo'].'&h=40&w=45" alt="image" class="imaged w32">';}
+                <img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" alt="image" class="imaged w32">';}
               echo'
                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">';?>
                 <a class="dropdown-item" onclick="location.href='./profile';" href="./profile"><ion-icon size="small" name="person-outline"></ion-icon>Profil</a>
@@ -92,7 +92,7 @@ echo'<!-- App Sidebar -->
                         if($row_user['photo'] ==''){
                         echo'<img src="'.$base_url.'/sw-content/avatar.jpg" alt="image" class="imaged  w36">';
                         }else{
-                        echo'<img src="timthumb?src='.$base_url.'sw-content/karyawan/'.$row_user['photo'].'&h=40&w=45" class="imaged  w36">';
+                        echo'<img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" class="imaged  w36">';
                         }
                           echo'
                         </div>

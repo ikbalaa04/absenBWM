@@ -6,6 +6,7 @@ else {
 require_once'../../../sw-library/sw-config.php';
 require_once'../../login/login_session.php';
 include('../../../sw-library/sw-function.php'); 
+$asset_url = base_url(true);
 
 switch (@$_GET['action']){
 /* -------  LOAD DATA ABSENSI----------*/
@@ -126,10 +127,10 @@ echo'
           <td>'.format_hari_tanggal($date_month_year).'</td>
           <td class="text-center picture">';
             if($row_absen['picture_in'] ==NULL){
-              echo'<img src="../timthumb?src='.$site_url.'/sw-content/avatar.jpg&h=40&w=40">';}
+              echo'<img src="'.$asset_url.'sw-content/avatar.jpg" width="40" height="40">';}
             else{
-              echo'<a class="image-link" href="'.$site_url.'/sw-content/absent/'.$row_absen['picture_in'].'">
-              <img src="../timthumb?src='.$site_url.'/sw-content/absent/'.$row_absen['picture_in'].'&h=40&w=40"></a>';
+              echo'<a class="image-link" href="'.$asset_url.'sw-content/absent/'.$row_absen['picture_in'].'">
+              <img src="'.$asset_url.'sw-content/absent/'.$row_absen['picture_in'].'" width="40" height="40"></a>';
             }
           echo'
           </td>
@@ -137,10 +138,10 @@ echo'
           <td class="text-center">'.$row_absen['selisih'].'</td>
           <td class="text-center picture">';
               if($row_absen['picture_out'] ==NULL){
-                echo'<img src="../timthumb?src='.$site_url.'/sw-content/avatar.jpg&h=40&w=40">';}
+                echo'<img src="'.$asset_url.'sw-content/avatar.jpg" width="40" height="40">';}
               else{
-                echo'<a class="image-link" href="'.$site_url.'/sw-content/absent/'.$row_absen['picture_out'].'">
-                      <img src="../timthumb?src='.$site_url.'/sw-content/absent/'.$row_absen['picture_out'].'&h=40&w=40"></a>';}
+                echo'<a class="image-link" href="'.$asset_url.'sw-content/absent/'.$row_absen['picture_out'].'">
+                      <img src="'.$asset_url.'sw-content/absent/'.$row_absen['picture_out'].'" width="40" height="40"></a>';}
               echo'</td>
           <td class="text-center">'.$row_absen['time_out'].'</td>
           <td class="text-center">'.$selisih_out.'</td>

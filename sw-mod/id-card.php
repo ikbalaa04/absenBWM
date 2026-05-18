@@ -44,7 +44,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                                     echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w100 rounded">';
                                     }else{
                                     echo'
-                                    <img src="timthumb?src='.$base_url.'sw-content/karyawan/'.$row_user['photo'].'&h=100&w=105" alt="'.$row_user['employees_name'].'" class="imaged w100 rounded">';}
+                                    <img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" alt="'.$row_user['employees_name'].'" class="imaged w100 rounded">';}
                             echo'
                             </div>
                             <h3>'.$row_user['employees_name'].'</h3>

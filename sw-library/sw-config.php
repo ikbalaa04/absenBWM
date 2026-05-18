@@ -24,7 +24,8 @@ if ($connection->connect_error){
 if (!function_exists('base_url')) {
 	function base_url($atRoot=FALSE, $atCore=FALSE, $parse=FALSE){
 	if (isset($_SERVER['HTTP_HOST'])) {
-		$http = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
+		$forwarded_proto = isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) : '';
+		$http = ((isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') || $forwarded_proto === 'https') ? 'https' : 'http';
 		$hostname = $_SERVER['HTTP_HOST'];
 		$dir = str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
 		$core = preg_split('@/@', str_replace($_SERVER['DOCUMENT_ROOT'], '', realpath(dirname(__FILE__))), NULL, PREG_SPLIT_NO_EMPTY);

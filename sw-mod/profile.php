@@ -23,7 +23,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                 echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w100 rounded">';
                 }else{
                     echo'
-                    <img src="timthumb?src='.$base_url.'sw-content/karyawan/'.$row_user['photo'].'&h=100&w=105" alt="avatar" class="imaged w100 rounded">';}
+                    <img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" alt="avatar" class="imaged w100 rounded">';}
                         echo'
                     <span class="button">
                         <ion-icon name="camera-outline"></ion-icon>

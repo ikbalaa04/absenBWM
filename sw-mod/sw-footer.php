@@ -81,25 +81,41 @@ echo'
 if ($mod =='absent'){?>
 <script type="text/javascript">
     var result;
-    $(document).ready(function getLocation() {
+    var geoOptions = {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+    };
+
+    $(document).ready(function() {
         result = document.getElementById("latitude");
-       // 
-        if(navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
-        } else {
-            swal({title: 'Oops!', text:'Maaf, browser Anda tidak mendukung geolokasi HTML5.', icon: 'error', timer: 3000,});
-        }
+        requestLocation();
     });
     
-    // Define callback function for successful attempt
-    function successCallback(position) {
-       result.innerHTML =""+ position.coords.latitude + ","+position.coords.longitude + "";
+    function requestLocation(callback) {
+        if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+            swal({title: 'Oops!', text:'Geolokasi hanya aktif di HTTPS. Pastikan domain dibuka dengan https://', icon: 'error', timer: 3500,});
+            return;
+        }
+        if (!navigator.geolocation) {
+            swal({title: 'Oops!', text:'Maaf, browser Anda tidak mendukung geolokasi HTML5.', icon: 'error', timer: 3000,});
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(function(position) {
+            successCallback(position);
+            if (typeof callback === "function") {
+                callback();
+            }
+        }, errorCallback, geoOptions);
     }
 
-    // Define callback function for failed attempt
+    function successCallback(position) {
+       result.innerHTML = position.coords.latitude + "," + position.coords.longitude;
+    }
+
     function errorCallback(error) {
         if(error.code == 1) {
-            swal({title: 'Oops!', text:'Anda telah memutuskan untuk tidak membagikan posisi Anda, tetapi tidak apa-apa. Kami tidak akan meminta Anda lagi.', icon: 'error', timer: 3000,});
+            swal({title: 'Oops!', text:'Izin lokasi ditolak. Aktifkan izin lokasi browser untuk melakukan absensi.', icon: 'error', timer: 3500,});
         } else if(error.code == 2) {
             swal({title: 'Oops!', text:'Jaringan tidak aktif atau layanan penentuan posisi tidak dapat dijangkau.', icon: 'error', timer: 3000,});
         } else {
@@ -113,17 +129,19 @@ if ($mod =='absent'){?>
         jpeg_quality:80,
     });
 
-    var cameras = new Array(); //create empty array to later insert available devices
-    navigator.mediaDevices.enumerateDevices() // get the available devices found in the machine
-    .then(function(devices) {
-        devices.forEach(function(device) {
         var i = 0;
-            if(device.kind=== "videoinput"){ //filter video devices only
-                cameras[i]= device.deviceId; // save the camera id's in the camera array
-                i++;
-            }
+    var cameras = new Array(); //create empty array to later insert available devices
+    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+        navigator.mediaDevices.enumerateDevices() // get the available devices found in the machine
+        .then(function(devices) {
+            devices.forEach(function(device) {
+                if(device.kind=== "videoinput"){ //filter video devices only
+                    cameras[i]= device.deviceId; // save the camera id's in the camera array
+                    i++;
+                }
+            });
         });
-    })
+    }
 
     // Set Camera Depan =========
     Webcam.set('constraints',{
@@ -141,12 +159,16 @@ if ($mod =='absent'){?>
     shutter.src = navigator.userAgent.match(/Firefox/) ? './sw-mod/sw-assets/js/webcamjs/shutter.ogg' : './sw-mod/sw-assets/js/webcamjs/shutter.mp3';
     function captureimage() {
     var latitude = $('.latitude').html();
+        if (!latitude) {
+            requestLocation(captureimage);
+            return;
+        }
         // play sound effect
         shutter.play();
         // take snapshot and get image data
         Webcam.snap( function(data_uri) {
             // display results in page
-            Webcam.upload(data_uri, window.swBaseUrl+'action/sw-proses.php?action=absent&latitude='+latitude+'',
+            Webcam.upload(data_uri, window.swBaseUrl+'action/sw-proses.php?action=absent&latitude='+encodeURIComponent(latitude)+'',
                 function(code,text) {
                     $data       =''+text+'';
                     var results = $data.split("/");
