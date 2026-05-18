@@ -50,17 +50,17 @@ echo'
 </footer>
 <!-- ///////////// Js Files ////////////////////  -->
 <!-- Jquery -->
-<script src="'.$base_url.'sw-mod/sw-assets/js/lib/jquery-3.4.1.min.js"></script>
+<script src="'.$base_url.'sw-mod/sw-assets/js/lib/jquery-3.4.1.min.js?v='.filemtime(__DIR__ . '/sw-assets/js/lib/jquery-3.4.1.min.js').'"></script>
 <!-- Bootstrap-->
-<script src="'.$base_url.'sw-mod/sw-assets/js/lib/popper.min.js"></script>
-<script src="'.$base_url.'sw-mod/sw-assets/js/lib/bootstrap.min.js"></script>
+<script src="'.$base_url.'sw-mod/sw-assets/js/lib/popper.min.js?v='.filemtime(__DIR__ . '/sw-assets/js/lib/popper.min.js').'"></script>
+<script src="'.$base_url.'sw-mod/sw-assets/js/lib/bootstrap.min.js?v='.filemtime(__DIR__ . '/sw-assets/js/lib/bootstrap.min.js').'"></script>
 <!-- Ionicons -->
 <script src="https://unpkg.com/ionicons@5.4.0/dist/ionicons.js"></script>
 <script src="https://kit.fontawesome.com/0ccb04165b.js" crossorigin="anonymous"></script>
 <!-- Base Js File -->
-<script src="'.$base_url.'sw-mod/sw-assets/js/base.js"></script>
-<script src="'.$base_url.'sw-mod/sw-assets/js/sweetalert.min.js"></script>
-<script src="'.$base_url.'sw-mod/sw-assets/js/webcamjs/webcam.min.js"></script>
+<script src="'.$base_url.'sw-mod/sw-assets/js/base.js?v='.filemtime(__DIR__ . '/sw-assets/js/base.js').'"></script>
+<script src="'.$base_url.'sw-mod/sw-assets/js/sweetalert.min.js?v='.filemtime(__DIR__ . '/sw-assets/js/sweetalert.min.js').'"></script>
+<script src="'.$base_url.'sw-mod/sw-assets/js/webcamjs/webcam.min.js?v='.filemtime(__DIR__ . '/sw-assets/js/webcamjs/webcam.min.js').'"></script>
 <script>window.swBaseUrl = "'.$base_url.'";</script>';
 if($mod =='history' OR $mod=='cuty'){
 echo'
