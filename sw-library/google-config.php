@@ -7,7 +7,7 @@ include_once __DIR__ . '/google-client/contrib/Google_Oauth2Service.php';
 
 $client_id = '482205120603-hf6aqm1mgr29ubsi2qttcrmfhmm2uklb.apps.googleusercontent.com'; // Google client ID
 $client_secret = '7EjMuD8XO88nR-5mtqYhh4Y3'; // Google Client Secret
-$redirect_url = ''.$site_url.'/oauth/google'; // Callback URL
+$redirect_url = $base_url.'action/sw-google.php'; // Callback URL
 
 // Call Google API
 $gclient = new Google_Client();

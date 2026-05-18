@@ -1,4 +1,8 @@
 $(document).ready(function() {
+var swBaseUrl = window.swBaseUrl || './';
+var swProcessUrl = swBaseUrl + 'action/sw-proses.php';
+var swPrintUrl = swBaseUrl + 'action/sw-print.php';
+
 function loading(){
     $(".loading").show();
     $(".loading").delay(2000).fadeOut(600);
@@ -15,7 +19,7 @@ $('#form-login').submit(function (e) {
     else{
         loading();
         $.ajax({
-            url:"./sw-proses?action=login",
+            url: swProcessUrl+"?action=login",
             type: "POST",
             data: new FormData(this),
             processData: false,
@@ -54,7 +58,7 @@ $('#form-registrasi').submit(function (e) {
     else{
         loading();
         $.ajax({
-            url:"./sw-proses?action=registrasi",
+            url: swProcessUrl+"?action=registrasi",
             type: "POST",
             data: new FormData(this),
             processData: false,
@@ -92,7 +96,7 @@ $('#form-forgot').submit(function (e) {
     else{
         loading();
         $.ajax({
-            url:"./sw-proses?action=forgot",
+            url: swProcessUrl+"?action=forgot",
             type: "POST",
             data: new FormData(this),
             processData: false,
@@ -131,7 +135,7 @@ $('#update-profile').submit(function (e) {
     else{
         loading();
         $.ajax({
-            url:"./sw-proses?action=profile",
+            url: swProcessUrl+"?action=profile",
             type: "POST",
             data: new FormData(this),
             processData: false,
@@ -172,7 +176,7 @@ $('#update-password').submit(function (e) {
     else{
         loading();
         $.ajax({
-            url:"./sw-proses?action=update-password",
+            url: swProcessUrl+"?action=update-password",
             type: "POST",
             data: new FormData(this),
             processData: false,
@@ -213,7 +217,7 @@ $('#update-password').submit(function (e) {
         var form_data = new FormData();
         form_data.append("file",file_data);
         $.ajax({
-          url:'./sw-proses?action=update-photo',
+          url: swProcessUrl+'?action=update-photo',
           method:'POST',
           data:form_data,
           contentType:false,
@@ -237,7 +241,7 @@ $('#update-password').submit(function (e) {
 loadData();
 function loadData() {
     $.ajax({
-        url: './sw-proses?action=history',
+        url: swProcessUrl+'?action=history',
         type: 'POST',
         success: function(data) {
           $('.loaddata').html(data);
@@ -256,7 +260,7 @@ $('.btn-sortir').click(function (e) {
         var to   = $('.end_date').val();
 
        $.ajax({
-          url:"./sw-proses?action=history",
+          url: swProcessUrl+"?action=history",
           method:"POST",
           data:{from:from,to:to},
           dataType:"text",
@@ -281,15 +285,15 @@ $('.btn-print').click(function (e) {
         if(type =='pdf'){
             // cek berdasarkan bulan
             if(from==''){    
-                var url = "./print?action=pdf";
+                var url = swPrintUrl+"?action=pdf";
             }else{
-                var url = "./print?action=pdf&from="+from+"&to="+to+"";
+                var url = swPrintUrl+"?action=pdf&from="+from+"&to="+to+"";
             }
         }else{
             if(from==''){    
-                var url = "./print?action=excel";
+                var url = swPrintUrl+"?action=excel";
             }else{
-                var url = "./print?action=excel&from="+from+"&to="+to+"";
+                var url = swPrintUrl+"?action=excel&from="+from+"&to="+to+"";
             }
         }
         window.open(url, '_blank');
@@ -328,7 +332,7 @@ $('.btn-print').click(function (e) {
             else{
                 loading();
                 $.ajax({
-                    url:"./sw-proses?action=update-history",
+                    url: swProcessUrl+"?action=update-history",
                     type: "POST",
                     data: new FormData(this),
                     processData: false,
@@ -366,7 +370,7 @@ $('.btn-print').click(function (e) {
     loadDataCuty();
     function loadDataCuty() {
         $.ajax({
-            url: './sw-proses?action=cuty',
+            url: swProcessUrl+'?action=cuty',
             type: 'POST',
             success: function(data) {
               $('.loaddatacuty').html(data);
@@ -386,7 +390,7 @@ $('.btn-print').click(function (e) {
             var to   = $('.end_date').val();
 
            $.ajax({
-              url:"./sw-proses?action=cuty",
+              url: swProcessUrl+"?action=cuty",
               method:"POST",
               data:{from:from,to:to},
               dataType:"text",
@@ -415,7 +419,7 @@ $('.btn-print').click(function (e) {
         else{
             loading();
             $.ajax({
-                url:"./sw-proses?action=add-cuty",
+                url: swProcessUrl+"?action=add-cuty",
                 type: "POST",
                 data: new FormData(this),
                 processData: false,
@@ -477,7 +481,7 @@ $('.btn-print').click(function (e) {
         else{
             loading();
             $.ajax({
-                url:"./sw-proses?action=update-cuty",
+                url: swProcessUrl+"?action=update-cuty",
                 type: "POST",
                 data: new FormData(this),
                 processData: false,
@@ -509,7 +513,7 @@ $('.btn-print').click(function (e) {
     /* ------------------ LOAD DATA COUNT ABSENSI HOME ------------------*/
     function loadDataCounter() {
         $.ajax({
-            url: './sw-proses?action=load-home-counter',
+            url: swProcessUrl+'?action=load-home-counter',
             type: 'POST',
             success: function(data) {
               $('.load-home').html(data);
@@ -520,7 +524,7 @@ $('.btn-print').click(function (e) {
     $('.select-change').on('change', function() {
             var month_filter = this.value;
            $.ajax({
-              url:"./sw-proses?action=load-home-counter",
+              url: swProcessUrl+"?action=load-home-counter",
               method:"POST",
               data:{month_filter:month_filter},
               dataType:"text",

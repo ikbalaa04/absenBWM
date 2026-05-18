@@ -56,7 +56,7 @@ $kode_karyawan = $huruf . sprintf("%03s", $urutan);
 
                 <div class="form-button-group transparent">
                    <button type="submit" class="btn btn-success btn-block"><ion-icon name="log-in-outline"></ion-icon> Masuk</button>
-                   <a href="oauth/google" class="btn btn-danger btn-block"><ion-icon name="logo-google"></ion-icon> Masuk Dengan Google</a>
+                   <a href="'.$base_url.'action/sw-google.php" class="btn btn-danger btn-block"><ion-icon name="logo-google"></ion-icon> Masuk Dengan Google</a>
                 </div>
 
             </form>

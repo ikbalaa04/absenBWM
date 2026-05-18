@@ -60,7 +60,8 @@ echo'
 <!-- Base Js File -->
 <script src="'.$base_url.'sw-mod/sw-assets/js/base.js"></script>
 <script src="'.$base_url.'sw-mod/sw-assets/js/sweetalert.min.js"></script>
-<script src="'.$base_url.'sw-mod/sw-assets/js/webcamjs/webcam.min.js"></script>';
+<script src="'.$base_url.'sw-mod/sw-assets/js/webcamjs/webcam.min.js"></script>
+<script>window.swBaseUrl = "'.$base_url.'";</script>';
 if($mod =='history' OR $mod=='cuty'){
 echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/plugins/datatables/jquery.dataTables.min.js"></script>
@@ -76,7 +77,7 @@ echo'
 </script>';
 }
 echo'
-<script src="'.$base_url.'/sw-mod/sw-assets/js/sw-script.js"></script>';
+<script src="'.$base_url.'sw-mod/sw-assets/js/sw-script.js?v='.filemtime(__DIR__ . '/sw-assets/js/sw-script.js').'"></script>';
 if ($mod =='absent'){?>
 <script type="text/javascript">
     var result;
@@ -145,7 +146,7 @@ if ($mod =='absent'){?>
         // take snapshot and get image data
         Webcam.snap( function(data_uri) {
             // display results in page
-            Webcam.upload(data_uri, './sw-proses?action=absent&latitude='+latitude+'',
+            Webcam.upload(data_uri, window.swBaseUrl+'action/sw-proses.php?action=absent&latitude='+latitude+'',
                 function(code,text) {
                     $data       =''+text+'';
                     var results = $data.split("/");
@@ -165,4 +166,3 @@ if ($mod =='absent'){?>
   <!-- </body></html> -->
   </body>
 </html><?php }?>
-

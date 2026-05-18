@@ -15,10 +15,10 @@ echo'
   <meta name="apple-mobile-web-app-status-bar-style" content="#FF396F">
 
     <!-- Favicons -->
-  <link rel="shortcut icon" href="'.$website_url.'/sw-content/favicon.png">
-  <link rel="apple-touch-icon" href="'.$website_url.'/sw-content/favicon.png">
-  <link rel="apple-touch-icon" sizes="72x72" href="'.$website_url.'/sw-content/favicon.png">
-  <link rel="apple-touch-icon" sizes="114x114" href="'.$website_url.'/sw-content/favicon.png">
+  <link rel="shortcut icon" href="'.$base_url.'sw-content/favicon.png">
+  <link rel="apple-touch-icon" href="'.$base_url.'sw-content/favicon.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="'.$base_url.'sw-content/favicon.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="'.$base_url.'sw-content/favicon.png">
   
   <meta name="robots" content="index, follow">
   <meta name="description" content="'.$meta_description.'">
