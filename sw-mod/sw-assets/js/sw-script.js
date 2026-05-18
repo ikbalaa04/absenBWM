@@ -9,7 +9,32 @@ function loading(){
     $(".loading").delay(2000).fadeOut(600);
 }
 
+function ensureLoginRoleField() {
+    if ($('#form-login').length && $('#role').length === 0) {
+        $('#email').attr({
+            type: 'text',
+            placeholder: 'E-mail atau username Anda'
+        });
+        $('label[for="email1"], label[for="email"]').first().text('E-mail / Username').attr('for', 'email');
+        var roleField = '' +
+            '<div class="form-group basic">' +
+                '<div class="input-wrapper">' +
+                    '<label class="label" for="role">Role</label>' +
+                    '<select class="form-control custom-select" id="role" name="role">' +
+                        '<option value="user">User</option>' +
+                        '<option value="admin">Admin</option>' +
+                    '</select>' +
+                '</div>' +
+            '</div>';
+        $('#email').closest('.form-group').after(roleField);
+        if (new URLSearchParams(window.location.search).get('role') === 'admin') {
+            $('#role').val('admin');
+        }
+    }
+}
+
 function syncLoginRole() {
+    ensureLoginRoleField();
     var role = $('#role').val() || 'user';
     if (role === 'admin') {
         $('.user-login-links').hide();
@@ -18,8 +43,9 @@ function syncLoginRole() {
     }
 }
 
+ensureLoginRoleField();
 syncLoginRole();
-$('#role').on('change', syncLoginRole);
+$(document).on('change', '#role', syncLoginRole);
 
 /* ----------- LOGIN ------------*/
 $('#form-login').submit(function (e) {
