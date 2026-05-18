@@ -12,7 +12,7 @@ echo'
 <section class="content-header">
   <h1>Setting Web</h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
       <li class="active">Setting Web</li>
     </ol>
 </section>';

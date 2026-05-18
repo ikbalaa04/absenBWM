@@ -11,7 +11,7 @@ echo'
 <section class="content-header">
   <h1>Data<small> Karyawan</small></h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
       <li class="active">Data Karyawan</li>
     </ol>
 </section>';
@@ -67,7 +67,7 @@ echo'
                   <div class="btn-group">';
                   if($level_user==1){
                     echo'
-                    <a href="./'.$mod.'&op=edit&id='.epm_encode($row['id']).'" class="btn btn-warning btn-xs enable-tooltip" title="Edit"><i class="fa fa-pencil-square-o"></i> Ubah</a>
+                    <a href="./?mod='.$mod.'&op=edit&id='.epm_encode($row['id']).'" class="btn btn-warning btn-xs enable-tooltip" title="Edit"><i class="fa fa-pencil-square-o"></i> Ubah</a>
                     <buton data-id="'.epm_encode($row['id']).'" class="btn btn-xs btn-danger delete" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
                   else{
                   echo'
@@ -124,8 +124,8 @@ echo'
 <section class="content-header">
   <h1>Tambah Data<small> Karyawan</small></h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
-      <li><a href="./karyawan"> Data Karyawan</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=karyawan"> Data Karyawan</a></li>
       <li class="active">Tambah Karyawan</li>
     </ol>
 </section>';
@@ -226,7 +226,7 @@ echo'
               <div class="box-footer">
                 <div class="col-sm-2"></div>
                 <button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> Simpan</button>
-                <a class="btn btn-danger" href="./'.$mod.'"><i class="fa fa-remove"></i> Batal</a>
+                <a class="btn btn-danger" href="./?mod='.$mod.'"><i class="fa fa-remove"></i> Batal</a>
               </div>
               <!-- /.box-footer -->
             </form>
@@ -242,8 +242,8 @@ echo'
 <section class="content-header">
   <h1>Edit Data<small> Karyawan</small></h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
-      <li><a href="./karyawan"> Data Karyawan</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=karyawan"> Data Karyawan</a></li>
       <li class="active">Edit Karyawan</li>
     </ol>
 </section>
@@ -364,7 +364,7 @@ echo'
               <div class="box-footer">
                 <div class="col-sm-2"></div>
                 <button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> Simpan</button>
-                <a class="btn btn-danger" href="./'.$mod.'"><i class="fa fa-remove"></i> Batal</a>
+                <a class="btn btn-danger" href="./?mod='.$mod.'"><i class="fa fa-remove"></i> Batal</a>
               </div>
               <!-- /.box-footer -->
             </form>
@@ -395,7 +395,7 @@ echo'
               <div class="box-footer">
                 <div class="col-sm-2"></div>
                 <button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> Simpan</button>
-                <a class="btn btn-danger" href="./'.$mod.'"><i class="fa fa-remove"></i> Batal</a>
+                <a class="btn btn-danger" href="./?mod='.$mod.'"><i class="fa fa-remove"></i> Batal</a>
               </div>
               <!-- /.box-footer -->
             </form>
@@ -411,7 +411,7 @@ echo'
                 <h3><i class="fa fa-warning text-yellow"></i> Oops! Page not found.</h3>
                 <p>
                 Saat ini data yang Anda cari tidak ditemukan<br>
-                <a class="btn btn-primary" href="./">return to dashboard</a>
+                <a class="btn btn-primary" href="./?mod=home">return to dashboard</a>
                 </p>
               </div>
             </div>

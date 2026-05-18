@@ -14,10 +14,7 @@ function convert($size){
 }
 echo'
   <footer class="main-footer">
-    <div class="pull-right hidden-xs">Theme LTE / 
-      '.convert(memory_get_usage()).'
-    </div>
-     &copy; 2021 - '.DATE('Y').' '.$site_name.' | Design With <i class="fa fa-heart"></i> From <span id="credits"><a class="credits" href="https://s-widodo.com" target="_blank" id="credits">S-widodo.com</a> - All Rights Reserved</span>
+    <div class="pull-right hidden-xs"></div>
   </footer>
 </div>
 <!-- wrapper -->
@@ -70,4 +67,3 @@ echo'
   </body>
 </html>
 <?PHP }?>
-

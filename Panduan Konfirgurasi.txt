@@ -32,7 +32,7 @@ ________________________________________________________________________
 
 
 7. Password Admin (alamatweb/sw-admin) dihalaman url web untuk masuk ke halaman admin
-		 Username : Widodo
+		 Username : admin
 		 Password : admin123
 
 YANG SERING DITANYAKAN
@@ -45,22 +45,22 @@ YANG SERING DITANYAKAN
 ======== DEMO LOCALHOST ========================
 	http://localhost/absensi.v3
 ------- USER
-	Email : swidodo.com@gmail.com
+	Email : user@example.com
 	Pass : user12345
 	
 ------- ADMIN
 	http://localhost/absensi.v3/sw-admin
-	User : Widodo
+	User : admin
 	Pass : admin123
 	
 ======== DEMO ONLINE ==========================
-	http://absenv3.s-widodo.com
+	http://example.com
 ------- USER
-	Email : swidodo.com@gmail.com
+	Email : user@example.com
 	Pass  : BVIMTQ9K
 	
 ------- ADMIN
-	http://absenv3.s-widodo.com/sw-admin
-	User : Widodo
+	http://example.com/sw-admin
+	User : admin
 	Pass : admin123
 ===============================================

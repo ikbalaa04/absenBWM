@@ -30,7 +30,7 @@ echo'
             <div class="icon">
               <i class="fa fa-user"></i>
             </div>
-              <a href="./karyawan" class="small-box-footer">
+              <a href="./?mod=karyawan" class="small-box-footer">
               More info <i class="fa fa-arrow-circle-right"></i>
             </a>
           </div>
@@ -45,7 +45,7 @@ echo'
             <div class="icon">
               <i class="fa fa fa-briefcase"></i>
             </div>
-            <a href="./jabatan" class="small-box-footer">
+            <a href="./?mod=jabatan" class="small-box-footer">
              More info <i class="fa fa-arrow-circle-right"></i>
             </a>
           </div>
@@ -60,7 +60,7 @@ echo'
             <div class="icon">
               <i class="fa fa-building"></i>
             </div>
-            <a href="./lokasi" class="small-box-footer">
+            <a href="./?mod=lokasi" class="small-box-footer">
               More info <i class="fa fa-arrow-circle-right"></i>
             </a>
           </div>
@@ -75,7 +75,7 @@ echo'
             <div class="icon">
               <i class="fa fa-retweet"></i>
             </div>
-            <a href="./shift" class="small-box-footer">
+            <a href="./?mod=shift" class="small-box-footer">
               More Info <i class="fa fa-arrow-circle-right"></i>
             </a>
           </div>
@@ -121,7 +121,7 @@ echo'
                   <td>'.$row['employees_name'].'</td>
                   <td>'.$row['time_in'].'</td>
                   <td>'.$row['time_out'].'</td>
-                  <td class="text-right"><a href="absensi&op=views&id='.epm_encode($row['employees_id']).'" class="btn btn-warning btn-xs"><i class="fa fa-external-link-square" aria-hidden="true"></i></a></td>
+                  <td class="text-right"><a href="./?mod=absensi&op=views&id='.epm_encode($row['employees_id']).'" class="btn btn-warning btn-xs"><i class="fa fa-external-link-square" aria-hidden="true"></i></a></td>
                 </tr>';}}
                 echo'
               </tbody>
@@ -135,7 +135,7 @@ echo'
         <div class="box-header with-border">
           <h3 class="box-title">Permohonan Cuti</h3>
           <div class="box-tools pull-right">
-            <a href="cuty" class="btn btn-success btn-flat">Data Cuti</a>
+            <a href="./?mod=cuty" class="btn btn-success btn-flat">Data Cuti</a>
           </div>
         </div>
           <div class="box-body no-padding">

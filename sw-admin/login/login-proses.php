@@ -33,7 +33,7 @@ $query_login = "SELECT * FROM user WHERE username='$username' AND password='$pas
 	Tgl Login : ".$created_login."
 	Browser : ".$browser."
 	\n
-	Hormat Kami,\nTim S-widodo.com\n
+	Hormat Kami,\n".$site_name."\n
 	Pesan noreply";
 
 	$to = 'emailanda@gmail.com'; //ubah email anda

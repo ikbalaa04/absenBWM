@@ -12,7 +12,7 @@ echo'
 <section class="content-header">
   <h1>Data<small> Absensi</small></h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
       <li class="active">Data Absensi</li>
     </ol>
 </section>';
@@ -60,7 +60,7 @@ echo'
                 <td>'.$row['name'].'</td>
                 <td class="text-right">
                   <div class="btn-group">
-                    <a href="./'.$mod.'&op=views&id='.epm_encode($row['id']).'" class="btn btn-warning btn-xs enable-tooltip" title="Detail"><i class="fa fa-eye" aria-hidden="true"></i> Detail</a>
+                    <a href="./?mod='.$mod.'&op=views&id='.epm_encode($row['id']).'" class="btn btn-warning btn-xs enable-tooltip" title="Detail"><i class="fa fa-eye" aria-hidden="true"></i> Detail</a>
                   </div>
 
                 </td>
@@ -141,7 +141,7 @@ echo'
 <section class="content-header">
   <h1>Detail<small> Absensi</small></h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
       <li><a href="#" onclick="history.back()">Data Abseni</a></li>
       <li class="active">Detail Absen</li>
     </ol>
@@ -264,7 +264,7 @@ echo'
 <section class="content-header">
   <h1>Data Absensi<small> Karyawan</small></h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
       <li><a href="#" onclick="history.back()">Data Lokasi</a></li>
       <li class="active">Data Absensi Karyawan</li>
     </ol>

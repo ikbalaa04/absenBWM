@@ -11,7 +11,7 @@ echo'
 <section class="content-header">
   <h1>Data<small> Permohonan Cuti</small></h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
       <li class="active">Data Permohonan Cuti</li>
     </ol>
 </section>';
@@ -104,8 +104,8 @@ echo'
 <section class="content-header">
   <h1>Tambah Data<small> Permohonan</small></h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
-      <li><a href="./Permohonan"> Data Permohonan</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=cuty&op=Permohonan"> Data Permohonan</a></li>
       <li class="active">Tambah Permohonan</li>
     </ol>
 </section>';
@@ -206,7 +206,7 @@ echo'
               <div class="box-footer">
                 <div class="col-sm-2"></div>
                 <button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> Simpan</button>
-                <a class="btn btn-danger" href="./'.$mod.'"><i class="fa fa-remove"></i> Batal</a>
+                <a class="btn btn-danger" href="./?mod='.$mod.'"><i class="fa fa-remove"></i> Batal</a>
               </div>
               <!-- /.box-footer -->
             </form>
@@ -222,8 +222,8 @@ echo'
 <section class="content-header">
   <h1>Edit Data<small> Permohonan</small></h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
-      <li><a href="./Permohonan"> Data Permohonan</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=cuty&op=Permohonan"> Data Permohonan</a></li>
       <li class="active">Edit Permohonan</li>
     </ol>
 </section>
@@ -344,7 +344,7 @@ echo'
               <div class="box-footer">
                 <div class="col-sm-2"></div>
                 <button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> Simpan</button>
-                <a class="btn btn-danger" href="./'.$mod.'"><i class="fa fa-remove"></i> Batal</a>
+                <a class="btn btn-danger" href="./?mod='.$mod.'"><i class="fa fa-remove"></i> Batal</a>
               </div>
               <!-- /.box-footer -->
             </form>
@@ -375,7 +375,7 @@ echo'
               <div class="box-footer">
                 <div class="col-sm-2"></div>
                 <button type="submit" class="btn btn-primary"><i class="fa fa-check"></i> Simpan</button>
-                <a class="btn btn-danger" href="./'.$mod.'"><i class="fa fa-remove"></i> Batal</a>
+                <a class="btn btn-danger" href="./?mod='.$mod.'"><i class="fa fa-remove"></i> Batal</a>
               </div>
               <!-- /.box-footer -->
             </form>
@@ -391,7 +391,7 @@ echo'
                 <h3><i class="fa fa-warning text-yellow"></i> Oops! Page not found.</h3>
                 <p>
                 Saat ini data yang Anda cari tidak ditemukan<br>
-                <a class="btn btn-primary" href="./">return to dashboard</a>
+                <a class="btn btn-primary" href="./?mod=home">return to dashboard</a>
                 </p>
               </div>
             </div>

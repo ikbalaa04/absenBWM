@@ -40,7 +40,7 @@ CREATE TABLE `building` (
 --
 
 INSERT INTO `building` (`building_id`, `code`, `name`, `address`, `building_scanner`) VALUES
-(1, 'SWUKZ/2021', 'S-widodo.com', 'Jl. Zainal Abidin Labuhan ratu gg. harapn no. 18 Bandar Lampung', '');
+(1, 'IND/2021', 'Indecon', 'Alamat kantor', '');
 
 -- --------------------------------------------------------
 
@@ -84,7 +84,7 @@ CREATE TABLE `employees` (
 --
 
 INSERT INTO `employees` (`id`, `employees_code`, `employees_email`, `employees_password`, `employees_name`, `position_id`, `shift_id`, `building_id`, `photo`, `created_login`, `created_cookies`) VALUES
-(6, 'OM001-2021', 'swidodo.com@gmail.com', 'd060522d419e32b1f5929878c5949c09b2acf30f754954d77644957774f96836', 'Widodo', 2, 1, 1, 'OM001-2021-1a9d0a42736063ec60e8833614f44a6d-142948-.jpg', '2021-08-10 22:42:02', '4c6c453e7a58b5fc11908a3916f944e1'),
+(6, 'OM001-2021', 'user@example.com', 'd060522d419e32b1f5929878c5949c09b2acf30f754954d77644957774f96836', 'User Demo', 2, 1, 1, 'OM001-2021-1a9d0a42736063ec60e8833614f44a6d-142948-.jpg', '2021-08-10 22:42:02', '4c6c453e7a58b5fc11908a3916f944e1'),
 (14, '123456789', 'intan@gmail.com', 'acd2bcf0a751e78ba7a1904d55cb26b00b7b5c21ea1c7a91b373c2cf44ae0b29', 'Intan', 1, 1, 1, '', '2021-08-06 00:00:00', '6baf05e5de14becf64ed2a919923babc');
 
 -- --------------------------------------------------------
@@ -201,7 +201,7 @@ CREATE TABLE `sw_site` (
 --
 
 INSERT INTO `sw_site` (`site_id`, `site_url`, `site_name`, `site_company`, `site_manager`, `site_director`, `site_phone`, `site_address`, `site_description`, `site_logo`, `site_email`, `site_email_domain`) VALUES
-(1, 'http://localhost/product/absensi.v3', 'Absensi v.3', 'S widodo.com', 'Intan Permata Sari', 'S. Widodo', '089666665781', 'Jl. Zainal Bidin Labuhan Ratu gg. Harapan 1 No 18', 'Absensi v.3', 'whiteswlogowebpng.png', 'swidodo.com@gmail.com', 'info@domain.com');
+(1, 'http://localhost/product/absensi.v3', 'Absensi v.3', 'Indecon', 'Intan Permata Sari', 'Indecon', '089666665781', 'Alamat kantor', 'Absensi v.3', 'whiteswlogowebpng.png', 'info@example.com', 'info@domain.com');
 
 -- --------------------------------------------------------
 
@@ -229,7 +229,7 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`user_id`, `username`, `email`, `password`, `fullname`, `registered`, `created_login`, `last_login`, `session`, `ip`, `browser`, `level`) VALUES
-(1, 'Widodo', 'swidodo.com@gmail.com', '88222999e01f1910a5ac39fa37d3b8b704973d503d0ff7c84d46305b92cfa0f6', 'Widodo', '2021-02-03 10:22:00', '2021-08-11 09:54:17', '2021-08-11 09:45:08', '-', '1', 'Google Crome', 1);
+(1, 'admin', 'admin@example.com', '88222999e01f1910a5ac39fa37d3b8b704973d503d0ff7c84d46305b92cfa0f6', 'Administrator', '2021-02-03 10:22:00', '2021-08-11 09:54:17', '2021-08-11 09:45:08', '-', '1', 'Google Crome', 1);
 
 -- --------------------------------------------------------
 

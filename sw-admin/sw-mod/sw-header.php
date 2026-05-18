@@ -56,7 +56,7 @@ echo'<div class="wrapper">
     <div class="loading"></div>
 <header class="main-header">
     <!-- Logo -->
-    <a href="./" class="logo">
+    <a href="./?mod=home" class="logo">
       <span class="logo-mini"><b>ABSENSI</span>
       <span class="logo-lg"><b>'.strtoupper($site_name).'</b></span>
     </a>
@@ -76,7 +76,7 @@ echo'<div class="wrapper">
       <div class="navbar-custom-menu">
         <ul class="nav navbar-nav">
         
-        <li><a href="../" target="_blank"><i class="fa fa-desktop" aria-hidden="true"></i></a></li>
+        <li><a href="./?mod=home"><i class="fa fa-desktop" aria-hidden="true"></i></a></li>
 
         <!-- Notifications: style can be found in dropdown.less -->
         <li class="dropdown notifications-menu">
@@ -92,7 +92,7 @@ echo'<div class="wrapper">
                 while ($row_cuty = $result_cuty_notif->fetch_assoc()) {
                   echo'
                   <li>
-                    <a href="cuty">
+                    <a href="./?mod=cuty">
                       '.$row_cuty['employees_name'].'<br>
                       Tgl Cuti : '.tgl_ind($row_cuty['cuty_start']).' sampai '.tgl_ind($row_cuty['cuty_end']).'<br>
                       <label class="label label-warning">Jumlah: '.$row_cuty['cuty_total'].'</label>
@@ -117,7 +117,7 @@ echo'<div class="wrapper">
                 while ($row= $result_notif->fetch_assoc()) {
                   echo'
                   <li>
-                    <a href="absensi&op=views&id='.epm_encode($row['employees_id']).'">
+                    <a href="./?mod=absensi&op=views&id='.epm_encode($row['employees_id']).'">
                       '.$row['employees_name'].'<br>
                       <i class="fa fa-sign-in text-aqua"></i>Absen Masuk : '.$row['time_in'].'<br>';
                   if($row['time_out']=='00:00:00'){}else{

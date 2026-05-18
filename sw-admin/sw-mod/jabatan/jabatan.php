@@ -11,7 +11,7 @@ echo'
 <section class="content-header">
   <h1>Data<small> Jabatan</small></h1>
     <ol class="breadcrumb">
-      <li><a href="./"><i class="fa fa-dashboard"></i> Beranda</a></li>
+      <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
       <li class="active">Data Jabatan</li>
     </ol>
 </section>';

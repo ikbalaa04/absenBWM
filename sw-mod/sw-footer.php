@@ -46,7 +46,7 @@ echo'
 ob_end_flush();
 echo'
 <footer class="text-muted text-center" style="display:none">
-   <p>© 2021 - '.$year.' '.$site_name.' - Design By: <span id="credits"><a class="credits_a" href="https://s-widodo.com" target="_blank">S-widodo.com</a></span></p>
+   <p>© 2021 - '.$year.' '.$site_name.'</p>
 </footer>
 <!-- ///////////// Js Files ////////////////////  -->
 <!-- Jquery -->
