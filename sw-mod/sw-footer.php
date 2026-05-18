@@ -5,28 +5,28 @@
 if(isset($_COOKIE['COOKIES_MEMBER'])){
 echo'
 <div class="appBottomMenu">
-        <a href="./" class="item">
+        <a href="./?mod=home" class="item">
             <div class="col">
                 <ion-icon name="home-outline"></ion-icon>
                 <strong>Home</strong>
             </div>
         </a>
 
-        <a href="absent" class="item">
+        <a href="./?mod=absent" class="item">
             <div class="col">
                 <ion-icon name="camera-outline"></ion-icon>
                 <strong>Absen</strong>
             </div>
         </a>
 
-        <a href="./cuty" class="item">
+        <a href="./?mod=cuty" class="item">
             <div class="col">
                <ion-icon name="calendar-outline"></ion-icon>
                 <strong>Cuty</strong>
             </div>
         </a>
 
-        <a href="./history" class="item">
+        <a href="./?mod=history" class="item">
             <div class="col">
                  <ion-icon name="document-text-outline"></ion-icon>
                 <strong>History</strong>
@@ -34,7 +34,7 @@ echo'
         </a>
 
         
-        <a href="./profile" class="item">
+        <a href="./?mod=profile" class="item">
             <div class="col">
                 <ion-icon name="person-outline"></ion-icon>
                 <strong>Profil</strong>
@@ -176,7 +176,7 @@ if ($mod =='absent'){?>
                     $results2 = results[1];
                     if($results =='success'){
                         swal({title: 'Berhasil!', text:$results2, icon: 'success', timer: 3500,});
-                        setTimeout("location.href = './';",3600);
+                        setTimeout("location.href = './?mod=home';",3600);
                     }else{
                         swal({title: 'Oops!', text:text, icon: 'error', timer: 3500,});
                     }

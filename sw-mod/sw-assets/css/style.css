@@ -8363,7 +8363,7 @@ a.badge-success {
 
 .badge-danger,
 a.badge-danger {
-  background: #FF396F !important; }
+  background: #63ab45 !important; }
 
 .badge-warning,
 a.badge-warning {
@@ -8762,15 +8762,15 @@ a.badge-dark {
     opacity: 0.5; }
 
 .btn-danger {
-  background: #FF396F !important;
-  border-color: #FF396F !important;
+  background: #63ab45 !important;
+  border-color: #63ab45 !important;
   color: #FFFFFF !important; }
   .btn-danger:hover, .btn-danger:focus, .btn-danger:active, .btn-danger.active {
     background: #ff205c !important;
     border-color: #ff205c !important; }
   .btn-danger.disabled, .btn-danger:disabled {
-    background: #FF396F;
-    border-color: #FF396F;
+    background: #63ab45;
+    border-color: #63ab45;
     opacity: 0.5; }
 
 .btn-warning {
@@ -8885,20 +8885,20 @@ a.badge-dark {
 
 .btn-outline-danger {
   background: transparent;
-  border-color: #FF396F;
-  color: #FF396F;
+  border-color: #63ab45;
+  color: #63ab45;
   transition: 0.2s all; }
   .btn-outline-danger:hover, .btn-outline-danger:active {
     background: rgba(255, 57, 111, 0.15) !important;
-    border-color: #FF396F !important;
-    color: #FF396F !important; }
+    border-color: #63ab45 !important;
+    color: #63ab45 !important; }
   .btn-outline-danger.active {
-    background: #FF396F !important;
+    background: #63ab45 !important;
     color: #FFF !important;
-    border-color: #FF396F !important; }
+    border-color: #63ab45 !important; }
   .btn-outline-danger.disabled, .btn-outline-danger:disabled {
-    color: #FF396F !important;
-    border-color: #FF396F !important;
+    color: #63ab45 !important;
+    border-color: #63ab45 !important;
     background: transparent !important;
     opacity: 0.5; }
 
@@ -9015,17 +9015,17 @@ a.badge-dark {
 .btn-text-danger {
   background: transparent;
   border-color: transparent;
-  color: #FF396F !important;
+  color: #63ab45 !important;
   transition: 0.2s all; }
   .btn-text-danger:hover {
     background: transparent; }
   .btn-text-danger:active, .btn-text-danger.active {
     background: rgba(255, 57, 111, 0.15) !important;
     border-color: transparent !important;
-    color: #FF396F !important; }
+    color: #63ab45 !important; }
   .btn-text-danger.disabled, .btn-text-danger:disabled {
-    color: #FF396F !important;
-    border-color: #FF396F !important;
+    color: #63ab45 !important;
+    border-color: #63ab45 !important;
     background: transparent !important;
     opacity: 0.5; }
 
@@ -9212,7 +9212,7 @@ a.badge-dark {
       .action-button-list > li .btn.text-secondary {
         color: #8494A8 !important; }
       .action-button-list > li .btn.text-danger {
-        color: #FF396F !important; }
+        color: #63ab45 !important; }
       .action-button-list > li .btn.text-success {
         color: #1DCC70 !important; }
       .action-button-list > li .btn.text-warning {
@@ -9478,7 +9478,7 @@ a.badge-dark {
   color: #FFF; }
 
 .bg-danger {
-  background: #FF396F !important;
+  background: #63ab45 !important;
   color: #FFF; }
 
 .bg-warning {
@@ -9510,7 +9510,7 @@ a.text-success {
 
 .text-danger,
 a.text-danger {
-  color: #FF396F !important; }
+  color: #63ab45 !important; }
 
 .text-warning,
 a.text-warning {
@@ -9606,9 +9606,9 @@ a.text-dark {
     color: #1DCC70; }
 
 .alert-danger {
-  background: #FF396F;
+  background: #63ab45;
   color: #fff;
-  border: 1px solid #FF396F; }
+  border: 1px solid #63ab45; }
   .alert-danger a {
     color: #fff !important;
     text-decoration: underline; }
@@ -9617,13 +9617,13 @@ a.text-dark {
 
 .alert-outline-danger {
   background: transparent;
-  color: #FF396F;
-  border: 1px solid #FF396F; }
+  color: #63ab45;
+  border: 1px solid #63ab45; }
   .alert-outline-danger a {
-    color: #FF396F !important;
+    color: #63ab45 !important;
     text-decoration: underline !important; }
   .alert-outline-danger .close {
-    color: #FF396F; }
+    color: #63ab45; }
 
 .alert-warning {
   background: #FFB400;
@@ -10172,13 +10172,13 @@ a.text-dark {
     box-shadow: inset 0 0 0 1px #6236FF; }
 
 .chip-danger {
-  background: #FF396F;
+  background: #63ab45;
   color: #fff; }
   .chip-danger .chip-delete {
     color: #fff; }
   .chip-danger.chip-outline {
-    color: #FF396F;
-    box-shadow: inset 0 0 0 1px #FF396F; }
+    color: #63ab45;
+    box-shadow: inset 0 0 0 1px #63ab45; }
 
 .chip-success {
   background: #1DCC70;

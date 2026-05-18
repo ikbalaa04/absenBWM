@@ -47,7 +47,7 @@ echo'<aside class="main-sidebar">
 
       if($mod =='user'){echo'<li class="active">'; }else{echo'<li>';}
       echo'<a href="./?mod=user"><i class="fa fa-user"></i> <span>Admin</span></a></li>';?>
-      <li><a href="javascript:void();" onClick="location.href='./logout';"><i class="fa fa-sign-out text-red"></i>  <span>Keluar</span></a></li>
+      <li><a href="./login/logout.php"><i class="fa fa-sign-out text-red"></i>  <span>Keluar</span></a></li>
   <?php echo'
       </ul>
     </section>

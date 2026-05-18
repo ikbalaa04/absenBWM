@@ -6,7 +6,7 @@
     unset($_SESSION['SESSION_USER']);
     unset($_SESSION['SESSION_ID']);
     session_destroy();
-    header('Location:./login/');
+    header('Location:'.$base_url.'?mod=login&role=admin');
 exit();
 ?>
 

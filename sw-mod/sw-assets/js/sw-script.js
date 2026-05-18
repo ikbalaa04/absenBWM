@@ -21,7 +21,7 @@ function ensureLoginRoleField() {
                 '<div class="input-wrapper">' +
                     '<label class="label" for="role">Role</label>' +
                     '<select class="form-control custom-select" id="role" name="role">' +
-                        '<option value="user">User</option>' +
+                        '<option value="user">Staff</option>' +
                         '<option value="admin">Admin</option>' +
                     '</select>' +
                 '</div>' +
@@ -101,7 +101,7 @@ $('#form-login').submit(function (e) {
                 if (data == 'success') {
                     swal({title: 'Berhasil!', text: 'Selamat datang.!', icon: 'success', timer: 1500,});
                     //setTimeout(function(){location.reload(); }, 1500);
-                     setTimeout("location.href = './';",2000);
+                     setTimeout("location.href = './?mod=home';",2000);
                 } else {
                     swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
                 }
@@ -139,7 +139,7 @@ $('#form-registrasi').submit(function (e) {
             success: function (data) {
                 if (data == 'success') {
                     swal({title: 'Berhasil!', text: 'Selamat Anda berhasil mendaftar!', icon: 'success', timer: 2500,});
-                    setTimeout("location.href = './';",2600);
+                    setTimeout("location.href = './?mod=home';",2600);
                 } else {
                     swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
                 }
@@ -178,7 +178,7 @@ $('#form-forgot').submit(function (e) {
                 if (data == 'success') {
                     swal({title: 'Berhasil!', text: 'Password baru berhasil disetel ulang, silahkan cek email masuk/spam!', icon: 'success', timer: 2000,});
                     //setTimeout(function(){ location.reload(); }, 1500);
-                    setTimeout("location.href = './';",3000);
+                    setTimeout("location.href = './?mod=home';",3000);
                 } else {
                     swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
                 }

@@ -38,9 +38,9 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
 
                 <div class="form-links mt-2">
                     <div>
-                        <a href="registrasi">Mendaftar</a>
+                        <a href="./?mod=registrasi">Mendaftar</a>
                     </div>
-                    <div><a href="forgot" class="text-muted">Lupa Password?</a></div>
+                    <div><a href="./?mod=forgot" class="text-muted">Lupa Password?</a></div>
                 </div>
 
                 <div class="form-button-group  transparent">
@@ -71,7 +71,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                 <!-- Wallet Footer -->
                 <div class="wallet-footer">
                     <div class="item">
-                        <a href="./absent">
+                        <a href="./?mod=absent">
                             <div class="icon-wrapper bg-danger">
                                 <ion-icon name="camera-outline"></ion-icon>
                             </div>
@@ -81,7 +81,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
 
 
                     <div class="item">
-                        <a href="./cuty">
+                        <a href="./?mod=cuty">
                             <div class="icon-wrapper bg-primary">
                                <ion-icon name="calendar-outline"></ion-icon>
                             </div>
@@ -90,7 +90,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                     </div>
                    
                     <div class="item">
-                        <a href="./history">
+                        <a href="./?mod=history">
                             <div class="icon-wrapper bg-success">
                                <ion-icon name="document-text-outline"></ion-icon>
                             </div>
@@ -99,7 +99,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                     </div>
 
                     <div class="item">
-                        <a href="./profile">
+                        <a href="./?mod=profile">
                             <div class="icon-wrapper bg-warning">
                                <ion-icon name="person-outline"></ion-icon>
                             </div>
@@ -130,7 +130,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                 if($row_absent['time_out']=='00:00:00'){
                 echo'
                 <div class="col-6">
-                    <a href="./absent"><div class="stat-box bg-success">
+                    <a href="./?mod=absent"><div class="stat-box bg-success">
                         <div class="title text-white">Absen Pulang</div>
                         <div class="value text-white">Belum absen</div>
                     </div></a>
@@ -147,7 +147,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
             else{
                 echo'
                 <div class="col-6">
-                    <a href="./absent"><div class="stat-box bg-danger">
+                    <a href="./?mod=absent"><div class="stat-box bg-danger">
                         <div class="title text-white">Absen Masuk</div>
                         <div class="value text-white">Belum absen</div>
                     </div></a>

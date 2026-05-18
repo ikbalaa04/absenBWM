@@ -10,9 +10,9 @@ echo'
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover">
   <title>'.$website_name.'</title>
-  <meta name="theme-color" content="#FF396F">
-  <meta name="msapplication-navbutton-color" content="#FF396F">
-  <meta name="apple-mobile-web-app-status-bar-style" content="#FF396F">
+  <meta name="theme-color" content="#63ab45">
+  <meta name="msapplication-navbutton-color" content="#63ab45">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#63ab45">
 
     <!-- Favicons -->
   <link rel="shortcut icon" href="'.$base_url.'sw-content/favicon.png">
@@ -69,8 +69,8 @@ if(isset($_COOKIE['COOKIES_MEMBER'])){
                 <img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" alt="image" class="imaged w32">';}
               echo'
                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">';?>
-                <a class="dropdown-item" onclick="location.href='./profile';" href="./profile"><ion-icon size="small" name="person-outline"></ion-icon>Profil</a>
-                <a class="dropdown-item" onclick="location.href='./logout';" href="./logout"><ion-icon size="small" name="log-out-outline"></ion-icon>Keluar</a>
+                <a class="dropdown-item" onclick="location.href='./?mod=profile';" href="./?mod=profile"><ion-icon size="small" name="person-outline"></ion-icon>Profil</a>
+                <a class="dropdown-item" onclick="location.href=\''.$base_url.'sw-mod/out/logout.php\';" href="'.$base_url.'sw-mod/out/logout.php"><ion-icon size="small" name="log-out-outline"></ion-icon>Keluar</a>
               </div>
             </div>
         </div>
@@ -110,14 +110,14 @@ echo'<!-- App Sidebar -->
                     <div class="listview-title mt-1">Absen</div>
                     <ul class="listview flush transparent no-line image-listview">
                         <li>
-                            <a href="./" class="item">
+                            <a href="./?mod=home" class="item">
                                 <div class="icon-box bg-danger">
                                     <ion-icon name="home-outline"></ion-icon>
                                 </div> Home 
                             </a>
                         </li>
                         <li>
-                            <a href="./present" class="item">
+                            <a href="./?mod=absent" class="item">
                                 <div class="icon-box bg-danger">
                                     <ion-icon name="scan-outline"></ion-icon>
                                 </div>
@@ -126,7 +126,7 @@ echo'<!-- App Sidebar -->
                         </li>
 
                         <li>
-                            <a href="./cuty" class="item">
+                            <a href="./?mod=cuty" class="item">
                                 <div class="icon-box bg-danger">
                                   <ion-icon name="calendar-outline"></ion-icon>
                                 </div>
@@ -135,7 +135,7 @@ echo'<!-- App Sidebar -->
                         </li>
 
                         <li>
-                            <a href="./history" class="item">
+                            <a href="./?mod=history" class="item">
                                 <div class="icon-box bg-danger">
                                     <ion-icon name="document-text-outline"></ion-icon>
                                 </div>
@@ -144,7 +144,7 @@ echo'<!-- App Sidebar -->
                         </li>
                       
                         <li>
-                            <a href="profile" class="item">
+                            <a href="./?mod=profile" class="item">
                                 <div class="icon-box bg-danger">
                                     <ion-icon name="person-outline"></ion-icon>
                                 </div>
@@ -154,7 +154,7 @@ echo'<!-- App Sidebar -->
 
                         </li>
                         <li>
-                            <a href="./logout" class="item">
+                            <a href="'.$base_url.'sw-mod/out/logout.php" class="item">
                                 <div class="icon-box bg-danger">
                                     <ion-icon name="log-out-outline"></ion-icon>
                                 </div>

@@ -1,23 +1,28 @@
-<?PHP session_start(); 
-    require_once'../../sw-library/sw-config.php';
-    $expired_cookie = time()+60*60*24*3;
-    $COOKIES_MEMBER='';$COOKIES_COOKIES ='';
-    if(!empty($_COOKIE['COOKIES_COOKIES'])){$COOKIES_COOKIES =  $_COOKIE['COOKIES_COOKIES'];}
+<?PHP session_start();
+require_once '../../sw-library/sw-config.php';
+require_once '../../sw-library/sw-function.php';
 
-	$query_user = "SELECT * FROM employees where id='$COOKIES_MEMBER' AND created_cookies='$COOKIES_COOKIES'";
-    $result_user  = $connection->query($query_user);
-    $row_user     = $result_user->fetch_assoc();
-    $employees_id = $row_user['id'];
+$COOKIES_MEMBER = '';
+$COOKIES_COOKIES = '';
+if (!empty($_COOKIE['COOKIES_MEMBER'])) {
+    $COOKIES_MEMBER = epm_decode($_COOKIE['COOKIES_MEMBER']);
+}
+if (!empty($_COOKIE['COOKIES_COOKIES'])) {
+    $COOKIES_COOKIES = $_COOKIE['COOKIES_COOKIES'];
+}
 
-    $save=mysqli_query($connection,"UPDATE employees set created_cookies='-' where id='$employees_id'");
-    header("location:./");
-    unset($_SESSION['COOKIES_MEMBER']);
-    unset($_SESSION['COOKIES_MEMBER']);
-    setcookie("COOKIES_MEMBER", "", time()-3600);
-    setcookie("COOKIES_COOKIES", "", time()-3600);
-    setcookie('COOKIES_COOKIES', '', 0, '/');
-    setcookie('COOKIES_MEMBER', '', 0, '/');
-	session_destroy();
+if ($COOKIES_MEMBER !== '' && $COOKIES_COOKIES !== '') {
+    $employees_id = mysqli_real_escape_string($connection, $COOKIES_MEMBER);
+    $created_cookies = mysqli_real_escape_string($connection, $COOKIES_COOKIES);
+    mysqli_query($connection, "UPDATE employees SET created_cookies='-' WHERE id='$employees_id' AND created_cookies='$created_cookies'");
+}
+
+unset($_SESSION['COOKIES_MEMBER']);
+unset($_SESSION['COOKIES_COOKIES']);
+setcookie('COOKIES_MEMBER', '', time() - 3600, '/');
+setcookie('COOKIES_COOKIES', '', time() - 3600, '/');
+session_destroy();
+header('location:'.$base_url.'?mod=login');
 exit();
 ?>
 

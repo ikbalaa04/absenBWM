@@ -41,7 +41,7 @@ $kode_karyawan = $huruf . sprintf("%03s", $urutan);
                             <div class="input-wrapper">
                                 <label class="label" for="role">Role</label>
                                 <select class="form-control custom-select" id="role" name="role">
-                                    <option value="user" '.($selected_role == 'user' ? 'selected' : '').'>User</option>
+                                    <option value="user" '.($selected_role == 'user' ? 'selected' : '').'>Staff</option>
                                     <option value="admin" '.($selected_role == 'admin' ? 'selected' : '').'>Admin</option>
                                 </select>
                             </div>
@@ -60,9 +60,9 @@ $kode_karyawan = $huruf . sprintf("%03s", $urutan);
 
                 <div class="form-links mt-2 user-login-links">
                     <div>
-                        <a href="registrasi">Mendaftar</a>
+                        <a href="./?mod=registrasi">Mendaftar</a>
                     </div>
-                    <div><a href="forgot" class="text-muted">Lupa Password?</a></div>
+                    <div><a href="./?mod=forgot" class="text-muted">Lupa Password?</a></div>
                 </div>
 
                 <div class="form-button-group transparent">

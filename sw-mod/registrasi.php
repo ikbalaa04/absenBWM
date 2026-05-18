@@ -98,7 +98,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) OR !isset($_COOKIE['COOKIES_COOKIES'])){
                     <div>
                         <a href=./>Sudah punya akun?</a>
                     </div>
-                    <div><a href="forgot" class="text-muted">Lupa Password?</a></div>
+                    <div><a href="./?mod=forgot" class="text-muted">Lupa Password?</a></div>
                 </div>
 
                 <div class="form-button-group transparent">

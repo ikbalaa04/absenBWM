@@ -136,7 +136,7 @@ echo'<div class="wrapper">
         <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">'.strip_tags(substr($row_user['fullname'],0,10)).' <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">';?>
-                <li><a href="javascript:void();" onClick="location.href='./logout';"><i class="fa fa-sign-out"></i> Logout</a></li>
+                <li><a href="./login/logout.php"><i class="fa fa-sign-out"></i> Logout</a></li>
               </ul>
             </li>
           
