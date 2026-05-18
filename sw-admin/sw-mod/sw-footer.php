@@ -18,18 +18,18 @@ echo'
   </footer>
 </div>
 <!-- wrapper -->
-<script src="./sw-assets/js/jquery-2.2.3.min.js"></script>
-<script src="./sw-assets/js/jquery-ui.min.js"></script>
-<script src="./sw-assets/js/bootstrap.min.js"></script>
-<script src="./sw-assets/js/jquery.slimscroll.min.js"></script>
-<script src="./sw-assets/js/adminlte.js"></script>
-<script src="./sw-assets/js/app.js"></script>
-<script src="./sw-assets/js/demo.js"></script>
-<script src="./sw-assets/js/sweetalert.min.js"></script>
+<script src="./sw-assets/js/jquery-2.2.3.min.js?v='.filemtime(__DIR__ . '/../sw-assets/js/jquery-2.2.3.min.js').'"></script>
+<script src="./sw-assets/js/jquery-ui.min.js?v='.filemtime(__DIR__ . '/../sw-assets/js/jquery-ui.min.js').'"></script>
+<script src="./sw-assets/js/bootstrap.min.js?v='.filemtime(__DIR__ . '/../sw-assets/js/bootstrap.min.js').'"></script>
+<script src="./sw-assets/js/jquery.slimscroll.min.js?v='.filemtime(__DIR__ . '/../sw-assets/js/jquery.slimscroll.min.js').'"></script>
+<script src="./sw-assets/js/adminlte.js?v='.filemtime(__DIR__ . '/../sw-assets/js/adminlte.js').'"></script>
+<script src="./sw-assets/js/app.js?v='.filemtime(__DIR__ . '/../sw-assets/js/app.js').'"></script>
+<script src="./sw-assets/js/demo.js?v='.filemtime(__DIR__ . '/../sw-assets/js/demo.js').'"></script>
+<script src="./sw-assets/js/sweetalert.min.js?v='.filemtime(__DIR__ . '/../sw-assets/js/sweetalert.min.js').'"></script>
 <script src="plugins/chart.js/Chart.min.js"></script>
-<script src="./sw-assets/js/simple-lightbox.min.js"></script>
-<script src="./sw-assets/js/validasi/jquery.validate.js"></script>
-<script src="./sw-assets/js/validasi/messages_id.js"></script>';
+<script src="./sw-assets/js/simple-lightbox.min.js?v='.filemtime(__DIR__ . '/../sw-assets/js/simple-lightbox.min.js').'"></script>
+<script src="./sw-assets/js/validasi/jquery.validate.js?v='.filemtime(__DIR__ . '/../sw-assets/js/validasi/jquery.validate.js').'"></script>
+<script src="./sw-assets/js/validasi/messages_id.js?v='.filemtime(__DIR__ . '/../sw-assets/js/validasi/messages_id.js').'"></script>';
 if($mod =='shift'){echo'
 <script src="./sw-assets/plugins/datepicker/bootstrap-datepicker.js"></script>
 <script src="./sw-assets/plugins/timepicker/bootstrap-timepicker.min.js"></script>';
