@@ -1,9 +1,9 @@
 <?php
 //sessoin_start();
-include_once '../sw-library/sw-config.php';
+include_once __DIR__ . '/sw-config.php';
 // Include Librari Google Client (API)
-include_once '../sw-library/google-client/Google_Client.php';
-include_once '../sw-library/google-client/contrib/Google_Oauth2Service.php';
+include_once __DIR__ . '/google-client/Google_Client.php';
+include_once __DIR__ . '/google-client/contrib/Google_Oauth2Service.php';
 
 $client_id = '482205120603-hf6aqm1mgr29ubsi2qttcrmfhmm2uklb.apps.googleusercontent.com'; // Google client ID
 $client_secret = '7EjMuD8XO88nR-5mtqYhh4Y3'; // Google Client Secret

@@ -3,9 +3,9 @@ date_default_timezone_set('Asia/Jakarta');
 $pacth_url	='http://'.$_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"].'';
 // -------------- Koneksi Database ------------
 $DB_HOST 	= '127.0.0.1';
-$DB_USER 	= 'webs1621_admin_bwm'; // User Database
-$DB_PASSWD  = 'Kayla210421'; // Password Database
-$DB_NAME 	= 'webs1621_db_bwm'; // Nama database
+$DB_USER 	= 'abseni_db'; // User Database
+$DB_PASSWD  = 'wdbdkf4hKPfwxsn6'; // Password Database
+$DB_NAME 	= 'abseni_db'; // Nama database
 // -------------- Koneksi Database ------------
 @define("DB_HOST", $DB_HOST);
 @define("DB_USER", $DB_USER);
