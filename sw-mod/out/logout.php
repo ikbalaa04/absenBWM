@@ -19,11 +19,10 @@ if ($COOKIES_MEMBER !== '' && $COOKIES_COOKIES !== '') {
 
 unset($_SESSION['COOKIES_MEMBER']);
 unset($_SESSION['COOKIES_COOKIES']);
+unset($_COOKIE['COOKIES_MEMBER']);
+unset($_COOKIE['COOKIES_COOKIES']);
 setcookie('COOKIES_MEMBER', '', time() - 3600, '/');
 setcookie('COOKIES_COOKIES', '', time() - 3600, '/');
 session_destroy();
 header('location:'.$base_url.'?mod=login');
 exit();
-?>
-
-		

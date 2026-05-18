@@ -1,6 +1,7 @@
 <?php if(empty($connection)){
   header('location:./404');
 } else {
+  $site_logo_file = (!empty($site_logo) && file_exists(__DIR__.'/../sw-content/'.$site_logo)) ? $site_logo : 'whiteswlogowebpng.png';
   ob_start("minify_html");
 echo'
 <!DOCTYPE html>
@@ -28,8 +29,8 @@ echo'
   <meta name="copyright" content="'.$website_name.'">
   <meta itemprop="image" content="sw-content/meta-tag.jpg">
 
-  <link rel="stylesheet" href="'.$base_url.'/sw-mod/sw-assets/css/style.css">
-  <link rel="stylesheet" href="'.$base_url.'/sw-mod/sw-assets/css/sw-custom.css">
+  <link rel="stylesheet" href="'.$base_url.'/sw-mod/sw-assets/css/style.css?v=20260518-green2">
+  <link rel="stylesheet" href="'.$base_url.'/sw-mod/sw-assets/css/sw-custom.css?v=20260518-green2">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">';
   if($mod =='history'){
     echo'
@@ -58,7 +59,7 @@ if(isset($_COOKIE['COOKIES_MEMBER'])){
             </a>
         </div>
         <div class="pageTitle">
-            <img src="'.$base_url.'sw-content/'.$site_logo.'?v=20260518-indecon" alt="logo" class="logo">
+            <img src="'.$base_url.'sw-content/'.$site_logo_file.'?v='.time().'" alt="logo" class="logo">
         </div>
         <div class="right">
             <div class="headerButton" data-toggle="dropdown" id="dropdownMenuLink" aria-haspopup="true">';
@@ -70,7 +71,7 @@ if(isset($_COOKIE['COOKIES_MEMBER'])){
               echo'
                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">';?>
                 <a class="dropdown-item" onclick="location.href='./?mod=profile';" href="./?mod=profile"><ion-icon size="small" name="person-outline"></ion-icon>Profil</a>
-                <a class="dropdown-item" onclick="location.href=\''.$base_url.'sw-mod/out/logout.php\';" href="'.$base_url.'sw-mod/out/logout.php"><ion-icon size="small" name="log-out-outline"></ion-icon>Keluar</a>
+                <a class="dropdown-item logout-link" href="'.$base_url.'?mod=logout"><ion-icon size="small" name="log-out-outline"></ion-icon>Keluar</a>
               </div>
             </div>
         </div>
@@ -154,7 +155,7 @@ echo'<!-- App Sidebar -->
 
                         </li>
                         <li>
-                            <a href="'.$base_url.'sw-mod/out/logout.php" class="item">
+                            <a href="'.$base_url.'?mod=logout" class="item logout-link">
                                 <div class="icon-box bg-danger">
                                     <ion-icon name="log-out-outline"></ion-icon>
                                 </div>

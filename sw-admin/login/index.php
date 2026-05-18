@@ -42,7 +42,7 @@ if(!empty($_SESSION['SESSION_USER']) && !empty($_SESSION['SESSION_ID'])){
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-    <a href="./"><img src="../../sw-content/'.$site_logo.'?v=20260518-indecon"  oncontextmenu="return false;" height="50"></a>
+    <a href="./"><img src="../../sw-content/'.((!empty($site_logo) && file_exists('../../sw-content/'.$site_logo)) ? $site_logo : 'whiteswlogowebpng.png').'?v='.time().'"  oncontextmenu="return false;" height="50"></a>
   </div>
   <!-- /.login-logo -->
   <div class="login-box-body">

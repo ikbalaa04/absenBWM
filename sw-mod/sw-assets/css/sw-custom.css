@@ -61,6 +61,40 @@ div.dataTables_info {
     white-space: nowrap;
 }
 
+:root {
+  --bg-danger: #63ab45;
+  --danger: #63ab45;
+}
+
+.bg-danger,
+.btn-danger,
+.badge-danger,
+.table.bg-danger,
+.icon-wrapper.bg-danger,
+.icon-box.bg-danger,
+.appHeader.bg-danger {
+  background: #63ab45 !important;
+  background-color: #63ab45 !important;
+  border-color: #63ab45 !important;
+}
+
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger:active,
+a.bg-danger:hover,
+a.bg-danger:focus,
+button.bg-danger:hover,
+button.bg-danger:focus {
+  background: #57983d !important;
+  background-color: #57983d !important;
+  border-color: #57983d !important;
+}
+
+.text-danger,
+a.text-danger {
+  color: #63ab45 !important;
+}
+
 .pagination>li>a, .pagination>li>span {
   margin: 0 1px;
   color: #333;
@@ -74,8 +108,8 @@ div.dataTables_info {
 
 .pagination>li>a:hover{
     color: #ffffff;
-    background:#dc3545;
-    border-color:#dc3545;
+    background:#63ab45;
+    border-color:#63ab45;
 }
 
 .pagination>li:first-child>a, .pagination>li:first-child>span{
@@ -95,8 +129,8 @@ div.dataTables_info {
     z-index: 2;
     color: #ffffff;
     cursor: default;
-    background:#dc3545;
-    border-color:#dc3545;
+    background:#63ab45;
+    border-color:#63ab45;
   
 }
 .avatar-section {
