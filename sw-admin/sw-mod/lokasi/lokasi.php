@@ -8,7 +8,35 @@ echo'
   <div class="content-wrapper">';
     switch(@$_GET['op']){ 
     default:
+    $default_latitude = '-6.200000';
+    $default_longitude = '106.816666';
+    $default_radius = '150';
+    $query_default_location = "SELECT latitude,longitude,radius_meter FROM building WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY building_id ASC LIMIT 1";
+    $result_default_location = $connection->query($query_default_location);
+    if($result_default_location && $result_default_location->num_rows > 0){
+      $row_default_location = $result_default_location->fetch_assoc();
+      if(!empty($row_default_location['latitude']) && !empty($row_default_location['longitude'])){
+        $default_latitude = $row_default_location['latitude'];
+        $default_longitude = $row_default_location['longitude'];
+        $default_radius = !empty($row_default_location['radius_meter']) ? $row_default_location['radius_meter'] : '150';
+      }
+    }
 echo'
+<style>
+  .location-radius-map {
+    height: 260px;
+    width: 100%;
+    border: 1px solid #d2d6de;
+    background: #f7f7f7;
+  }
+</style>
+<script>
+  window.defaultOfficeLocation = {
+    latitude: '.$default_latitude.',
+    longitude: '.$default_longitude.',
+    radius: '.$default_radius.'
+  };
+</script>
 <section class="content-header">
   <h1>Data<small> Lokasi</small></h1>
     <ol class="breadcrumb">
@@ -43,6 +71,7 @@ echo'
                 <th>ID</th>
                 <th>Nama Lokasi</th>
                 <th>Alamat</th>
+                <th class="text-center">Radius</th>
                 <th class="text-center">Jumlah Karyawan</th>
                 <th style="width:150px" class="text-center">Aksi</th>
               </tr>
@@ -62,6 +91,7 @@ echo'
                   <td>'.$row['building_id'].'</td>
                   <td>'.$row['name'].'</td>
                   <td>'.$row['address'].'</td>
+                  <td class="text-center">'.(!empty($row['radius_meter']) ? $row['radius_meter'] : 150).' m</td>
                   <td class="text-center"><span class="badge bg-yellow">'.$result_count->num_rows.'</span></td>
                   <td class="text-right">
                     <div class="btn-group">';
@@ -114,21 +144,27 @@ echo'
           <div class="col-sm-4">
             <div class="form-group">
               <label>Latitude</label>
-              <input type="text" class="form-control" name="latitude" placeholder="-6.223456">
+              <input type="text" class="form-control location-latitude" name="latitude" placeholder="-6.223456">
             </div>
           </div>
           <div class="col-sm-4">
             <div class="form-group">
               <label>Longitude</label>
-              <input type="text" class="form-control" name="longitude" placeholder="106.812345">
+              <input type="text" class="form-control location-longitude" name="longitude" placeholder="106.812345">
             </div>
           </div>
           <div class="col-sm-4">
             <div class="form-group">
               <label>Radius Meter</label>
-              <input type="number" class="form-control" name="radius_meter" value="150" min="10">
+              <input type="number" class="form-control location-radius" name="radius_meter" value="150" min="10">
             </div>
           </div>
+        </div>
+        <div class="form-group">
+          <label>Preview Radius Lokasi</label>
+          <div id="location-map-add" class="location-radius-map"></div>
+          <p class="help-block">Klik peta untuk mengatur titik kantor, lalu isi radius dalam meter.</p>
+          <p class="help-block">Lokasi kantor ini menjadi default validasi absensi. Untuk staff lapangan, tambahkan lokasi baru lalu pilih lokasi tersebut di data karyawan.</p>
         </div>
       </div>
 
@@ -166,21 +202,27 @@ echo'
           <div class="col-sm-4">
             <div class="form-group">
               <label>Latitude</label>
-              <input type="text" class="form-control" id="txtlatitude" name="latitude">
+              <input type="text" class="form-control location-latitude" id="txtlatitude" name="latitude">
             </div>
           </div>
           <div class="col-sm-4">
             <div class="form-group">
               <label>Longitude</label>
-              <input type="text" class="form-control" id="txtlongitude" name="longitude">
+              <input type="text" class="form-control location-longitude" id="txtlongitude" name="longitude">
             </div>
           </div>
           <div class="col-sm-4">
             <div class="form-group">
               <label>Radius Meter</label>
-              <input type="number" class="form-control" id="txtradius" name="radius_meter" value="150" min="10">
+              <input type="number" class="form-control location-radius" id="txtradius" name="radius_meter" value="150" min="10">
             </div>
           </div>
+        </div>
+        <div class="form-group">
+          <label>Preview Radius Lokasi</label>
+          <div id="location-map-edit" class="location-radius-map"></div>
+          <p class="help-block">Klik peta untuk memperbarui titik kantor, lalu isi radius dalam meter.</p>
+          <p class="help-block">Lokasi kantor ini menjadi default validasi absensi. Untuk staff lapangan, tambahkan lokasi baru lalu pilih lokasi tersebut di data karyawan.</p>
         </div>
       </div>
       <div class="modal-footer">

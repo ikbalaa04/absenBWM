@@ -46,9 +46,15 @@ $code   =  'SW'.acakangkahuruf(3).'/'.$year.'';
     } else {
       $address= mysqli_real_escape_string($connection, $_POST['address']);
   }
+  if (empty($_POST['latitude']) || empty($_POST['longitude']) || empty($_POST['radius_meter'])) {
+      $error[] = 'Koordinat dan radius lokasi wajib diisi';
+  }
   $latitude = !empty($_POST['latitude']) ? mysqli_real_escape_string($connection, $_POST['latitude']) : 'NULL';
   $longitude = !empty($_POST['longitude']) ? mysqli_real_escape_string($connection, $_POST['longitude']) : 'NULL';
   $radius_meter = !empty($_POST['radius_meter']) ? (int)$_POST['radius_meter'] : 150;
+  if ($radius_meter < 10) {
+      $radius_meter = 10;
+  }
   $latitude_sql = $latitude === 'NULL' ? 'NULL' : "'$latitude'";
   $longitude_sql = $longitude === 'NULL' ? 'NULL' : "'$longitude'";
 
@@ -91,9 +97,15 @@ case 'update':
     } else {
       $address= mysqli_real_escape_string($connection, $_POST['address']);
   }
+  if (empty($_POST['latitude']) || empty($_POST['longitude']) || empty($_POST['radius_meter'])) {
+      $error[] = 'Koordinat dan radius lokasi wajib diisi';
+  }
   $latitude = !empty($_POST['latitude']) ? mysqli_real_escape_string($connection, $_POST['latitude']) : 'NULL';
   $longitude = !empty($_POST['longitude']) ? mysqli_real_escape_string($connection, $_POST['longitude']) : 'NULL';
   $radius_meter = !empty($_POST['radius_meter']) ? (int)$_POST['radius_meter'] : 150;
+  if ($radius_meter < 10) {
+      $radius_meter = 10;
+  }
   $latitude_sql = $latitude === 'NULL' ? 'NULL' : "'$latitude'";
   $longitude_sql = $longitude === 'NULL' ? 'NULL' : "'$longitude'";
 

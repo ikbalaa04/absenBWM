@@ -45,6 +45,10 @@ if($mod=='absensi'){
 echo'
 <script src="../sw-mod/sw-assets/js/plugins/magnific-popup/jquery.magnific-popup.min.js"></script>';
 }
+if($mod=='lokasi'){
+echo'
+<script src="./sw-assets/plugins/leatfet/leaflet.js"></script>';
+}
 
 if(file_exists('sw-mod/'.$mod.'/scripts.js')){
 echo'

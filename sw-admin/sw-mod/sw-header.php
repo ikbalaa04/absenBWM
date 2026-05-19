@@ -44,6 +44,10 @@ echo'
   echo'
     <link rel="stylesheet" href="../sw-mod/sw-assets/js/plugins/magnific-popup/magnific-popup.css">';
   }
+  if($mod=='lokasi'){
+  echo'
+  <link rel="stylesheet" href="./sw-assets/plugins/leatfet/leaflet.css">';
+  }
   echo'
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>

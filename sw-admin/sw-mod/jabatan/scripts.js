@@ -10,6 +10,29 @@ function loading(){
     $(".loading").delay(1500).fadeOut(500);
 }
 
+function toggleLocationRulePanel(selectElement) {
+    var panel = $(selectElement).closest('.modal-body').find('.location-rule-panel');
+    if ($(selectElement).val() == '1') {
+        panel.slideDown(150);
+    } else {
+        panel.slideUp(150);
+    }
+}
+
+$('.require-location-select').each(function() {
+    toggleLocationRulePanel(this);
+});
+
+$('.require-location-select').on('change', function() {
+    toggleLocationRulePanel(this);
+});
+
+$('#modalAdd, #modalEdit').on('shown.bs.modal', function() {
+    $(this).find('.require-location-select').each(function() {
+        toggleLocationRulePanel(this);
+    });
+});
+
 /* ----------- Add ------------*/
 $('.add-jabatan').submit(function (e) {
     e.preventDefault();

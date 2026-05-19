@@ -104,10 +104,14 @@ echo'
         </div>
         <div class="form-group">
             <label>Wajib Validasi Lokasi</label>
-            <select class="form-control" name="require_location">
+            <select class="form-control require-location-select" name="require_location">
               <option value="1">Ya, harus dalam radius lokasi penempatan</option>
               <option value="0">Tidak, bebas lokasi</option>
             </select>
+        </div>
+        <div class="alert alert-info location-rule-panel">
+          <i class="fa fa-map-marker"></i> Radius dan titik default kantor diatur di menu <b>Data Lokasi</b>. Untuk staff lapangan, tambahkan lokasi baru lalu pilih lokasi tersebut di data karyawan.
+          <br><a href="./?mod=lokasi">Buka pengaturan lokasi</a>
         </div>
       </div>
       <div class="modal-footer">
@@ -137,10 +141,14 @@ echo'
         </div>
         <div class="form-group">
             <label>Wajib Validasi Lokasi</label>
-            <select class="form-control" name="require_location" id="txtrequirelocation">
+            <select class="form-control require-location-select" name="require_location" id="txtrequirelocation">
               <option value="1">Ya, harus dalam radius lokasi penempatan</option>
               <option value="0">Tidak, bebas lokasi</option>
             </select>
+        </div>
+        <div class="alert alert-info location-rule-panel">
+          <i class="fa fa-map-marker"></i> Radius dan titik default kantor diatur di menu <b>Data Lokasi</b>. Untuk staff lapangan, tambahkan lokasi baru lalu pilih lokasi tersebut di data karyawan.
+          <br><a href="./?mod=lokasi">Buka pengaturan lokasi</a>
         </div>
       </div>
       <div class="modal-footer">
