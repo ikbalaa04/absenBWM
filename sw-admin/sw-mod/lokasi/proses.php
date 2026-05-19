@@ -8,6 +8,19 @@ require_once'../../../sw-library/sw-config.php';
 require_once'../../login/login_session.php';
 include('../../../sw-library/sw-function.php'); 
 
+if (!function_exists('ensure_building_address_capacity')) {
+  function ensure_building_address_capacity($connection) {
+    $column = $connection->query("SHOW COLUMNS FROM building LIKE 'address'");
+    if ($column && $column->num_rows > 0) {
+      $row = $column->fetch_assoc();
+      if (preg_match('/^varchar\((\d+)\)/i', $row['Type'], $matches) && (int)$matches[1] < 255) {
+        return $connection->query("ALTER TABLE building MODIFY address TEXT NOT NULL");
+      }
+    }
+    return true;
+  }
+}
+
 switch (@$_GET['action']){
 case 'add':
 function acakangkahuruf($panjang){
@@ -33,13 +46,21 @@ $code   =  'SW'.acakangkahuruf(3).'/'.$year.'';
     } else {
       $address= mysqli_real_escape_string($connection, $_POST['address']);
   }
+  $latitude = !empty($_POST['latitude']) ? mysqli_real_escape_string($connection, $_POST['latitude']) : 'NULL';
+  $longitude = !empty($_POST['longitude']) ? mysqli_real_escape_string($connection, $_POST['longitude']) : 'NULL';
+  $radius_meter = !empty($_POST['radius_meter']) ? (int)$_POST['radius_meter'] : 150;
+  $latitude_sql = $latitude === 'NULL' ? 'NULL' : "'$latitude'";
+  $longitude_sql = $longitude === 'NULL' ? 'NULL' : "'$longitude'";
 
   if (empty($error)) { 
+    if (!ensure_building_address_capacity($connection)) {
+        echo'Kolom alamat masih terlalu pendek dan gagal diperbarui: '.$connection->error;
+        break;
+    }
 
-    $add ="INSERT INTO  building (code,name,address,building_scanner) values('$code','$name','$address','')"; 
+    $add ="INSERT INTO  building (code,name,address,latitude,longitude,radius_meter,building_scanner) values('$code','$name','$address',$latitude_sql,$longitude_sql,'$radius_meter','')"; 
     if($connection->query($add) === false) { 
-        die($connection->error.__LINE__); 
-        echo'Data tidak berhasil disimpan!';
+        echo'Data tidak berhasil disimpan: '.$connection->error;
     } else{
         echo'success';
     }}
@@ -70,13 +91,25 @@ case 'update':
     } else {
       $address= mysqli_real_escape_string($connection, $_POST['address']);
   }
+  $latitude = !empty($_POST['latitude']) ? mysqli_real_escape_string($connection, $_POST['latitude']) : 'NULL';
+  $longitude = !empty($_POST['longitude']) ? mysqli_real_escape_string($connection, $_POST['longitude']) : 'NULL';
+  $radius_meter = !empty($_POST['radius_meter']) ? (int)$_POST['radius_meter'] : 150;
+  $latitude_sql = $latitude === 'NULL' ? 'NULL' : "'$latitude'";
+  $longitude_sql = $longitude === 'NULL' ? 'NULL' : "'$longitude'";
 
   if (empty($error)) { 
+    if (!ensure_building_address_capacity($connection)) {
+        echo'Kolom alamat masih terlalu pendek dan gagal diperbarui: '.$connection->error;
+        break;
+    }
+
     $update="UPDATE building SET name='$name',
-            address='$address' WHERE building_id='$id'"; 
+            address='$address',
+            latitude=$latitude_sql,
+            longitude=$longitude_sql,
+            radius_meter='$radius_meter' WHERE building_id='$id'"; 
     if($connection->query($update) === false) { 
-        die($connection->error.__LINE__); 
-        echo'Data tidak berhasil disimpan!';
+        echo'Data tidak berhasil disimpan: '.$connection->error;
     } else{
         echo'success';
     }}

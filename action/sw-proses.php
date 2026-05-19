@@ -264,10 +264,15 @@ if (empty($error)){
   if (($extension="jpg") && ($extension="jpeg") && ($extension="gif")) { 
     if($ukuran_file <50000000) {
     // Cek User yang sudah login -----------------------------------------------
-    $query_u="SELECT employees.id,employees.employees_code,employees.employees_name,employees.shift_id,shift.shift_id,shift.time_in,shift.time_out FROM employees,shift WHERE employees.shift_id=shift.shift_id AND employees.id='$row_user[id]'";
+    $query_u="SELECT employees.id,employees.employees_code,employees.employees_name,employees.shift_id,shift.shift_id,shift.time_in,shift.time_out,position.require_location,building.latitude,building.longitude,building.radius_meter FROM employees,shift,position,building WHERE employees.shift_id=shift.shift_id AND employees.position_id=position.position_id AND employees.building_id=building.building_id AND employees.id='$row_user[id]'";
     $result_u = $connection->query($query_u);
     if($result_u->num_rows > 0){
     $row_u = $result_u->fetch_assoc();
+    $attendance_error = attendance_validate_checkin($row_u, $latitude, $date);
+    if ($attendance_error !== '') {
+      echo $attendance_error;
+      break;
+    }
 
         // Cek data Absen Berdasarkan tanggal sekarang
         $query  ="SELECT employees_id,time_in,time_out FROM presence WHERE employees_id='$row_u[id]' AND presence_date='$date'";

@@ -12,14 +12,13 @@ function loading(){
 
 /* ----------- Add ------------*/
 $('.add-jabatan').submit(function (e) {
+    e.preventDefault();
     if($('#nama').val()==''){    
          swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
         return false;
-        loading();
     }
     else{
         loading();
-        e.preventDefault();
         $.ajax({
             url:"sw-mod/jabatan/proses.php?action=add",
             type: "POST",
@@ -50,14 +49,13 @@ $('.add-jabatan').submit(function (e) {
 
 /* -------------------- Edit ------------------- */
 $('.update-jabatan').submit(function (e) {
-    if($("#title").val()==""){    
+    e.preventDefault();
+    if($("#txtnama").val()==""){    
          swal({title: 'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
-         loading();
         return false;
     }
     else{
         loading();
-        e.preventDefault();
         $.ajax({
             url:"sw-mod/jabatan/proses.php?action=update",
             type: "POST",

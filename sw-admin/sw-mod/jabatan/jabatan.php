@@ -41,12 +41,13 @@ echo'
               <th style="width:20px" class="text-center">No</th>
               <th class="text-center">ID</th>
               <th>Nama Jabatan</th>
+              <th class="text-center">Wajib Lokasi</th>
               <th class="text-center">Jumlah Karyawan</th>
               <th style="width:100px">Aksi</th>
             </tr>
             </thead>
             <tbody>';
-            $query="SELECT position_id,position_name FROM position order by position_id DESC";
+            $query="SELECT position_id,position_name,require_location FROM position order by position_id DESC";
             $result = $connection->query($query);
             if($result->num_rows > 0){
             $no=0;
@@ -59,18 +60,19 @@ echo'
                 <td class="text-center">'.$no.'</td>
                 <td class="text-center">'.$row['position_id'].'</td>
                 <td>'.$row['position_name'].'</td>
+                <td class="text-center">'.((int)$row['require_location'] === 1 ? '<span class="label label-success">Ya</span>' : '<span class="label label-default">Tidak</span>').'</td>
                 <td class="text-center"><span class="badge bg-yellow">'.$result_count->num_rows.'</span></td>
                 <td>
                   <div class="btn-group">';
                   if($level_user==1){
                     echo'
-                    <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['position_id'];?>';getElementById('txtnama').value='<?PHP echo $row['position_name'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a>
+                    <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['position_id'];?>';getElementById('txtnama').value='<?PHP echo $row['position_name'];?>';getElementById('txtrequirelocation').value='<?PHP echo $row['require_location'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a>
                 <?php echo'
-                <buton data-id="'.epm_encode($row['position_id']).'" class="btn btn-xs btn-danger delete" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
+                <button data-id="'.epm_encode($row['position_id']).'" class="btn btn-xs btn-danger delete" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
                 else {
                   echo'
                     <button type="button" class="btn btn-warning btn-xs access-failed enable-tooltip" title="Edit"><i class="fa fa-pencil-square-o"></i> Ubah</button>
-                    <buton type="button" class="btn btn-xs btn-danger access-failed" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';
+                    <button type="button" class="btn btn-xs btn-danger access-failed" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';
                 }echo'
                   </div>
                 </td>
@@ -100,6 +102,13 @@ echo'
             <label>Nama Jabatan</label>
             <input type="text" class="form-control" name="position_name" id="nama" required>
         </div>
+        <div class="form-group">
+            <label>Wajib Validasi Lokasi</label>
+            <select class="form-control" name="require_location">
+              <option value="1">Ya, harus dalam radius lokasi penempatan</option>
+              <option value="0">Tidak, bebas lokasi</option>
+            </select>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="submit" class="btn btn-primary pull-left"><i class="fa fa-check"></i> Simpan</button>
@@ -120,11 +129,18 @@ echo'
         <h4 class="modal-title">Update Data</h4>
       </div>
       <form class="form update-jabatan" method="post">
-       <input type="hidden" name="id" id="txtid" required" value="" readonly>
+       <input type="hidden" name="id" id="txtid" required value="" readonly>
       <div class="modal-body">
         <div class="form-group">
             <label>Nama</label>
             <input type="text" class="form-control" name="position_name" id="txtnama" required>
+        </div>
+        <div class="form-group">
+            <label>Wajib Validasi Lokasi</label>
+            <select class="form-control" name="require_location" id="txtrequirelocation">
+              <option value="1">Ya, harus dalam radius lokasi penempatan</option>
+              <option value="0">Tidak, bebas lokasi</option>
+            </select>
         </div>
       </div>
       <div class="modal-footer">

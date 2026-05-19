@@ -16,9 +16,10 @@ case 'add':
     } else {
       $position_name= mysqli_real_escape_string($connection, $_POST['position_name']);
   }
+  $require_location = isset($_POST['require_location']) ? (int)$_POST['require_location'] : 1;
 
   if (empty($error)) { 
-    $add ="INSERT INTO position (position_name) values('$position_name')"; 
+    $add ="INSERT INTO position (position_name,require_location) values('$position_name','$require_location')"; 
     if($connection->query($add) === false) { 
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
@@ -46,9 +47,10 @@ case 'update':
     } else {
       $position_name= mysqli_real_escape_string($connection, $_POST['position_name']);
   }
+  $require_location = isset($_POST['require_location']) ? (int)$_POST['require_location'] : 1;
 
   if (empty($error)) { 
-    $update="UPDATE position SET position_name='$position_name' WHERE position_id='$id'"; 
+    $update="UPDATE position SET position_name='$position_name', require_location='$require_location' WHERE position_id='$id'"; 
     if($connection->query($update) === false) { 
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';

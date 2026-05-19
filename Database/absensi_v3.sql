@@ -31,7 +31,10 @@ CREATE TABLE `building` (
   `building_id` int(8) NOT NULL,
   `code` varchar(20) NOT NULL,
   `name` varchar(50) NOT NULL,
-  `address` varchar(100) NOT NULL,
+  `address` text NOT NULL,
+  `latitude` decimal(10,8) DEFAULT NULL,
+  `longitude` decimal(11,8) DEFAULT NULL,
+  `radius_meter` int(6) NOT NULL DEFAULT 150,
   `building_scanner` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -39,8 +42,8 @@ CREATE TABLE `building` (
 -- Dumping data untuk tabel `building`
 --
 
-INSERT INTO `building` (`building_id`, `code`, `name`, `address`, `building_scanner`) VALUES
-(1, 'IND/2021', 'Indecon', 'Alamat kantor', '');
+INSERT INTO `building` (`building_id`, `code`, `name`, `address`, `latitude`, `longitude`, `radius_meter`, `building_scanner`) VALUES
+(1, 'IND/2021', 'Indecon', 'Alamat kantor', NULL, NULL, 150, '');
 
 -- --------------------------------------------------------
 
@@ -95,17 +98,18 @@ INSERT INTO `employees` (`id`, `employees_code`, `employees_email`, `employees_p
 
 CREATE TABLE `position` (
   `position_id` int(5) NOT NULL,
-  `position_name` varchar(30) NOT NULL
+  `position_name` varchar(30) NOT NULL,
+  `require_location` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `position`
 --
 
-INSERT INTO `position` (`position_id`, `position_name`) VALUES
-(1, 'STAFF'),
-(2, 'ACCOUNTING'),
-(7, 'MARKETING');
+INSERT INTO `position` (`position_id`, `position_name`, `require_location`) VALUES
+(1, 'STAFF', 1),
+(2, 'ACCOUNTING', 1),
+(7, 'MARKETING', 0);
 
 -- --------------------------------------------------------
 

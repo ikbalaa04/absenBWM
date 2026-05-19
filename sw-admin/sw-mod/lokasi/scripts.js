@@ -12,14 +12,13 @@ function loading(){
 
 /* ----------- Add ------------*/
 $('.add-lokasi').submit(function (e) {
-    if($('input[type=text]').val()=='' && $('textarea.address').val()==''){    
+    e.preventDefault();
+    if($('.add-lokasi input[name="name"]').val()=='' || $('.add-lokasi textarea[name="address"]').val()==''){    
         swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
         return false;
-        loading();
     }
     else{
         loading();
-        e.preventDefault();
         $.ajax({
             url:"sw-mod/lokasi/proses.php?action=add",
             type: "POST",
@@ -50,14 +49,13 @@ $('.add-lokasi').submit(function (e) {
 
 /* -------------------- Edit ------------------- */
 $('.update-lokasi').submit(function (e) {
-    if($('#txtname').val()==''){    
+    e.preventDefault();
+    if($('#txtname').val()=='' || $('#txtaddress').val()==''){    
          swal({title: 'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
-         loading();
         return false;
     }
     else{
         loading();
-        e.preventDefault();
         $.ajax({
             url:"sw-mod/lokasi/proses.php?action=update",
             type: "POST",

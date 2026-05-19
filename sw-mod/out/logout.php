@@ -1,4 +1,7 @@
-<?PHP session_start();
+<?PHP
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 require_once __DIR__.'/../../sw-library/sw-config.php';
 require_once __DIR__.'/../../sw-library/sw-function.php';
 

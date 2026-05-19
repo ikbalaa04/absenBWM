@@ -49,4 +49,6 @@ if (!function_exists('base_url')) {
 			return $base_url;
 		}
 }
-$base_url = base_url();?>
+$base_url = base_url();
+require_once __DIR__.'/attendance-rules.php';
+attendance_ensure_schema($connection);

@@ -1,4 +1,7 @@
-<?PHP session_start(); 
+<?PHP
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
     require_once'../../sw-library/sw-config.php';
     require_once'../login/login_session.php';
    $time_logout	= date('Y-m-d H:i:s');

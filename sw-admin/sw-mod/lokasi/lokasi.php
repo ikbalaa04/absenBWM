@@ -48,7 +48,7 @@ echo'
               </tr>
               </thead>
               <tbody>';
-              $query="SELECT building_id,name,address FROM building order by building_id  DESC";
+              $query="SELECT building_id,name,address,latitude,longitude,radius_meter FROM building order by building_id  DESC";
               $result = $connection->query($query);
               if($result->num_rows > 0){
               $no=0;
@@ -67,13 +67,13 @@ echo'
                     <div class="btn-group">';
                       if($level_user == 1){
                       echo'
-                      <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['building_id'];?>';getElementById('txtname').value='<?PHP echo $row['name'];?>';getElementById('txtaddress').value='<?PHP echo $row['address'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a>
+                      <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['building_id'];?>';getElementById('txtname').value='<?PHP echo $row['name'];?>';getElementById('txtaddress').value='<?PHP echo $row['address'];?>';getElementById('txtlatitude').value='<?PHP echo $row['latitude'];?>';getElementById('txtlongitude').value='<?PHP echo $row['longitude'];?>';getElementById('txtradius').value='<?PHP echo $row['radius_meter'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a>
                       <?php echo'
-                      <buton data-id="'.epm_encode($row['building_id']).'" class="btn btn-xs btn-danger delete" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
+                      <button data-id="'.epm_encode($row['building_id']).'" class="btn btn-xs btn-danger delete" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
                     else{
                     echo'
                       <button type="button" class="btn btn-warning btn-xs access-failed enable-tooltip" title="Edit"><i class="fa fa-pencil-square-o"></i> Ubah</button>
-                      <buton type="button" class="btn btn-xs btn-danger access-failed" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';
+                      <button type="button" class="btn btn-xs btn-danger access-failed" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';
                     }
                     echo'
                     </div>
@@ -110,6 +110,26 @@ echo'
             <label>Alamat Kantor</label>
             <textarea class="form-control address" name="address" rows="3" required></textarea>
         </div>
+        <div class="row">
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label>Latitude</label>
+              <input type="text" class="form-control" name="latitude" placeholder="-6.223456">
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label>Longitude</label>
+              <input type="text" class="form-control" name="longitude" placeholder="106.812345">
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label>Radius Meter</label>
+              <input type="number" class="form-control" name="radius_meter" value="150" min="10">
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="modal-footer">
@@ -131,7 +151,7 @@ echo'
         <h4 class="modal-title">Update Data</h4>
       </div>
       <form class="form update-lokasi" method="post">
-       <input type="hidden" name="id" id="txtid" required" value="" readonly>
+       <input type="hidden" name="id" id="txtid" required value="" readonly>
       <div class="modal-body">
           <div class="form-group">
               <label>Nama Lokasi</label>
@@ -141,6 +161,26 @@ echo'
           <div class="form-group">
             <label>Alamat Kantor</label>
             <textarea class="form-control address" id="txtaddress" name="address" rows="3" required></textarea>
+        </div>
+        <div class="row">
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label>Latitude</label>
+              <input type="text" class="form-control" id="txtlatitude" name="latitude">
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label>Longitude</label>
+              <input type="text" class="form-control" id="txtlongitude" name="longitude">
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="form-group">
+              <label>Radius Meter</label>
+              <input type="number" class="form-control" id="txtradius" name="radius_meter" value="150" min="10">
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
