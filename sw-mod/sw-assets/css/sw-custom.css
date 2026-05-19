@@ -150,6 +150,7 @@ a.text-danger {
   cursor:pointer;
 }
 
+.avatar-section .imaged,
 .avatar-section .profile-avatar {
   display: block;
   width: 100px !important;
@@ -162,6 +163,32 @@ a.text-danger {
   border-radius: 50% !important;
   object-fit: cover;
   object-position: center;
+}
+
+.appHeader .right .imaged,
+.profileBox .image-wrapper .imaged,
+.header-avatar {
+  display: block;
+  border-radius: 50% !important;
+  border: 1px solid #ffffff;
+  object-fit: cover;
+  object-position: center;
+}
+
+.appHeader .right .imaged,
+.header-avatar.w32 {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px;
+  max-width: 32px;
+}
+
+.profileBox .image-wrapper .imaged,
+.header-avatar.w36 {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px;
+  max-width: 36px;
 }
 
 .btn-update-cuty,

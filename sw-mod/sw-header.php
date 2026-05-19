@@ -64,10 +64,10 @@ if(isset($_COOKIE['COOKIES_MEMBER'])){
         <div class="right">
             <div class="headerButton" data-toggle="dropdown" id="dropdownMenuLink" aria-haspopup="true">';
               if($row_user['photo'] ==''){
-                echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w32">';
+                echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w32 header-avatar">';
               }else{
                 echo'
-                <img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" alt="image" class="imaged w32">';}
+                <img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" alt="image" class="imaged w32 header-avatar">';}
               echo'
                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">';?>
                 <a class="dropdown-item" onclick="location.href='./?mod=profile';" href="./?mod=profile"><ion-icon size="small" name="person-outline"></ion-icon>Profil</a>
@@ -91,9 +91,9 @@ echo'<!-- App Sidebar -->
                     <div class="profileBox pt-2 pb-2">
                         <div class="image-wrapper">';
                         if($row_user['photo'] ==''){
-                        echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged  w36">';
+                        echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w36 header-avatar">';
                         }else{
-                        echo'<img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" class="imaged  w36">';
+                        echo'<img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" class="imaged w36 header-avatar">';
                         }
                           echo'
                         </div>
