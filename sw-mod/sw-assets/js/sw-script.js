@@ -9,6 +9,11 @@ function loading(){
     $(".loading").delay(2000).fadeOut(600);
 }
 
+$(document).on('click', '[data-target="#sidebarPanel"]', function(e) {
+    e.preventDefault();
+    $('#sidebarPanel').modal('show');
+});
+
 function ensureLoginRoleField() {
     if ($('#form-login').length && $('#role').length === 0) {
         $('#email').attr({
@@ -476,27 +481,30 @@ $('.btn-print').click(function (e) {
         });
     });
 
-    function syncCutyEditor(form) {
-        var editor = $(form).find('.cuty-rich-editor');
-        var textarea = $(form).find('textarea.cuty_description');
-        textarea.val(editor.html().trim());
-    }
-
     function isCutyDescriptionEmpty(form) {
-        return $(form).find('.cuty-rich-editor').text().trim() === '';
+        return $(form).find('textarea.cuty_description').val().trim() === '';
     }
 
     function toggleCutyDateFields(form) {
         var type = $(form).find('.cuty-type').val();
-        var dateFields = $(form).find('.cuty-date-field');
-        var dateInputs = dateFields.find('input');
+        var startField = $(form).find('.cuty-start-field');
+        var startInput = startField.find('input');
+        var startLabel = startField.find('.cuty-start-label');
+        var endField = $(form).find('.cuty-end-field');
+        var endInput = endField.find('input');
 
         if (type === 'cuti') {
-            dateFields.show();
-            dateInputs.prop('required', true);
+            startLabel.text('Mulai Cuti');
+            startField.show();
+            endField.show();
+            startInput.prop('required', true);
+            endInput.prop('required', true);
         } else {
-            dateFields.hide();
-            dateInputs.prop('required', false);
+            startLabel.text('Tanggal Izin');
+            startField.show();
+            endField.hide();
+            startInput.prop('required', true);
+            endInput.prop('required', false);
         }
     }
 
@@ -504,31 +512,31 @@ $('.btn-print').click(function (e) {
         toggleCutyDateFields($(this).closest('form'));
     });
 
-    $(document).on('click', '.cuty-editor-toolbar button', function() {
-        document.execCommand($(this).data('command'), false, null);
-        $(this).closest('.input-wrapper').find('.cuty-rich-editor').focus();
-    });
-
     $('#modal-add, #modal-update').on('shown.bs.modal', function() {
         toggleCutyDateFields($(this).find('form'));
     });
 
+    toggleCutyDateFields($('#form-add-cuty'));
+    toggleCutyDateFields($('#form-update-cuty'));
+
     /* ----------- ADD DATA CUTY ------------*/
-    $('#form-add-cuty').submit(function (e) {
+    $(document).on('submit', '#form-add-cuty', function (e) {
         e.preventDefault();
-        syncCutyEditor(this);
-        if($("select[name=cuty_type]", this).val()=="cuti" && ($("#cutystart").val()=="" || $("#cutyend").val()=="")){  
+        var form = this;
+        var type = $("select[name=cuty_type]", form).val();
+        if($("#cutystart", form).val()==""){  
+             swal({title:'Oops!', text: 'Tanggal izin wajib diisi.!', icon: 'error', timer: 1500,});
+            return false;
+        }
+        if(type=="cuti" && $("#cutyend", form).val()==""){  
              swal({title:'Oops!', text: 'Tanggal mulai dan tanggal akhir wajib diisi untuk cuti.!', icon: 'error', timer: 1500,});
             return false;
-            loading();
         }
-        if(isCutyDescriptionEmpty(this)){  
+        if(isCutyDescriptionEmpty(form)){  
              swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
             return false;
-            loading();
         }
         else{
-            loading();
             $.ajax({
                 url: swProcessUrl+"?action=add-cuty",
                 type: "POST",
@@ -546,7 +554,7 @@ $('.btn-print').click(function (e) {
                         loadDataCuty();
                         $('#modal-add').modal('hide');
                         $('#form-add-cuty').trigger("reset");
-                        $('#form-add-cuty .cuty-rich-editor').empty();
+                        toggleCutyDateFields($('#form-add-cuty'));
                     } else {
                         swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
                     }
@@ -575,28 +583,29 @@ $('.btn-print').click(function (e) {
 
         var cuty_description = $(this).attr("data-description"); 
         document.getElementById('cuty_description').value = cuty_description;
-        document.getElementById('cuty-description-editor').innerHTML = cuty_description;
         toggleCutyDateFields($('#form-update-cuty'));
         /*var cuty_description = $(this).attr("data-date"); 
         $('.status-date').html(tanggal);*/
     });
 
     /* ----------- UPDATE DATA CUTY ------------*/
-    $('#form-update-cuty').submit(function (e) {
+    $(document).on('submit', '#form-update-cuty', function (e) {
         e.preventDefault();
-        syncCutyEditor(this);
-        if($("select[name=cuty_type]", this).val()=="cuti" && ($("#cuty-start").val()=="" || $("#cuty-end").val()=="")){  
+        var form = this;
+        var type = $("select[name=cuty_type]", form).val();
+        if($("#cuty-start", form).val()==""){  
+             swal({title:'Oops!', text: 'Tanggal izin wajib diisi.!', icon: 'error', timer: 1500,});
+            return false;
+        }
+        if(type=="cuti" && $("#cuty-end", form).val()==""){  
              swal({title:'Oops!', text: 'Tanggal mulai dan tanggal akhir wajib diisi untuk cuti.!', icon: 'error', timer: 1500,});
             return false;
-            loading();
         }
-        if(isCutyDescriptionEmpty(this)){  
+        if(isCutyDescriptionEmpty(form)){  
              swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
             return false;
-            loading();
         }
         else{
-            loading();
             $.ajax({
                 url: swProcessUrl+"?action=update-cuty",
                 type: "POST",
@@ -614,7 +623,6 @@ $('.btn-print').click(function (e) {
                         loadDataCuty();
                         $('#modal-update').modal('hide');
                         $('#form-update-cuty').trigger("reset");
-                        $('#form-update-cuty .cuty-rich-editor').empty();
                     } else {
                         swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
                     }

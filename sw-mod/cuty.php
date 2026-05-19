@@ -76,7 +76,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                         <a href="javascript:;" data-dismiss="modal">Close</a>
                     </div>
                     <div class="modal-body">
-                        <form id="form-add-cuty" autocomplete="off">
+                        <form id="form-add-cuty" autocomplete="off" novalidate>
                             <div class="form-group basic">
                                 <div class="input-wrapper">
                                     <label class="label">Nama</label>
@@ -96,11 +96,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                                 </div>
                             </div>
 
-                            <div class="form-group basic cuty-date-field">
+                            <div class="form-group basic cuty-start-field">
                                 <div class="input-wrapper">
-                                    <label class="label">Mulai Cuti</label>
+                                    <label class="label cuty-start-label">Mulai Cuti</label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control datepicker" id="cutystart" name="cuty_start" placeholder="'.tanggal_ind($date).'" value="'.tanggal_ind($date).'" required>
+                                            <input type="text" class="form-control datepicker" id="cutystart" name="cuty_start" placeholder="'.tanggal_ind($date).'" value="'.tanggal_ind($date).'">
                                             <div class="input-group-addon">
                                                 <ion-icon name="calendar-outline"></ion-icon>
                                             </div>
@@ -108,11 +108,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                                     </div>
                             </div>
 
-                            <div class="form-group basic cuty-date-field">
+                            <div class="form-group basic cuty-end-field">
                                 <div class="input-wrapper">
                                     <label class="label">Berakhir Cuti</label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control datepicker" id="cutyend" name="cuty_end" placeholder="'.tanggal_ind($date).'" value="" required>
+                                            <input type="text" class="form-control datepicker" id="cutyend" name="cuty_end" placeholder="'.tanggal_ind($date).'" value="">
                                             <div class="input-group-addon">
                                                 <ion-icon name="calendar-outline"></ion-icon>
                                             </div>
@@ -123,13 +123,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                             <div class="form-group basic">
                                 <div class="input-wrapper">
                                     <label class="label">Keterangan</label>
-                                    <div class="cuty-editor-toolbar">
-                                        <button type="button" class="btn btn-sm btn-light" data-command="bold"><strong>B</strong></button>
-                                        <button type="button" class="btn btn-sm btn-light" data-command="italic"><em>I</em></button>
-                                        <button type="button" class="btn btn-sm btn-light" data-command="insertUnorderedList">List</button>
-                                    </div>
-                                    <div class="form-control cuty-rich-editor" contenteditable="true"></div>
-                                    <textarea class="form-control cuty_description" name="cuty_description" style="display:none" required></textarea>
+                                    <textarea rows="5" class="form-control cuty_description" name="cuty_description"></textarea>
                                 </div>
                             </div>
 
@@ -153,7 +147,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                         <a href="javascript:;" data-dismiss="modal">Close</a>
                     </div>
                     <div class="modal-body">
-                        <form id="form-update-cuty" autocomplete="off">
+                        <form id="form-update-cuty" autocomplete="off" novalidate>
                             <input type="hidden" id="city-id" name="cuty_id" value="" readonly required>
                             <div class="form-group basic">
                                 <div class="input-wrapper">
@@ -174,11 +168,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                                 </div>
                             </div>
 
-                            <div class="form-group basic cuty-date-field">
+                            <div class="form-group basic cuty-start-field">
                                 <div class="input-wrapper">
-                                    <label class="label">Mulai Cuti</label>
+                                    <label class="label cuty-start-label">Mulai Cuti</label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control datepicker" id="cuty-start" name="cuty_start" placeholder="'.tanggal_ind($date).'" value="" required>
+                                            <input type="text" class="form-control datepicker" id="cuty-start" name="cuty_start" placeholder="'.tanggal_ind($date).'" value="">
                                             <div class="input-group-addon">
                                                 <ion-icon name="calendar-outline"></ion-icon>
                                             </div>
@@ -186,11 +180,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                                     </div>
                             </div>
 
-                            <div class="form-group basic cuty-date-field">
+                            <div class="form-group basic cuty-end-field">
                                 <div class="input-wrapper">
                                     <label class="label">Berakhir Cuti</label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control datepicker" id="cuty-end" name="cuty_end" placeholder="'.tanggal_ind($date).'" value="" required>
+                                            <input type="text" class="form-control datepicker" id="cuty-end" name="cuty_end" placeholder="'.tanggal_ind($date).'" value="">
                                             <div class="input-group-addon">
                                                 <ion-icon name="calendar-outline"></ion-icon>
                                             </div>
@@ -201,13 +195,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                             <div class="form-group basic">
                                 <div class="input-wrapper">
                                     <label class="label">Keterangan</label>
-                                    <div class="cuty-editor-toolbar">
-                                        <button type="button" class="btn btn-sm btn-light" data-command="bold"><strong>B</strong></button>
-                                        <button type="button" class="btn btn-sm btn-light" data-command="italic"><em>I</em></button>
-                                        <button type="button" class="btn btn-sm btn-light" data-command="insertUnorderedList">List</button>
-                                    </div>
-                                    <div class="form-control cuty-rich-editor" id="cuty-description-editor" contenteditable="true"></div>
-                                    <textarea class="form-control cuty_description" id="cuty_description" name="cuty_description" style="display:none" required></textarea>
+                                    <textarea rows="5" class="form-control cuty_description" id="cuty_description" name="cuty_description"></textarea>
                                 </div>
                             </div>
 

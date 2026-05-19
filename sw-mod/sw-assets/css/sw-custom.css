@@ -150,6 +150,13 @@ a.text-danger {
   cursor:pointer;
 }
 
+.avatar-section .profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50% !important;
+  object-fit: cover;
+}
+
 
 /* -----  ID Card -----------*/
 .id-card{
@@ -270,23 +277,6 @@ a.text-danger {
   border: 0px;
   font-size: 15px;
   font-weight: 500;
-}
-
-.cuty-editor-toolbar {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.cuty-rich-editor {
-  min-height: 120px;
-  height: auto;
-  overflow-y: auto;
-}
-
-.cuty-rich-editor ul,
-.cuty-rich-editor ol {
-  padding-left: 20px;
 }
 
 @media only screen and (max-width:690px){

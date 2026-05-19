@@ -12,8 +12,7 @@
     $expired_cookie = time()+60*60*24*7;
 
 function sanitize_cuty_description($connection, $description) {
-  $allowed_tags = '<b><strong><i><em><u><br><p><ul><ol><li>';
-  $description = strip_tags($description, $allowed_tags);
+  $description = strip_tags($description);
   return mysqli_real_escape_string($connection, $description);
 }
 
@@ -675,9 +674,9 @@ $query_cuty ="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE e
       while ($row_cuty = $result_cuty->fetch_assoc()) {
         $cuty_type = isset($row_cuty['cuty_type']) ? $row_cuty['cuty_type'] : 'cuti';
         $cuty_type_label = ucfirst($cuty_type);
-        $cuty_description = $row_cuty['cuty_description'];
-        $cuty_description_attr = htmlspecialchars($cuty_description, ENT_QUOTES, 'UTF-8');
-        $cuty_date_info = '';
+        $cuty_description = nl2br(htmlspecialchars($row_cuty['cuty_description'], ENT_QUOTES, 'UTF-8'));
+        $cuty_description_attr = htmlspecialchars($row_cuty['cuty_description'], ENT_QUOTES, 'UTF-8');
+        $cuty_date_info = '<ion-icon name="calendar-outline"></ion-icon> '.tanggal_ind($row_cuty['cuty_start']).'<br>';
         if($cuty_type == 'cuti'){
           $cuty_date_info = '<ion-icon name="calendar-outline"></ion-icon> '.tanggal_ind($row_cuty['cuty_start']).' - '.tanggal_ind($row_cuty['cuty_end']).'<br>';
         }
@@ -721,16 +720,16 @@ $error = array();
 
   $cuty_type = get_cuty_type(isset($_POST['cuty_type']) ? $_POST['cuty_type'] : 'cuti');
 
-  if ($cuty_type == 'cuti' && empty($_POST['cuty_start'])) {
+  if (empty($_POST['cuty_start'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_start= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_start'])) : date('Y-m-d');
+      $cuty_start= date('Y-m-d',strtotime($_POST['cuty_start']));
   }
 
   if ($cuty_type == 'cuti' && empty($_POST['cuty_end'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_end= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_end'])) : date('Y-m-d');
+      $cuty_end= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_end'])) : $cuty_start;
   }
 
   if ($cuty_type == 'cuti' && strtotime($cuty_start) > strtotime($cuty_end)) {
@@ -794,16 +793,16 @@ $error = array();
 
   $cuty_type = get_cuty_type(isset($_POST['cuty_type']) ? $_POST['cuty_type'] : 'cuti');
 
-  if ($cuty_type == 'cuti' && empty($_POST['cuty_start'])) {
+  if (empty($_POST['cuty_start'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_start= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_start'])) : date('Y-m-d');
+      $cuty_start= date('Y-m-d',strtotime($_POST['cuty_start']));
   }
 
   if ($cuty_type == 'cuti' && empty($_POST['cuty_end'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_end= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_end'])) : date('Y-m-d');
+      $cuty_end= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_end'])) : $cuty_start;
   }
 
   if ($cuty_type == 'cuti' && strtotime($cuty_start) > strtotime($cuty_end)) {

@@ -20,10 +20,10 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                 <input type="file" class="upload" name="file" id="avatar" accept=".jpg, .jpeg, ,gif, .png" capture="camera">
                 <a href="#">';
                 if($row_user['photo'] ==''){
-                echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w100 rounded">';
+                echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w100 rounded-circle profile-avatar">';
                 }else{
                     echo'
-                    <img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" alt="avatar" class="imaged w100 rounded">';}
+                    <img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" alt="avatar" class="imaged w100 rounded-circle profile-avatar">';}
                         echo'
                     <span class="button">
                         <ion-icon name="camera-outline"></ion-icon>
