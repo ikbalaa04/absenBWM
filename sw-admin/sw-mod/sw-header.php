@@ -46,7 +46,8 @@ echo'
   }
   if($mod=='lokasi'){
   echo'
-  <link rel="stylesheet" href="./sw-assets/plugins/leatfet/leaflet.css">';
+  <link rel="stylesheet" href="./sw-assets/plugins/leatfet/leaflet.css?v='.filemtime(__DIR__ . '/../sw-assets/plugins/leatfet/leaflet.css').'">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">';
   }
   echo'
   <!--[if lt IE 9]>

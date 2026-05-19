@@ -47,7 +47,12 @@ echo'
 }
 if($mod=='lokasi'){
 echo'
-<script src="./sw-assets/plugins/leatfet/leaflet.js"></script>';
+<script src="./sw-assets/plugins/leatfet/leaflet.js?v='.filemtime(__DIR__ . '/../sw-assets/plugins/leatfet/leaflet.js').'"></script>
+<script>
+  if (typeof window.L === "undefined") {
+    document.write(\'<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"><\\/script>\');
+  }
+</script>';
 }
 
 if(file_exists('sw-mod/'.$mod.'/scripts.js')){

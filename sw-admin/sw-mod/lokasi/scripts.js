@@ -42,13 +42,35 @@ function setLocationPoint(modalSelector, latlng) {
     updateLocationMap(modalSelector);
 }
 
+function renderMapFallback(mapId, state) {
+    var lat = state.lat !== null ? state.lat : defaultOfficeLocation.latitude;
+    var lng = state.lng !== null ? state.lng : defaultOfficeLocation.longitude;
+    var delta = 0.004;
+    var src = 'https://www.openstreetmap.org/export/embed.html?bbox=' +
+        encodeURIComponent((lng - delta) + ',' + (lat - delta) + ',' + (lng + delta) + ',' + (lat + delta)) +
+        '&layer=mapnik&marker=' + encodeURIComponent(lat + ',' + lng);
+    $('#' + mapId).html(
+        '<iframe title="Preview lokasi" src="' + src + '" style="border:0;width:100%;height:100%"></iframe>'
+    );
+}
+
 function initLocationMap(modalSelector, mapId) {
-    if (locationMaps[mapId] || typeof L === 'undefined') {
+    if (locationMaps[mapId]) {
+        return;
+    }
+    if (typeof L === 'undefined') {
+        renderMapFallback(mapId, getLocationState(modalSelector));
         return;
     }
 
     var defaultPoint = [defaultOfficeLocation.latitude, defaultOfficeLocation.longitude];
-    var map = L.map(mapId).setView(defaultPoint, 12);
+    $('#' + mapId).empty();
+    try {
+        var map = L.map(mapId).setView(defaultPoint, 12);
+    } catch (error) {
+        renderMapFallback(mapId, getLocationState(modalSelector));
+        return;
+    }
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: ''
@@ -71,6 +93,7 @@ function updateLocationMap(modalSelector) {
 
     var preview = locationMaps[mapId];
     if (!preview) {
+        renderMapFallback(mapId, getLocationState(modalSelector));
         return;
     }
 
