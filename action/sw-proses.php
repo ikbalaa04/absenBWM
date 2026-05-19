@@ -11,6 +11,17 @@
     $salt = '$%DEf0&TTd#%dSuTyr47542"_-^@#&*!=QxR094{a911}+';
     $expired_cookie = time()+60*60*24*7;
 
+function sanitize_cuty_description($connection, $description) {
+  $allowed_tags = '<b><strong><i><em><u><br><p><ul><ol><li>';
+  $description = strip_tags($description, $allowed_tags);
+  return mysqli_real_escape_string($connection, $description);
+}
+
+function get_cuty_type($value) {
+  $allowed_types = array('cuti', 'sakit', 'lainnya');
+  return in_array($value, $allowed_types) ? $value : 'cuti';
+}
+
 switch (@$_GET['action']){
 case 'login':
   $error = array();
@@ -662,6 +673,14 @@ $query_cuty ="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE e
     $result_cuty = $connection->query($query_cuty);
     if($result_cuty->num_rows > 0){
       while ($row_cuty = $result_cuty->fetch_assoc()) {
+        $cuty_type = isset($row_cuty['cuty_type']) ? $row_cuty['cuty_type'] : 'cuti';
+        $cuty_type_label = ucfirst($cuty_type);
+        $cuty_description = $row_cuty['cuty_description'];
+        $cuty_description_attr = htmlspecialchars($cuty_description, ENT_QUOTES, 'UTF-8');
+        $cuty_date_info = '';
+        if($cuty_type == 'cuti'){
+          $cuty_date_info = '<ion-icon name="calendar-outline"></ion-icon> '.tanggal_ind($row_cuty['cuty_start']).' - '.tanggal_ind($row_cuty['cuty_end']).'<br>';
+        }
         if($row_cuty['cuty_status']=='1'){
           $status = '<span class="badge badge-success">Disetujui</span>';
         }elseif($row_cuty['cuty_status']=='2'){
@@ -674,14 +693,14 @@ $query_cuty ="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE e
           <div class="detail">
               <div>
                   <strong>'.$row_cuty['employees_name'].' '.$status.'</strong>
-                  <p><ion-icon name="calendar-outline"></ion-icon> '.tanggal_ind($row_cuty['cuty_start']).' - '.tanggal_ind($row_cuty['cuty_end']).'<br><ion-icon name="calendar-outline"></ion-icon> Mulai kerja: '.tanggal_ind($row_cuty['date_work']).'<br>
-                    <ion-icon name="chatbubble-outline"></ion-icon> '.$row_cuty['cuty_description'].'</p>
+                  <p><span class="badge badge-info">'.$cuty_type_label.'</span><br>'.$cuty_date_info.'
+                    <ion-icon name="chatbubble-outline"></ion-icon> '.$cuty_description.'</p>
               </div>
           </div>
           <div class="right">';
             if($row_cuty['cuty_status']=='3'){
               echo'
-             <button type="button" class="btn btn-success btn-sm btn-update-cuty" data-id="'.$row_cuty['cuty_id'].'" data-start="'.tanggal_ind($row_cuty['cuty_start']).'" data-end="'.tanggal_ind($row_cuty['cuty_end']).'" data-work="'.tanggal_ind($row_cuty['date_work']).'" data-total="'.$row_cuty['cuty_total'].'" data-description="'.$row_cuty['cuty_description'].'"><i class="fas fa-pencil-alt" aria-hidden="true"></i></button>';
+             <button type="button" class="btn btn-success btn-sm btn-update-cuty" data-id="'.$row_cuty['cuty_id'].'" data-type="'.$cuty_type.'" data-start="'.tanggal_ind($row_cuty['cuty_start']).'" data-end="'.tanggal_ind($row_cuty['cuty_end']).'" data-description="'.$cuty_description_attr.'"><i class="fas fa-pencil-alt" aria-hidden="true"></i></button>';
            }
              else{
               echo'<button type="button" class="btn btn-success btn-sm access-failed"><i class="fas fa-pencil-alt" aria-hidden="true"></i></button>';
@@ -700,34 +719,31 @@ break;
 case 'add-cuty':
 $error = array();
 
-  if (empty($_POST['cuty_start'])) {
+  $cuty_type = get_cuty_type(isset($_POST['cuty_type']) ? $_POST['cuty_type'] : 'cuti');
+
+  if ($cuty_type == 'cuti' && empty($_POST['cuty_start'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_start= date('Y-m-d',strtotime($_POST['cuty_start']));
+      $cuty_start= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_start'])) : date('Y-m-d');
   }
 
-  if (empty($_POST['cuty_end'])) {
+  if ($cuty_type == 'cuti' && empty($_POST['cuty_end'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_end= date('Y-m-d',strtotime($_POST['cuty_end']));
+      $cuty_end= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_end'])) : date('Y-m-d');
   }
 
-  if (empty($_POST['date_work'])) {
-      $error[] = 'tidak boleh kosong';
-    } else {
-      $date_work= date('Y-m-d',strtotime($_POST['date_work']));
+  if ($cuty_type == 'cuti' && strtotime($cuty_start) > strtotime($cuty_end)) {
+      $error[] = 'tanggal cuti tidak valid';
   }
 
-  if (empty($_POST['cuty_total'])) {
-      $error[] = 'tidak boleh kosong';
-    } else {
-      $cuty_total = anti_injection($_POST['cuty_total']);
-  }
+  $date_work = $cuty_end;
+  $cuty_total = $cuty_type == 'cuti' ? ((strtotime($cuty_end) - strtotime($cuty_start)) / 86400) + 1 : 0;
 
   if (empty($_POST['cuty_description'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_description  = anti_injection($_POST['cuty_description']);
+      $cuty_description  = sanitize_cuty_description($connection, $_POST['cuty_description']);
   }
 
 
@@ -736,12 +752,14 @@ if (empty($error)) {
   $result= $connection->query($query) or die($connection->error.__LINE__);
   if(!$result ->num_rows >0){
     $add ="INSERT INTO cuty (employees_id,
+              cuty_type,
               cuty_start,
               cuty_end,
               date_work,
               cuty_total,
               cuty_description,
               cuty_status) values('$row_user[id]',
+              '$cuty_type',
               '$cuty_start',
               '$cuty_end',
               '$date_work',
@@ -755,7 +773,7 @@ if (empty($error)) {
         echo'success';
     }}
     else   {
-      echo'Sepertinya "'.$row_user['employees_name'].'" sudah mengajukan cuti di BULAN ini!';
+      echo'Sepertinya "'.$row_user['employees_name'].'" sudah mengajukan izin di BULAN ini!';
     }}
 
     else{           
@@ -774,39 +792,37 @@ $error = array();
       $cuty_id = anti_injection($_POST['cuty_id']);
   }
 
-  if (empty($_POST['cuty_start'])) {
+  $cuty_type = get_cuty_type(isset($_POST['cuty_type']) ? $_POST['cuty_type'] : 'cuti');
+
+  if ($cuty_type == 'cuti' && empty($_POST['cuty_start'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_start= date('Y-m-d',strtotime($_POST['cuty_start']));
+      $cuty_start= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_start'])) : date('Y-m-d');
   }
 
-  if (empty($_POST['cuty_end'])) {
+  if ($cuty_type == 'cuti' && empty($_POST['cuty_end'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_end= date('Y-m-d',strtotime($_POST['cuty_end']));
+      $cuty_end= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_end'])) : date('Y-m-d');
   }
 
-  if (empty($_POST['date_work'])) {
-      $error[] = 'tidak boleh kosong';
-    } else {
-      $date_work= date('Y-m-d',strtotime($_POST['date_work']));
+  if ($cuty_type == 'cuti' && strtotime($cuty_start) > strtotime($cuty_end)) {
+      $error[] = 'tanggal cuti tidak valid';
   }
 
-  if (empty($_POST['cuty_total'])) {
-      $error[] = 'tidak boleh kosong';
-    } else {
-      $cuty_total = anti_injection($_POST['cuty_total']);
-  }
+  $date_work = $cuty_end;
+  $cuty_total = $cuty_type == 'cuti' ? ((strtotime($cuty_end) - strtotime($cuty_start)) / 86400) + 1 : 0;
 
   if (empty($_POST['cuty_description'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_description  = anti_injection($_POST['cuty_description']);
+      $cuty_description  = sanitize_cuty_description($connection, $_POST['cuty_description']);
   }
 
 
 if (empty($error)) {
-    $update="UPDATE cuty SET cuty_start='$cuty_start',
+    $update="UPDATE cuty SET cuty_type='$cuty_type',
+            cuty_start='$cuty_start',
             cuty_end='$cuty_end',
             date_work='$date_work',
             cuty_total='$cuty_total',

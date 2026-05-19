@@ -476,10 +476,53 @@ $('.btn-print').click(function (e) {
         });
     });
 
+    function syncCutyEditor(form) {
+        var editor = $(form).find('.cuty-rich-editor');
+        var textarea = $(form).find('textarea.cuty_description');
+        textarea.val(editor.html().trim());
+    }
+
+    function isCutyDescriptionEmpty(form) {
+        return $(form).find('.cuty-rich-editor').text().trim() === '';
+    }
+
+    function toggleCutyDateFields(form) {
+        var type = $(form).find('.cuty-type').val();
+        var dateFields = $(form).find('.cuty-date-field');
+        var dateInputs = dateFields.find('input');
+
+        if (type === 'cuti') {
+            dateFields.show();
+            dateInputs.prop('required', true);
+        } else {
+            dateFields.hide();
+            dateInputs.prop('required', false);
+        }
+    }
+
+    $(document).on('change', '.cuty-type', function() {
+        toggleCutyDateFields($(this).closest('form'));
+    });
+
+    $(document).on('click', '.cuty-editor-toolbar button', function() {
+        document.execCommand($(this).data('command'), false, null);
+        $(this).closest('.input-wrapper').find('.cuty-rich-editor').focus();
+    });
+
+    $('#modal-add, #modal-update').on('shown.bs.modal', function() {
+        toggleCutyDateFields($(this).find('form'));
+    });
+
     /* ----------- ADD DATA CUTY ------------*/
     $('#form-add-cuty').submit(function (e) {
         e.preventDefault();
-        if($("#cutystart").val()=="" || $("#cutyend").val()=="" || $("input[type=number]").val()=="" || $("textarea.cuty_description").val()==""){  
+        syncCutyEditor(this);
+        if($("select[name=cuty_type]", this).val()=="cuti" && ($("#cutystart").val()=="" || $("#cutyend").val()=="")){  
+             swal({title:'Oops!', text: 'Tanggal mulai dan tanggal akhir wajib diisi untuk cuti.!', icon: 'error', timer: 1500,});
+            return false;
+            loading();
+        }
+        if(isCutyDescriptionEmpty(this)){  
              swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
             return false;
             loading();
@@ -499,10 +542,11 @@ $('.btn-print').click(function (e) {
                 },
                 success: function (data) {
                     if (data == 'success') {
-                        swal({title: 'Berhasil!', text: 'Data Cuti berhasil ditambah!', icon: 'success', timer: 2500,});
+                        swal({title: 'Berhasil!', text: 'Data Izin berhasil ditambah!', icon: 'success', timer: 2500,});
                         loadDataCuty();
                         $('#modal-add').modal('hide');
                         $('#form-add-cuty').trigger("reset");
+                        $('#form-add-cuty .cuty-rich-editor').empty();
                     } else {
                         swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
                     }
@@ -520,20 +564,19 @@ $('.btn-print').click(function (e) {
         var id = $(this).attr("data-id"); 
         document.getElementById('city-id').value = id;
 
+        var type = $(this).attr("data-type") || 'cuti'; 
+        document.getElementById('cuty-type').value = type;
+
         var start = $(this).attr("data-start"); 
         document.getElementById('cuty-start').value = start;
 
         var end = $(this).attr("data-end"); 
         document.getElementById('cuty-end').value = end;
 
-        var work = $(this).attr("data-work"); 
-        document.getElementById('date-work').value = work;
-
-        var total = $(this).attr("data-total"); 
-        document.getElementById('total').value = total;
-
         var cuty_description = $(this).attr("data-description"); 
         document.getElementById('cuty_description').value = cuty_description;
+        document.getElementById('cuty-description-editor').innerHTML = cuty_description;
+        toggleCutyDateFields($('#form-update-cuty'));
         /*var cuty_description = $(this).attr("data-date"); 
         $('.status-date').html(tanggal);*/
     });
@@ -541,7 +584,13 @@ $('.btn-print').click(function (e) {
     /* ----------- UPDATE DATA CUTY ------------*/
     $('#form-update-cuty').submit(function (e) {
         e.preventDefault();
-        if($("#cuty-start").val()=="" || $("#cuty-end").val()=="" || $("#total").val()=="" || $("textarea#cuty_description").val()==""){  
+        syncCutyEditor(this);
+        if($("select[name=cuty_type]", this).val()=="cuti" && ($("#cuty-start").val()=="" || $("#cuty-end").val()=="")){  
+             swal({title:'Oops!', text: 'Tanggal mulai dan tanggal akhir wajib diisi untuk cuti.!', icon: 'error', timer: 1500,});
+            return false;
+            loading();
+        }
+        if(isCutyDescriptionEmpty(this)){  
              swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
             return false;
             loading();
@@ -561,10 +610,11 @@ $('.btn-print').click(function (e) {
                 },
                 success: function (data) {
                     if (data == 'success') {
-                        swal({title: 'Berhasil!', text: 'Data Cuti berhasil disimpan!', icon: 'success', timer: 2500,});
+                        swal({title: 'Berhasil!', text: 'Data Izin berhasil disimpan!', icon: 'success', timer: 2500,});
                         loadDataCuty();
                         $('#modal-update').modal('hide');
                         $('#form-update-cuty').trigger("reset");
+                        $('#form-update-cuty .cuty-rich-editor').empty();
                     } else {
                         swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
                     }

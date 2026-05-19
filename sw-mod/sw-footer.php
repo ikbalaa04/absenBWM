@@ -22,7 +22,7 @@ echo'
         <a href="./?mod=cuty" class="item">
             <div class="col">
                <ion-icon name="calendar-outline"></ion-icon>
-                <strong>Cuty</strong>
+                <strong>Izin</strong>
             </div>
         </a>
 

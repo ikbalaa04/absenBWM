@@ -36,7 +36,7 @@ echo'<aside class="main-sidebar">
         </li>';
 
       if($mod =='cuty'){echo'<li class="active">'; }else{echo'<li>';}
-      echo'<a href="./?mod=cuty"><i class="fa fa-calendar" aria-hidden="true"></i> <span>Data Permohonan Cuti</span></a></li>';
+      echo'<a href="./?mod=cuty"><i class="fa fa-calendar" aria-hidden="true"></i> <span>Data Permohonan Izin</span></a></li>';
 
 
       if($mod =='absensi'){echo'<li class="active">'; }else{echo'<li>';}

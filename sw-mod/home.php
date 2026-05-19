@@ -85,7 +85,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                             <div class="icon-wrapper bg-primary">
                                <ion-icon name="calendar-outline"></ion-icon>
                             </div>
-                            <strong>Cuti</strong>
+                            <strong>Izin</strong>
                         </a>
                     </div>
                    

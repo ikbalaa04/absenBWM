@@ -131,7 +131,7 @@ echo'<!-- App Sidebar -->
                                 <div class="icon-box bg-danger">
                                   <ion-icon name="calendar-outline"></ion-icon>
                                 </div>
-                                  Cuti
+                                  Izin
                             </a>
                         </li>
 

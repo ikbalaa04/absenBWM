@@ -9,10 +9,10 @@ switch(@$_GET['op']){
     default:
 echo'
 <section class="content-header">
-  <h1>Data<small> Permohonan Cuti</small></h1>
+  <h1>Data<small> Permohonan Izin</small></h1>
     <ol class="breadcrumb">
       <li><a href="./?mod=home"><i class="fa fa-dashboard"></i> Beranda</a></li>
-      <li class="active">Data Permohonan Cuti</li>
+      <li class="active">Data Permohonan Izin</li>
     </ol>
 </section>';
 echo'
@@ -21,7 +21,7 @@ echo'
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
       <div class="box box-solid">
         <div class="box-header with-border">
-          <h3 class="box-title"><b>Data Permohonan Cuti</b></h3>
+          <h3 class="box-title"><b>Data Permohonan Izin</b></h3>
         </div>
 <div class="box-body">
 <div class="table-responsive">
@@ -30,11 +30,11 @@ echo'
   <tr>
     <th style="width: 10px">No</th>
     <th>Nama</th>
+    <th>Alasan</th>
     <th>Cuti Dari</th>
     <th>Sampai</th>
     <th>Masuk Kerja</th>
-    <th class="text-center">Jumlah Cuti</th>
-    <th>Keperluan Cuti</th>
+    <th>Keterangan</th>
     <th>Status</th>
     <th style="width:150px" class="text-center">Aksi</th>
   </tr>
@@ -53,14 +53,16 @@ echo'
       $status='<span class="text-muted">Menunggu</span>';
     }
     $no++;
+    $cuty_type = isset($row['cuty_type']) ? $row['cuty_type'] : 'cuti';
+    $cuty_type_label = ucfirst($cuty_type);
     echo'
     <tr>
       <td class="text-center">'.$no.'</td>
       <td>'.$row['employees_name'].'</td>
+      <td><label class="label label-info">'.$cuty_type_label.'</label></td>
       <td>'.tgl_ind($row['cuty_start']).'</td>
       <td>'.tgl_ind($row['cuty_end']).'</td>
       <td>'.tgl_ind($row['date_work']).'</td>
-      <td class="text-center"><label class="label label-warning">'.$row['cuty_total'].'</label></td>
       <td>'.strip_tags($row['cuty_description']).'</td>
       <td>'.$status.'</td>
       <td class="text-center">

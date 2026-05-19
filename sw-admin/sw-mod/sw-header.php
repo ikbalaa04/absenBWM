@@ -95,12 +95,17 @@ echo'<div class="wrapper">
                 <!-- inner menu: contains the actual data -->
                 <ul class="menu">';
                 while ($row_cuty = $result_cuty_notif->fetch_assoc()) {
+                  $cuty_type = isset($row_cuty['cuty_type']) ? ucfirst($row_cuty['cuty_type']) : 'Cuti';
+                  $cuty_date = '';
+                  if (strtolower($cuty_type) == 'cuti') {
+                    $cuty_date = 'Tgl Cuti : '.tgl_ind($row_cuty['cuty_start']).' sampai '.tgl_ind($row_cuty['cuty_end']).'<br>';
+                  }
                   echo'
                   <li>
                     <a href="./?mod=cuty">
                       '.$row_cuty['employees_name'].'<br>
-                      Tgl Cuti : '.tgl_ind($row_cuty['cuty_start']).' sampai '.tgl_ind($row_cuty['cuty_end']).'<br>
-                      <label class="label label-warning">Jumlah: '.$row_cuty['cuty_total'].'</label>
+                      Alasan : '.$cuty_type.'<br>
+                      '.$cuty_date.'
                     </a>
                   </li>';
                 }

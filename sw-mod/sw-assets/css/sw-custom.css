@@ -272,6 +272,23 @@ a.text-danger {
   font-weight: 500;
 }
 
+.cuty-editor-toolbar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.cuty-rich-editor {
+  min-height: 120px;
+  height: auto;
+  overflow-y: auto;
+}
+
+.cuty-rich-editor ul,
+.cuty-rich-editor ol {
+  padding-left: 20px;
+}
+
 @media only screen and (max-width:690px){
   .wallet-card .wallet-footer .webcame canvas {
     width: 100%;
