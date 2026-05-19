@@ -71,7 +71,7 @@ if(isset($_COOKIE['COOKIES_MEMBER'])){
               echo'
                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">';?>
                 <a class="dropdown-item" onclick="location.href='./?mod=profile';" href="./?mod=profile"><ion-icon size="small" name="person-outline"></ion-icon>Profil</a>
-                <a class="dropdown-item logout-link" href="'.$base_url.'?mod=logout"><ion-icon size="small" name="log-out-outline"></ion-icon>Keluar</a>
+                <a class="dropdown-item logout-link" href="./?mod=logout"><ion-icon size="small" name="log-out-outline"></ion-icon>Keluar</a>
               </div>
             </div>
         </div>

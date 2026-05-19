@@ -14,6 +14,11 @@ $(document).on('click', '[data-target="#sidebarPanel"]', function(e) {
     $('#sidebarPanel').modal('show');
 });
 
+$(document).on('click', '.logout-link', function(e) {
+    e.preventDefault();
+    window.location.href = $(this).attr('href') || './?mod=logout';
+});
+
 function ensureLoginRoleField() {
     if ($('#form-login').length && $('#role').length === 0) {
         $('#email').attr({
