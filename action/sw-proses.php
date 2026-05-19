@@ -573,7 +573,7 @@ echo'<table class="table rounded" id="swdatatable">
 
             <td class="hidden-sm">'.$row_aa['present_name'].''.$information.'</td>
             <td class="text-center">
-              <button type="button" class="btn btn-success btn-sm modal-update" data-id="'.$row_absen['presence_id'].'" data-masuk="'.$row_absen['time_in'].'" data-pulang="'.$row_absen['time_out'].'" data-date="'.tgl_indo($row_absen['presence_date']).'" data-information="'.$row_absen['information'].'" data-status="'.$row_absen['present_id'].'" data-toggle="modal" data-target="#modal-show"><i class="fas fa-pencil-alt"></i></button>
+              <button type="button" class="btn btn-success btn-sm modal-update" data-id="'.$row_absen['presence_id'].'" data-masuk="'.$row_absen['time_in'].'" data-pulang="'.$row_absen['time_out'].'" data-date="'.tgl_indo($row_absen['presence_date']).'" data-information="'.$row_absen['information'].'" data-status="'.$row_absen['present_id'].'" data-toggle="modal" data-target="#modal-show">Ubah</button>
             </td>
         </tr>';
     }}
@@ -699,10 +699,10 @@ $query_cuty ="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE e
           <div class="right">';
             if($row_cuty['cuty_status']=='3'){
               echo'
-             <button type="button" class="btn btn-success btn-sm btn-update-cuty" data-id="'.$row_cuty['cuty_id'].'" data-type="'.$cuty_type.'" data-start="'.tanggal_ind($row_cuty['cuty_start']).'" data-end="'.tanggal_ind($row_cuty['cuty_end']).'" data-description="'.$cuty_description_attr.'"><i class="fas fa-pencil-alt" aria-hidden="true"></i></button>';
+             <button type="button" class="btn btn-success btn-sm btn-update-cuty" data-id="'.$row_cuty['cuty_id'].'" data-type="'.$cuty_type.'" data-start="'.tanggal_ind($row_cuty['cuty_start']).'" data-end="'.tanggal_ind($row_cuty['cuty_end']).'" data-description="'.$cuty_description_attr.'">Edit</button>';
            }
              else{
-              echo'<button type="button" class="btn btn-success btn-sm access-failed"><i class="fas fa-pencil-alt" aria-hidden="true"></i></button>';
+              echo'<button type="button" class="btn btn-secondary btn-sm access-failed">Terkunci</button>';
              }
             echo'
           </div>
@@ -859,6 +859,23 @@ case 'load-home-counter':
   $query_izin="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='3' ORDER BY presence_id";
   $izin = $connection->query($query_izin);
 
+  if(isset($_POST['month_filter'])){
+      $cuty_month_filter = strip_tags($_POST['month_filter']);
+    } 
+    else{
+      $cuty_month_filter = $month;
+  }
+
+  $query_izin_cuty ="SELECT COALESCE(SUM(CASE WHEN cuty_type='cuti' THEN cuty_total ELSE 1 END),0) AS total FROM cuty WHERE employees_id='$row_user[id]' AND cuty_status='1' AND cuty_type IN ('cuti','lainnya') AND MONTH(cuty_start)='$cuty_month_filter' AND YEAR(cuty_start)='$year'";
+  $result_izin_cuty = $connection->query($query_izin_cuty);
+  $row_izin_cuty = $result_izin_cuty->fetch_assoc();
+  $total_izin = $izin->num_rows + (int)$row_izin_cuty['total'];
+
+  $query_sakit_cuty ="SELECT COALESCE(COUNT(cuty_id),0) AS total FROM cuty WHERE employees_id='$row_user[id]' AND cuty_status='1' AND cuty_type='sakit' AND MONTH(cuty_start)='$cuty_month_filter' AND YEAR(cuty_start)='$year'";
+  $result_sakit_cuty = $connection->query($query_sakit_cuty);
+  $row_sakit_cuty = $result_sakit_cuty->fetch_assoc();
+  $total_sakit = $sakit->num_rows + (int)$row_sakit_cuty['total'];
+
   $query_shift ="SELECT time_in,time_out FROM shift WHERE shift_id='$row_user[shift_id]'";
   $result_shift = $connection->query($query_shift);
   $row_shift = $result_shift->fetch_assoc();
@@ -894,7 +911,7 @@ case 'load-home-counter':
               </div>
               <div>
                   <strong>Izin</strong>
-                  <p>'.$izin->num_rows.' Hari</p>
+                  <p>'.$total_izin.' Hari</p>
               </div>
           </div>
       </a>
@@ -910,7 +927,7 @@ case 'load-home-counter':
               </div>
               <div>
                   <strong>Sakit</strong>
-                  <p>'.$sakit->num_rows.' Hari</p>
+                  <p>'.$total_sakit.' Hari</p>
               </div>
           </div>
       </a>

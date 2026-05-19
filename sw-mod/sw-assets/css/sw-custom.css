@@ -151,10 +151,24 @@ a.text-danger {
 }
 
 .avatar-section .profile-avatar {
-  width: 100px;
-  height: 100px;
+  display: block;
+  width: 100px !important;
+  min-width: 100px;
+  max-width: 100px;
+  height: 100px !important;
+  min-height: 100px;
+  max-height: 100px;
+  aspect-ratio: 1 / 1;
   border-radius: 50% !important;
   object-fit: cover;
+  object-position: center;
+}
+
+.btn-update-cuty,
+.modal-update,
+.access-failed {
+  min-width: 72px;
+  white-space: nowrap;
 }
 
 
