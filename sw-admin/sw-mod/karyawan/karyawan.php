@@ -26,7 +26,7 @@ echo'
           if($level_user==1){
             echo'
             <a href="#import" class="btn btn-warning" title="Import" data-toggle="modal"> Import</a>
-            <a href="'.$mod.'&op=add" class="btn btn-success btn-flat"><i class="fa fa-plus"></i> Tambah Baru</a>';}
+            <a href="./?mod='.$mod.'&op=add" class="btn btn-success btn-flat"><i class="fa fa-plus"></i> Tambah Baru</a>';}
           else{
             echo'<button type="button" class="btn btn-success btn-flat access-failed"><i class="fa fa-plus"></i> Tambah Baru</button>';
           }echo'

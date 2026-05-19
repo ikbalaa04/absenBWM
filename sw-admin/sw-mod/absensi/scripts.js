@@ -84,22 +84,22 @@ $('.btn-sortir').click(function (e) {
             if(type =='pdf'){
                 // cek berdasarkan bulan
                 if(month==''){    
-                    var url = "./absensi/print?action=pdfid="+id+"";
+                    var url = "sw-mod/absensi/print.php?action=pdf&id="+id+"";
                 }else{
-                    var url = "./absensi/print?action=pdf&id="+id+"&from="+month+"&to="+year+"";
+                    var url = "sw-mod/absensi/print.php?action=pdf&id="+id+"&from="+month+"&to="+year+"";
                 }
             }
 
             if(type=='excel'){
                 if(month==''){    
-                    var url = "./absensi/print?action=excel&id="+id+"";
+                    var url = "sw-mod/absensi/print.php?action=excel&id="+id+"";
                 }else{
-                    var url = "./absensi/print?action=excel&id="+id+"&from="+month+"&to="+year+"";
+                    var url = "sw-mod/absensi/print.php?action=excel&id="+id+"&from="+month+"&to="+year+"";
                 }
             }
 
             if(type=='print'){
-                var url = "./absensi/print?action=excel&id="+id+"&from="+month+"&to="+year+"&print=print";
+                var url = "sw-mod/absensi/print.php?action=excel&id="+id+"&from="+month+"&to="+year+"&print=print";
             }
             window.open(url, '_blank');
     });
@@ -110,13 +110,13 @@ $('.btn-sortir').click(function (e) {
             var type  = $('.type').val();
             if(type =='pdf'){
                 // cek berdasarkan bulan
-                var url = "./absensi/print?action=allpdf&from="+month+"&to="+year+"";
+                var url = "sw-mod/absensi/print.php?action=allpdf&from="+month+"&to="+year+"";
             }
             if(type=='excel'){
-                var url = "./absensi/print?action=allexcel&from="+month+"&to="+year+""; 
+                var url = "sw-mod/absensi/print.php?action=allexcel&from="+month+"&to="+year+""; 
             }
             if(type=='print'){
-                var url = "./absensi/print?action=allexcel&from="+month+"&to="+year+"&print=print"; 
+                var url = "sw-mod/absensi/print.php?action=allexcel&from="+month+"&to="+year+"&print=print"; 
             }
 
             window.open(url, '_blank');
@@ -134,6 +134,5 @@ $(document).on('click', '.btn-modal', function(){
     document.getElementById("iframe-map").innerHTML ='<iframe src="sw-mod/absensi/map.php?latitude='+latitude+'&longitude='+longitude+'&name='+name+'" frameborder="0" width="100%" height="400px" marginwidth="0" marginheight="0" scrolling="no">';
 });
    
-
 
 

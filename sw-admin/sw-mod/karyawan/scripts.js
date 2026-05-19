@@ -52,7 +52,7 @@ $('.add-karyawan').submit(function (e) {
                     swal({title: 'Berhasil!', text: 'Data Karyawan berhasil disimpan.!', icon: 'success', timer: 1500,});
     
                    //setTimeout(function(){location.reload(); }, 1500);
-                   window.setTimeout(window.location.href = "./karyawan",2500);
+                   setTimeout(function(){ window.location.href = "./?mod=karyawan"; },2500);
                 } else {
                     swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
                 }
@@ -202,7 +202,7 @@ $('.import').submit(function (e) {
             success: function (data) {
                 if (data == 'success') {
                     swal({title: 'Berhasil!', text: 'Data Karyawan berhasil diimport.!', icon: 'success', timer: 2500,});
-                   window.setTimeout(window.location.href = "./karyawan",2500);
+                   setTimeout(function(){ window.location.href = "./?mod=karyawan"; },2500);
                 } else {
                     swal({title: 'Oops!', text: data, icon: 'error', timer: 2500,});
                 }

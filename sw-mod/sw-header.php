@@ -29,14 +29,14 @@ echo'
   <meta name="copyright" content="'.$website_name.'">
   <meta itemprop="image" content="sw-content/meta-tag.jpg">
 
-  <link rel="stylesheet" href="'.$base_url.'/sw-mod/sw-assets/css/style.css?v=20260518-green2">
-  <link rel="stylesheet" href="'.$base_url.'/sw-mod/sw-assets/css/sw-custom.css?v=20260518-green2">
+  <link rel="stylesheet" href="'.$base_url.'sw-mod/sw-assets/css/style.css?v=20260518-green2">
+  <link rel="stylesheet" href="'.$base_url.'sw-mod/sw-assets/css/sw-custom.css?v=20260518-green2">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">';
   if($mod =='history'){
     echo'
-  <link rel="stylesheet" href="'.$base_url.'/sw-mod/sw-assets/js/plugins/datepicker/datepicker3.css">
-  <link rel="stylesheet" href="'.$base_url.'/sw-mod/sw-assets/js/plugins/datatables/dataTables.bootstrap.css">
-  <link rel="stylesheet" href="'.$base_url.'/sw-mod/sw-assets/js/plugins/magnific-popup/magnific-popup.css">';
+  <link rel="stylesheet" href="'.$base_url.'sw-mod/sw-assets/js/plugins/datepicker/datepicker3.css">
+  <link rel="stylesheet" href="'.$base_url.'sw-mod/sw-assets/js/plugins/datatables/dataTables.bootstrap.css">
+  <link rel="stylesheet" href="'.$base_url.'sw-mod/sw-assets/js/plugins/magnific-popup/magnific-popup.css">';
 }
 
 echo'
@@ -91,7 +91,7 @@ echo'<!-- App Sidebar -->
                     <div class="profileBox pt-2 pb-2">
                         <div class="image-wrapper">';
                         if($row_user['photo'] ==''){
-                        echo'<img src="'.$base_url.'/sw-content/avatar.jpg" alt="image" class="imaged  w36">';
+                        echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged  w36">';
                         }else{
                         echo'<img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" class="imaged  w36">';
                         }

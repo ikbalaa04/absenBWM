@@ -77,7 +77,7 @@ echo'
               <li><a href="javascript:void(0);" data-id="'.$row['cuty_id'].'" data-status="2" class="update-status">Tidak disetujui</a></li>
             </ul>
           </div>
-          <a href="'.$mod.'/print?action=print&id='.epm_encode($row['cuty_id']).'" target="_blank"  class="btn btn-xs btn-danger delete" title="Print"><i class="fa fa-print" aria-hidden="true"></i> Print</a>';}
+          <a href="sw-mod/cuty/print.php?action=print&id='.epm_encode($row['cuty_id']).'" target="_blank"  class="btn btn-xs btn-danger delete" title="Print"><i class="fa fa-print" aria-hidden="true"></i> Print</a>';}
         else{
         echo'
           <button type="button" class="btn btn-warning btn-xs access-failed enable-tooltip" title="Edit"><i class="fa fa-pencil-square-o"></i> Ubah</button>
