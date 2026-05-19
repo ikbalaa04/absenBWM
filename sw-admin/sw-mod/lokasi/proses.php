@@ -133,7 +133,7 @@ break;
 /* --------------- Delete ------------*/
 case 'delete':
   $id       = mysqli_real_escape_string($connection,epm_decode($_POST['id']));
-  $query ="SELECT building.building_id,employees.building_id FROM building,employees WHERE building.building_id=employees.building_id AND employees.building_id='$id'";
+  $query ="SELECT building_id FROM employees WHERE building_id='$id' UNION SELECT building_id FROM position WHERE building_id='$id'";
   $result = $connection->query($query);
   if(!$result->num_rows > 0){
     $deleted  = "DELETE FROM building WHERE building_id='$id'";

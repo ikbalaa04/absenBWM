@@ -99,17 +99,18 @@ INSERT INTO `employees` (`id`, `employees_code`, `employees_email`, `employees_p
 CREATE TABLE `position` (
   `position_id` int(5) NOT NULL,
   `position_name` varchar(30) NOT NULL,
-  `require_location` tinyint(1) NOT NULL DEFAULT 1
+  `require_location` tinyint(1) NOT NULL DEFAULT 1,
+  `building_id` int(5) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `position`
 --
 
-INSERT INTO `position` (`position_id`, `position_name`, `require_location`) VALUES
-(1, 'STAFF', 1),
-(2, 'ACCOUNTING', 1),
-(7, 'MARKETING', 0);
+INSERT INTO `position` (`position_id`, `position_name`, `require_location`, `building_id`) VALUES
+(1, 'STAFF', 1, 1),
+(2, 'ACCOUNTING', 1, 1),
+(7, 'MARKETING', 0, NULL);
 
 -- --------------------------------------------------------
 

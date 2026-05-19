@@ -11,10 +11,14 @@ function loading(){
 }
 
 function toggleLocationRulePanel(selectElement) {
-    var panel = $(selectElement).closest('.modal-body').find('.location-rule-panel');
+    var modalBody = $(selectElement).closest('.modal-body');
+    var panel = modalBody.find('.location-rule-panel');
+    var group = modalBody.find('.location-setting-group');
     if ($(selectElement).val() == '1') {
+        group.slideDown(150);
         panel.slideDown(150);
     } else {
+        group.slideUp(150);
         panel.slideUp(150);
     }
 }
@@ -33,11 +37,25 @@ $('#modalAdd, #modalEdit').on('shown.bs.modal', function() {
     });
 });
 
+$('#modalAdd').on('shown.bs.modal', function() {
+    var buildingSelect = $(this).find('select[name="building_id"]');
+    if ($(this).find('select[name="require_location"]').val() == '1' && buildingSelect.val() == '') {
+        var firstLocation = buildingSelect.find('option[value!=""]').first().val();
+        if (firstLocation) {
+            buildingSelect.val(firstLocation);
+        }
+    }
+});
+
 /* ----------- Add ------------*/
 $('.add-jabatan').submit(function (e) {
     e.preventDefault();
     if($('#nama').val()==''){    
          swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
+        return false;
+    }
+    if($('.add-jabatan select[name="require_location"]').val() == '1' && $('.add-jabatan select[name="building_id"]').val() == ''){
+        swal({title:'Oops!', text: 'Pilih lokasi validasi untuk jabatan ini.!', icon: 'error', timer: 1500,});
         return false;
     }
     else{
@@ -75,6 +93,10 @@ $('.update-jabatan').submit(function (e) {
     e.preventDefault();
     if($("#txtnama").val()==""){    
          swal({title: 'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
+        return false;
+    }
+    if($('.update-jabatan select[name="require_location"]').val() == '1' && $('.update-jabatan select[name="building_id"]').val() == ''){
+        swal({title:'Oops!', text: 'Pilih lokasi validasi untuk jabatan ini.!', icon: 'error', timer: 1500,});
         return false;
     }
     else{

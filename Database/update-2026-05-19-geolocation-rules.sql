@@ -9,7 +9,8 @@ ALTER TABLE `building`
   ADD COLUMN IF NOT EXISTS `radius_meter` int(6) NOT NULL DEFAULT 150 AFTER `longitude`;
 
 ALTER TABLE `position`
-  ADD COLUMN IF NOT EXISTS `require_location` tinyint(1) NOT NULL DEFAULT 1 AFTER `position_name`;
+  ADD COLUMN IF NOT EXISTS `require_location` tinyint(1) NOT NULL DEFAULT 1 AFTER `position_name`,
+  ADD COLUMN IF NOT EXISTS `building_id` int(5) DEFAULT NULL AFTER `require_location`;
 
 UPDATE `building`
 SET `radius_meter` = 150
@@ -18,3 +19,8 @@ WHERE `radius_meter` IS NULL OR `radius_meter` = 0;
 UPDATE `position`
 SET `require_location` = 1
 WHERE `require_location` IS NULL;
+
+UPDATE `position`
+SET `building_id` = (SELECT `building_id` FROM `building` ORDER BY `building_id` ASC LIMIT 1)
+WHERE `require_location` = 1
+  AND (`building_id` IS NULL OR `building_id` = 0);

@@ -23,6 +23,9 @@ if (!function_exists('attendance_ensure_schema')) {
     if (empty($position_columns['require_location'])) {
       $connection->query("ALTER TABLE position ADD require_location tinyint(1) NOT NULL DEFAULT 1 AFTER position_name");
     }
+    if (empty($position_columns['building_id'])) {
+      $connection->query("ALTER TABLE position ADD building_id int(5) NULL AFTER require_location");
+    }
 
     $building_columns = array();
     $result = $connection->query("SHOW COLUMNS FROM building");
@@ -40,6 +43,7 @@ if (!function_exists('attendance_ensure_schema')) {
     if (empty($building_columns['radius_meter'])) {
       $connection->query("ALTER TABLE building ADD radius_meter int(6) NOT NULL DEFAULT 150 AFTER longitude");
     }
+    $connection->query("UPDATE position SET building_id=(SELECT building_id FROM building ORDER BY building_id ASC LIMIT 1) WHERE require_location=1 AND (building_id IS NULL OR building_id=0)");
 
     $done = true;
   }

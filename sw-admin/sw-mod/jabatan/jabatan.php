@@ -7,6 +7,15 @@ echo'
   <div class="content-wrapper">';
     switch(@$_GET['op']){ 
     default:
+    $building_options = '<option value="">Pilih Lokasi</option>';
+    $query_building_options = "SELECT building_id,name,address FROM building ORDER BY name ASC";
+    $result_building_options = $connection->query($query_building_options);
+    if($result_building_options && $result_building_options->num_rows > 0){
+      while($row_building_option = $result_building_options->fetch_assoc()){
+        $building_label = !empty($row_building_option['name']) ? $row_building_option['name'] : $row_building_option['address'];
+        $building_options .= '<option value="'.$row_building_option['building_id'].'">'.$building_label.'</option>';
+      }
+    }
 echo'
 <section class="content-header">
   <h1>Data<small> Jabatan</small></h1>
@@ -42,12 +51,13 @@ echo'
               <th class="text-center">ID</th>
               <th>Nama Jabatan</th>
               <th class="text-center">Wajib Lokasi</th>
+              <th>Lokasi Validasi</th>
               <th class="text-center">Jumlah Karyawan</th>
               <th style="width:100px">Aksi</th>
             </tr>
             </thead>
             <tbody>';
-            $query="SELECT position_id,position_name,require_location FROM position order by position_id DESC";
+            $query="SELECT position.position_id,position.position_name,position.require_location,position.building_id,building.name AS building_name FROM position LEFT JOIN building ON position.building_id=building.building_id order by position.position_id DESC";
             $result = $connection->query($query);
             if($result->num_rows > 0){
             $no=0;
@@ -61,12 +71,13 @@ echo'
                 <td class="text-center">'.$row['position_id'].'</td>
                 <td>'.$row['position_name'].'</td>
                 <td class="text-center">'.((int)$row['require_location'] === 1 ? '<span class="label label-success">Ya</span>' : '<span class="label label-default">Tidak</span>').'</td>
+                <td>'.((int)$row['require_location'] === 1 ? (!empty($row['building_name']) ? $row['building_name'] : '<span class="text-muted">Belum dipilih</span>') : '<span class="text-muted">Bebas lokasi</span>').'</td>
                 <td class="text-center"><span class="badge bg-yellow">'.$result_count->num_rows.'</span></td>
                 <td>
                   <div class="btn-group">';
                   if($level_user==1){
                     echo'
-                    <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['position_id'];?>';getElementById('txtnama').value='<?PHP echo $row['position_name'];?>';getElementById('txtrequirelocation').value='<?PHP echo $row['require_location'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a>
+                    <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['position_id'];?>';getElementById('txtnama').value='<?PHP echo $row['position_name'];?>';getElementById('txtrequirelocation').value='<?PHP echo $row['require_location'];?>';getElementById('txtbuildingid').value='<?PHP echo $row['building_id'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a>
                 <?php echo'
                 <button data-id="'.epm_encode($row['position_id']).'" class="btn btn-xs btn-danger delete" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
                 else {
@@ -109,8 +120,14 @@ echo'
               <option value="0">Tidak, bebas lokasi</option>
             </select>
         </div>
+        <div class="form-group location-setting-group">
+            <label>Lokasi Validasi</label>
+            <select class="form-control" name="building_id">
+              '.$building_options.'
+            </select>
+        </div>
         <div class="alert alert-info location-rule-panel">
-          <i class="fa fa-map-marker"></i> Radius dan titik default kantor diatur di menu <b>Data Lokasi</b>. Untuk staff lapangan, tambahkan lokasi baru lalu pilih lokasi tersebut di data karyawan.
+          <i class="fa fa-map-marker"></i> Pilihan lokasi diambil dari menu <b>Data Lokasi</b>. Untuk staff lapangan, tambahkan lokasi baru lalu pilih di dropdown ini.
           <br><a href="./?mod=lokasi">Buka pengaturan lokasi</a>
         </div>
       </div>
@@ -146,8 +163,14 @@ echo'
               <option value="0">Tidak, bebas lokasi</option>
             </select>
         </div>
+        <div class="form-group location-setting-group">
+            <label>Lokasi Validasi</label>
+            <select class="form-control" name="building_id" id="txtbuildingid">
+              '.$building_options.'
+            </select>
+        </div>
         <div class="alert alert-info location-rule-panel">
-          <i class="fa fa-map-marker"></i> Radius dan titik default kantor diatur di menu <b>Data Lokasi</b>. Untuk staff lapangan, tambahkan lokasi baru lalu pilih lokasi tersebut di data karyawan.
+          <i class="fa fa-map-marker"></i> Pilihan lokasi diambil dari menu <b>Data Lokasi</b>. Untuk staff lapangan, tambahkan lokasi baru lalu pilih di dropdown ini.
           <br><a href="./?mod=lokasi">Buka pengaturan lokasi</a>
         </div>
       </div>

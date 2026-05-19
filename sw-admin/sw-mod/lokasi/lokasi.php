@@ -162,6 +162,9 @@ echo'
         </div>
         <div class="form-group">
           <label>Preview Radius Lokasi</label>
+          <div class="clearfix" style="margin-bottom:8px">
+            <button type="button" class="btn btn-default btn-xs pull-right use-current-location"><i class="fa fa-crosshairs"></i> Gunakan Lokasi Saat Ini</button>
+          </div>
           <div id="location-map-add" class="location-radius-map"></div>
           <p class="help-block">Klik peta untuk mengatur titik kantor, lalu isi radius dalam meter.</p>
           <p class="help-block">Lokasi kantor ini menjadi default validasi absensi. Untuk staff lapangan, tambahkan lokasi baru lalu pilih lokasi tersebut di data karyawan.</p>
@@ -220,6 +223,9 @@ echo'
         </div>
         <div class="form-group">
           <label>Preview Radius Lokasi</label>
+          <div class="clearfix" style="margin-bottom:8px">
+            <button type="button" class="btn btn-default btn-xs pull-right use-current-location"><i class="fa fa-crosshairs"></i> Gunakan Lokasi Saat Ini</button>
+          </div>
           <div id="location-map-edit" class="location-radius-map"></div>
           <p class="help-block">Klik peta untuk memperbarui titik kantor, lalu isi radius dalam meter.</p>
           <p class="help-block">Lokasi kantor ini menjadi default validasi absensi. Untuk staff lapangan, tambahkan lokasi baru lalu pilih lokasi tersebut di data karyawan.</p>

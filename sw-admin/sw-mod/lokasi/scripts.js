@@ -115,15 +115,41 @@ function updateLocationMap(modalSelector) {
 
 $('#modalAdd').on('shown.bs.modal', function() {
     updateLocationMap('#modalAdd');
+    setTimeout(function() {
+        updateLocationMap('#modalAdd');
+    }, 250);
 });
 
 $('#modalEdit').on('shown.bs.modal', function() {
     updateLocationMap('#modalEdit');
+    setTimeout(function() {
+        updateLocationMap('#modalEdit');
+    }, 250);
 });
 
 $('.location-latitude, .location-longitude, .location-radius').on('input change', function() {
     var modalSelector = $(this).closest('#modalEdit').length ? '#modalEdit' : '#modalAdd';
     updateLocationMap(modalSelector);
+});
+
+$('.use-current-location').on('click', function() {
+    var modalSelector = $(this).closest('#modalEdit').length ? '#modalEdit' : '#modalAdd';
+    if (!navigator.geolocation) {
+        swal({title:'Oops!', text: 'Browser tidak mendukung geolokasi.', icon: 'error', timer: 1500,});
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(function(position) {
+        setLocationPoint(modalSelector, {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+        });
+    }, function() {
+        swal({title:'Oops!', text: 'Tidak bisa mengambil lokasi saat ini. Pastikan izin lokasi browser aktif.', icon: 'error', timer: 2000,});
+    }, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    });
 });
 
 

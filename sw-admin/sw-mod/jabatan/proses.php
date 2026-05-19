@@ -17,9 +17,14 @@ case 'add':
       $position_name= mysqli_real_escape_string($connection, $_POST['position_name']);
   }
   $require_location = isset($_POST['require_location']) ? (int)$_POST['require_location'] : 1;
+  $building_id = !empty($_POST['building_id']) ? mysqli_real_escape_string($connection, $_POST['building_id']) : '';
+  if ($require_location === 1 && empty($building_id)) {
+      $error[] = 'Lokasi validasi wajib dipilih';
+  }
+  $building_id_sql = $require_location === 1 ? "'$building_id'" : 'NULL';
 
   if (empty($error)) { 
-    $add ="INSERT INTO position (position_name,require_location) values('$position_name','$require_location')"; 
+    $add ="INSERT INTO position (position_name,require_location,building_id) values('$position_name','$require_location',$building_id_sql)"; 
     if($connection->query($add) === false) { 
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
@@ -48,9 +53,14 @@ case 'update':
       $position_name= mysqli_real_escape_string($connection, $_POST['position_name']);
   }
   $require_location = isset($_POST['require_location']) ? (int)$_POST['require_location'] : 1;
+  $building_id = !empty($_POST['building_id']) ? mysqli_real_escape_string($connection, $_POST['building_id']) : '';
+  if ($require_location === 1 && empty($building_id)) {
+      $error[] = 'Lokasi validasi wajib dipilih';
+  }
+  $building_id_sql = $require_location === 1 ? "'$building_id'" : 'NULL';
 
   if (empty($error)) { 
-    $update="UPDATE position SET position_name='$position_name', require_location='$require_location' WHERE position_id='$id'"; 
+    $update="UPDATE position SET position_name='$position_name', require_location='$require_location', building_id=$building_id_sql WHERE position_id='$id'"; 
     if($connection->query($update) === false) { 
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
