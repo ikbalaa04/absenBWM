@@ -59,6 +59,8 @@ echo'
                     $status = '<span class="label label-danger">Dibatalkan</span>';
                   }
                   $description = htmlspecialchars($row['assignment_description'], ENT_QUOTES, 'UTF-8');
+                  $description_attr = htmlspecialchars($row['assignment_description'], ENT_QUOTES, 'UTF-8');
+                  $location_attr = htmlspecialchars($row['assignment_location'], ENT_QUOTES, 'UTF-8');
                   echo'
                   <tr>
                     <td class="text-center">'.$no.'</td>
@@ -72,6 +74,7 @@ echo'
                       <div class="btn-group">';
                       if($level_user == 1){
                         echo'
+                        <button type="button" class="btn btn-primary btn-xs btn-edit" data-id="'.$row['assignment_id'].'" data-employees="'.$row['employees_id'].'" data-start="'.$row['assignment_start'].'" data-end="'.$row['assignment_end'].'" data-location="'.$location_attr.'" data-description="'.$description_attr.'" data-status="'.$row['assignment_status'].'" data-toggle="modal" data-target="#modalEdit"><i class="fa fa-pencil"></i> Edit</button>
                         <button type="button" class="btn btn-warning btn-xs btn-extend" data-id="'.$row['assignment_id'].'" data-end="'.$row['assignment_end'].'" data-toggle="modal" data-target="#modalExtend"><i class="fa fa-calendar"></i> Perpanjang</button>
                         <a href="sw-mod/penugasan/print.php?action=print&id='.epm_encode($row['assignment_id']).'" target="_blank" class="btn btn-danger btn-xs"><i class="fa fa-print"></i> Surat</a>
                         <button type="button" data-id="'.$row['assignment_id'].'" data-status="completed" class="btn btn-default btn-xs update-status"><i class="fa fa-check"></i> Selesai</button>
@@ -137,6 +140,68 @@ echo'
           <div class="form-group">
             <label>Keterangan Tugas</label>
             <textarea class="form-control" name="assignment_description" rows="4" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary pull-left"><i class="fa fa-check"></i> Simpan</button>
+          <button type="button" class="btn btn-danger pull-right" data-dismiss="modal"><i class="fa fa-remove"></i> Batal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalEdit" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <form class="form validate update-penugasan">
+        <input type="hidden" name="assignment_id" id="edit-assignment-id" required>
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title">Edit Penugasan</h4>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nama Staff</label>
+            <select class="form-control" name="employees_id" id="edit-employees-id" required>
+              <option value="">- Pilih Staff -</option>';
+              $query_employees="SELECT id,employees_code,employees_name FROM employees ORDER BY employees_name ASC";
+              $result_employees = $connection->query($query_employees);
+              while($employee = $result_employees->fetch_assoc()) {
+                echo'<option value="'.$employee['id'].'">'.$employee['employees_name'].' - '.$employee['employees_code'].'</option>';
+              }
+              echo'
+            </select>
+          </div>
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="form-group">
+                <label>Mulai Tugas</label>
+                <input type="date" class="form-control" name="assignment_start" id="edit-assignment-start" required>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="form-group">
+                <label>Selesai Tugas</label>
+                <input type="date" class="form-control" name="assignment_end" id="edit-assignment-end" required>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Lokasi/Tujuan Tugas</label>
+            <input type="text" class="form-control" name="assignment_location" id="edit-assignment-location" required>
+          </div>
+          <div class="form-group">
+            <label>Keterangan Tugas</label>
+            <textarea class="form-control" name="assignment_description" id="edit-assignment-description" rows="4" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select class="form-control" name="assignment_status" id="edit-assignment-status" required>
+              <option value="active">Aktif</option>
+              <option value="completed">Selesai</option>
+              <option value="cancelled">Dibatalkan</option>
+            </select>
           </div>
         </div>
         <div class="modal-footer">
