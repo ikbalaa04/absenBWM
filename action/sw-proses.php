@@ -21,6 +21,13 @@ function get_cuty_type($value) {
   return in_array($value, $allowed_types) ? $value : 'cuti';
 }
 
+function create_auth_cookie_token($email) {
+  if (function_exists('random_bytes')) {
+    return bin2hex(random_bytes(16));
+  }
+  return hash('sha256', uniqid('', true).$email.microtime(true));
+}
+
 switch (@$_GET['action']){
 case 'login':
   $error = array();
@@ -28,7 +35,7 @@ case 'login':
         $error[] = 'Email tidak boleh kosong';
     } else { 
       $email = mysqli_real_escape_string($connection,$_POST['email']);
-      $created_cookies =  md5($email);
+      $created_cookies = create_auth_cookie_token($email);
   }
 
   if (empty($_POST['password'])) { 
@@ -39,29 +46,27 @@ case 'login':
   }
 
 if (empty($error)){
-    $update_user = mysqli_query($connection,"UPDATE employees SET created_login='$time_login',  created_cookies='$created_cookies' WHERE employees_password='$password'");
-
     $query_login ="SELECT id,employees_email,employees_name,created_cookies FROM employees WHERE employees_email='$email' AND employees_password='$password'";
     $result_login       = $connection->query($query_login);
-    $row                = $result_login->fetch_assoc();
-
-    $COOKIES_MEMBER         =  epm_encode($row['id']);
-    $COOKIES_COOKIES        =  $row['created_cookies'];
-      
-  $pesan = '<html><body>';
-  $pesan .= 'Saat ini ['.$row['employees_name'].'] baru saja login<br>';
-  $pesan .= '[Detail Akun] :';
-  $pesan .= 'Nama : '.$row['employees_name'].'<br>Email : '.$row['employees_email'].'<br>Ip : '.$ip_login.'<br>Tgl Login : '.$time_login.'<br>Browser : '.$browser.'<br><br><br>';
-  $pesan .= 'Hormat Kami,<br>'.$site_name.'<br>Email otomatis, Mohon tidak membalas email ini"';
-
-  $pesan   .= "</body></html>";
-  $to       = $row['employees_email'];
-  $subject  = ''.$row['employees_name'].' Sedang Online';
-  $headers  = "From: " . $site_name." <".$site_email_domain.">\r\n";
-  $headers .= "MIME-Version: 1.0\r\n";
-  $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
 
   if($result_login->num_rows > 0){
+      $row                = $result_login->fetch_assoc();
+      $update_user = mysqli_query($connection,"UPDATE employees SET created_login='$time_login', created_cookies='$created_cookies' WHERE id='$row[id]'");
+      $COOKIES_MEMBER         =  epm_encode($row['id']);
+      $COOKIES_COOKIES        =  $created_cookies;
+
+      $pesan = '<html><body>';
+      $pesan .= 'Saat ini ['.$row['employees_name'].'] baru saja login<br>';
+      $pesan .= '[Detail Akun] :';
+      $pesan .= 'Nama : '.$row['employees_name'].'<br>Email : '.$row['employees_email'].'<br>Ip : '.$ip_login.'<br>Tgl Login : '.$time_login.'<br>Browser : '.$browser.'<br><br><br>';
+      $pesan .= 'Hormat Kami,<br>'.$site_name.'<br>Email otomatis, Mohon tidak membalas email ini"';
+      $pesan .= "</body></html>";
+      $to       = $row['employees_email'];
+      $subject  = ''.$row['employees_name'].' Sedang Online';
+      $headers  = "From: " . $site_name." <".$site_email_domain.">\r\n";
+      $headers .= "MIME-Version: 1.0\r\n";
+      $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
+
       setcookie('COOKIES_MEMBER', $COOKIES_MEMBER, $expired_cookie, '/');
       setcookie('COOKIES_COOKIES', $COOKIES_COOKIES, $expired_cookie, '/');
       echo'success';
@@ -245,24 +250,38 @@ break;
 // ------------- Absen -------------*/
 case 'absent':
 $error = array();
-$files        = $_FILES["webcam"]["name"];
-$lokasi_file  = $_FILES['webcam']['tmp_name'];  
-$ukuran_file  = $_FILES['webcam']['size'];
-$extension    = getExtension($files);
-$extension    = strtolower($extension);
-list($width, $height) = getimagesize($lokasi_file);
-
-if($extension=="jpg" || $extension=="jpeg" ){$src = imagecreatefromjpeg($lokasi_file);}
-else if($extension=="png"){$src = imagecreatefrompng($lokasi_file);}
-else {$src = imagecreatefromgif($lokasi_file);}
-list($width,$height)=getimagesize($lokasi_file);
-
-/* ---------- Set Size Foto ----------------*/
-$width_new  = 300;
-$height_new = ($height/$width)*$width_new;
-$tmp_name   = imagecreatetruecolor($width_new,$height_new);
-imagecopyresampled($tmp_name,$src,0,0,0,0,$width_new,$height_new,$width,$height);
-/* ---------- Set Size Foto ----------------*/
+if (empty($_FILES['webcam']['name']) || empty($_FILES['webcam']['tmp_name'])) {
+      $error[] = 'Foto absen wajib diambil';
+    } else {
+      $files        = $_FILES["webcam"]["name"];
+      $lokasi_file  = $_FILES['webcam']['tmp_name'];
+      $ukuran_file  = $_FILES['webcam']['size'];
+      $extension    = strtolower(getExtension($files));
+      if (!in_array($extension, $allowed_ext)) {
+        $error[] = 'Gambar/Foto yang di unggah tidak sesuai dengan format, Berkas harus berformat JPG,JPEG,PNG..!';
+      } elseif ($ukuran_file >= 5000000) {
+        $error[] = 'Foto terlalu besar Maksimal Size 5MB.!';
+      } else {
+        $image_size = getimagesize($lokasi_file);
+        if ($image_size === false) {
+          $error[] = 'File yang diunggah bukan gambar valid.';
+        } else {
+          list($width, $height) = $image_size;
+          if($extension=="jpg" || $extension=="jpeg" ){$src = imagecreatefromjpeg($lokasi_file);}
+          else {$src = imagecreatefrompng($lokasi_file);}
+          if (!$src) {
+            $error[] = 'Foto absen tidak dapat diproses.';
+          } else {
+            /* ---------- Set Size Foto ----------------*/
+            $width_new  = 300;
+            $height_new = ($height/$width)*$width_new;
+            $tmp_name   = imagecreatetruecolor($width_new,$height_new);
+            imagecopyresampled($tmp_name,$src,0,0,0,0,$width_new,$height_new,$width,$height);
+            /* ---------- Set Size Foto ----------------*/
+          }
+        }
+      }
+}
 if (empty($_GET['latitude'])) {
       $error[] = 'tidak boleh kosong';
     } else {
@@ -270,9 +289,6 @@ if (empty($_GET['latitude'])) {
 }
 
 if (empty($error)){
-  
-  if (($extension="jpg") && ($extension="jpeg") && ($extension="gif")) { 
-    if($ukuran_file <50000000) {
     // Cek User yang sudah login -----------------------------------------------
     $query_u="SELECT employees.id,employees.employees_code,employees.employees_name,employees.shift_id,shift.shift_id,shift.time_in,shift.time_out,position.require_location,location_building.latitude,location_building.longitude,location_building.radius_meter FROM employees INNER JOIN shift ON employees.shift_id=shift.shift_id INNER JOIN position ON employees.position_id=position.position_id LEFT JOIN building AS location_building ON location_building.building_id=IF(position.building_id IS NOT NULL AND position.building_id > 0, position.building_id, employees.building_id) WHERE employees.id='$row_user[id]'";
     $result_u = $connection->query($query_u);
@@ -347,17 +363,10 @@ if (empty($error)){
       else{
         // Jika user tidak ditemukan
         echo'User tidak ditemukan';die($connection->error.__LINE__); 
-      }}
-      else{
-        echo 'Foto terlalu besar Maksimal Size 5MB.!';
       }
-    }
-    else{
-      echo'Gambar/Foto yang di unggah tidak sesuai dengan format, Berkas harus berformat JPG,JPEG,GIF..!';
-    }
   }
     else{
-      echo 'Silahkan Izinkan Lokasi Anda saat ini!';
+      echo implode('<br>', $error);
 }
  
 
@@ -546,7 +555,7 @@ echo'<table class="table rounded" id="swdatatable">
       if($row_absen['status']=='Telat'){
           $status=' <span class="badge badge-danger">'.$row_absen['status'].'</span>';
         }
-        elseif ($row_absen['status']='Tepat Waktu') {
+        elseif ($row_absen['status']=='Tepat Waktu') {
           $status='<span class="badge badge-success">'.$row_absen['status'].'</span>';
         }
         else{

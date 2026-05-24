@@ -10,6 +10,8 @@ var defaultOfficeLocation = window.defaultOfficeLocation || {
     longitude: 106.816666,
     radius: 150
 };
+var adminDeviceLocation = null;
+var addModalDeviceDefaultApplied = false;
 
 function parseCoordinate(value) {
     var number = parseFloat(value);
@@ -50,8 +52,37 @@ function renderMapFallback(mapId, state) {
         encodeURIComponent((lng - delta) + ',' + (lat - delta) + ',' + (lng + delta) + ',' + (lat + delta)) +
         '&layer=mapnik&marker=' + encodeURIComponent(lat + ',' + lng);
     $('#' + mapId).html(
-        '<iframe title="Preview lokasi" src="' + src + '" style="border:0;width:100%;height:100%"></iframe>'
+        '<iframe title="Preview lokasi" src="' + src + '" style="border:0;width:100%;height:100%"></iframe>' +
+        '<div class="text-muted" style="margin-top:6px">Peta interaktif tidak tersedia. Isi latitude dan longitude secara manual.</div>'
     );
+}
+
+function hasLocationPoint(modalSelector) {
+    var state = getLocationState(modalSelector);
+    return state.lat !== null && state.lng !== null;
+}
+
+function requestAdminDeviceLocation(onSuccess) {
+    if (!navigator.geolocation) {
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(function(position) {
+        adminDeviceLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+        };
+        defaultOfficeLocation.latitude = adminDeviceLocation.lat;
+        defaultOfficeLocation.longitude = adminDeviceLocation.lng;
+        if (typeof onSuccess === 'function') {
+            onSuccess(adminDeviceLocation);
+        }
+    }, function() {
+        updateLocationMap('#modalAdd');
+    }, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    });
 }
 
 function initLocationMap(modalSelector, mapId) {
@@ -137,6 +168,12 @@ function updateLocationMap(modalSelector) {
 }
 
 $('#modalAdd').on('shown.bs.modal', function() {
+    if (!addModalDeviceDefaultApplied && !hasLocationPoint('#modalAdd')) {
+        addModalDeviceDefaultApplied = true;
+        requestAdminDeviceLocation(function(location) {
+            setLocationPoint('#modalAdd', location);
+        });
+    }
     updateLocationMap('#modalAdd');
     setTimeout(function() {
         updateLocationMap('#modalAdd');
@@ -150,7 +187,7 @@ $('#modalEdit').on('shown.bs.modal', function() {
     }, 250);
 });
 
-$('.location-latitude, .location-longitude, .location-radius').on('input change', function() {
+$(document).on('input change', '.location-latitude, .location-longitude, .location-radius', function() {
     var modalSelector = $(this).closest('#modalEdit').length ? '#modalEdit' : '#modalAdd';
     updateLocationMap(modalSelector);
 });
@@ -162,6 +199,10 @@ $('.use-current-location').on('click', function() {
         return;
     }
     navigator.geolocation.getCurrentPosition(function(position) {
+        adminDeviceLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+        };
         setLocationPoint(modalSelector, {
             lat: position.coords.latitude,
             lng: position.coords.longitude

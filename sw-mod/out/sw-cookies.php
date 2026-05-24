@@ -10,14 +10,14 @@ if(empty($_COOKIE['COOKIES_MEMBER'])){
 }
 else{
     $COOKIES_MEMBER='';$COOKIES_COOKIES ='';
-    if(!empty($_COOKIE['COOKIES_COOKIES'])){$COOKIES_COOKIES=  $_COOKIE['COOKIES_COOKIES'];}
-    if(!empty($_COOKIE['COOKIES_MEMBER'])){$COOKIES_MEMBER  =  epm_decode($_COOKIE['COOKIES_MEMBER']);}
-	$query_user = "SELECT * FROM employees where id='$COOKIES_MEMBER'";
+    if(!empty($_COOKIE['COOKIES_COOKIES'])){$COOKIES_COOKIES=  mysqli_real_escape_string($connection, $_COOKIE['COOKIES_COOKIES']);}
+    if(!empty($_COOKIE['COOKIES_MEMBER'])){$COOKIES_MEMBER  =  mysqli_real_escape_string($connection, epm_decode($_COOKIE['COOKIES_MEMBER']));}
+	$query_user = "SELECT * FROM employees where id='$COOKIES_MEMBER' AND created_cookies='$COOKIES_COOKIES'";
     $result_user = $connection->query($query_user);
-    $row_user     = $result_user->fetch_assoc();
-    extract($row_user);
 
 	if($result_user->num_rows > 0){
+        $row_user = $result_user->fetch_assoc();
+        extract($row_user);
 		//echo'Login';
 		//echo $row_user['created_cookies'];
 	}
