@@ -54,6 +54,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
     </div>
     <!-- * App Capsule -->';}
   else{
+  $active_assignment = assignment_get_active_for_employee($connection, $row_user['id'], $date);
 
   echo'<!-- App Capsule -->
     <div id="appCapsule">
@@ -99,11 +100,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                     </div>
 
                     <div class="item">
-                        <a href="./?mod=profile">
+                        <a href="./?mod=penugasan">
                             <div class="icon-wrapper bg-warning">
-                               <ion-icon name="person-outline"></ion-icon>
+                               <ion-icon name="briefcase-outline"></ion-icon>
                             </div>
-                            <strong>Profil</strong>
+                            <strong>Tugas</strong>
                         </a>
                     </div>
 
@@ -117,7 +118,17 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
     <!-- Label Absensi Hari ini -->
     <div class="section">
         <div class="row mt-2">';
-            if($result_absent->num_rows > 0){
+            if($active_assignment){
+                echo'
+                <div class="col-12">
+                    <a href="./?mod=penugasan"><div class="stat-box bg-warning">
+                        <div class="title text-white">Sedang Dalam Penugasan</div>
+                        <div class="value text-white">'.$active_assignment['assignment_number'].'</div>
+                        <div class="text-white">'.htmlspecialchars($active_assignment['assignment_location'], ENT_QUOTES, 'UTF-8').' | '.tgl_ind($active_assignment['assignment_start']).' - '.tgl_ind($active_assignment['assignment_end']).'</div>
+                    </div></a>
+                </div>';
+            }
+            elseif($result_absent->num_rows > 0){
                 $row_absent     = $result_absent->fetch_assoc();
                 echo'
                 <div class="col-6">
@@ -204,7 +215,10 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                             </tr>
                         </thead>
                         <tbody>';
-                        $query_absen="SELECT presence_date,time_in,time_out FROM presence WHERE MONTH(presence_date) ='$month' AND employees_id='$row_user[id]' ORDER BY presence_id DESC LIMIT 6";
+                        $query_absen="SELECT presence_date,time_in,time_out FROM presence WHERE MONTH(presence_date) ='$month' AND employees_id='$row_user[id]'
+                        UNION ALL
+                        SELECT attendance_date AS presence_date,attendance_time AS time_in,'Dalam tugas' AS time_out FROM assignment_attendance WHERE MONTH(attendance_date) ='$month' AND employees_id='$row_user[id]'
+                        ORDER BY presence_date DESC LIMIT 6";
                         $result_absen = $connection->query($query_absen);
                         if($result_absen->num_rows > 0){
                             while ($row_absen= $result_absen->fetch_assoc()) {

@@ -585,9 +585,14 @@ if(isset($_POST['from']) OR isset($_POST['to'])){
 
       $filter ="presence_date BETWEEN '$from' AND '$to'";
   } 
-  else{
-      $filter ="MONTH(presence_date) ='$month'";
-}
+	else{
+	      $filter ="MONTH(presence_date) ='$month'";
+	}
+    if(isset($_POST['from']) OR isset($_POST['to'])){
+      $assignment_filter ="assignment_attendance.attendance_date BETWEEN '$from' AND '$to'";
+    } else {
+      $assignment_filter ="MONTH(assignment_attendance.attendance_date) ='$month'";
+    }
 
 echo'<table class="table rounded" id="swdatatable">
     <thead>
@@ -612,8 +617,8 @@ echo'<table class="table rounded" id="swdatatable">
 
     $query_absen ="SELECT presence_id,presence_date,picture_in,time_in,picture_out,time_out,present_id, latitude_longtitude_in, latitude_longtitude_out,information,TIMEDIFF(TIME(time_in),'$shift_time_in') AS selisih,if (time_in>'$shift_time_in','Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status, if (time_out<'$shift_time_out','Pulang Cepat','Tepat Waktu') AS status_pulang FROM presence WHERE employees_id='$row_user[id]' AND $filter ORDER BY presence_id DESC";
     $result_absen = $connection->query($query_absen);
-    if($result_absen->num_rows > 0){
-        while ($row_absen = $result_absen->fetch_assoc()) {
+	    if($result_absen->num_rows > 0){
+	        while ($row_absen = $result_absen->fetch_assoc()) {
 
           $query_status ="SELECT present_name FROM  present_status WHERE present_id='$row_absen[present_id]'";
           $result_status = $connection->query($query_status);
@@ -657,11 +662,29 @@ echo'<table class="table rounded" id="swdatatable">
             <td class="text-center">
               <button type="button" class="btn btn-success btn-sm modal-update" data-id="'.$row_absen['presence_id'].'" data-masuk="'.$row_absen['time_in'].'" data-pulang="'.$row_absen['time_out'].'" data-date="'.tgl_indo($row_absen['presence_date']).'" data-information="'.$row_absen['information'].'" data-status="'.$row_absen['present_id'].'" data-toggle="modal" data-target="#modal-show">Ubah</button>
             </td>
-        </tr>';
-    }}
-    echo'
-    </tbody>
-</table>
+	        </tr>';
+	    }}
+      $query_assignment_history ="SELECT assignment_attendance.*,assignments.assignment_number,assignments.assignment_location FROM assignment_attendance INNER JOIN assignments ON assignments.assignment_id=assignment_attendance.assignment_id WHERE assignment_attendance.employees_id='$row_user[id]' AND $assignment_filter ORDER BY assignment_attendance.assignment_attendance_id DESC";
+      $result_assignment_history = $connection->query($query_assignment_history);
+      if($result_assignment_history && $result_assignment_history->num_rows > 0){
+        while ($row_assignment = $result_assignment_history->fetch_assoc()) {
+          $no++;
+          $assignment_info = 'Dalam penugasan<br>'.$row_assignment['assignment_number'].' - '.htmlspecialchars($row_assignment['assignment_location'], ENT_QUOTES, 'UTF-8');
+          echo'
+          <tr>
+              <th class="text-center">'.$no.'</th>
+              <th scope="row">'.tgl_ind($row_assignment['attendance_date']).'</th>
+              <td><a class="image-link" href="./sw-content/absent/'.$row_assignment['picture'].'">
+              <span class="badge badge-primary">'.$row_assignment['attendance_time'].'</span></a> <span class="badge badge-primary">Tugas</span></td>
+              <td><span class="badge badge-secondary">-</span></td>
+              <td class="hidden-sm">'.$assignment_info.'</td>
+              <td class="text-center"><button type="button" class="btn btn-secondary btn-sm" disabled>Tugas</button></td>
+          </tr>';
+        }
+      }
+	    echo'
+	    </tbody>
+	</table>
 <hr>';
       $query_hadir="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='1' ORDER BY presence_id DESC";
       $hadir= $connection->query($query_hadir);
@@ -672,8 +695,10 @@ echo'<table class="table rounded" id="swdatatable">
       $query_izin="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='3' ORDER BY presence_id";
       $izin = $connection->query($query_izin);
 
-      $query_telat ="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND time_in>'$shift_time_in'";
-      $telat = $connection->query($query_telat);
+	      $query_telat ="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND time_in>'$shift_time_in'";
+	      $telat = $connection->query($query_telat);
+        $query_tugas ="SELECT assignment_attendance_id FROM assignment_attendance WHERE employees_id='$row_user[id]' AND ".str_replace('assignment_attendance.', '', $assignment_filter);
+        $tugas = $connection->query($query_tugas);
 echo'
 <div class="container">
 <div class="row">
@@ -690,11 +715,14 @@ echo'
     <p>Sakit : <span class="badge badge-warning">'.$sakit->num_rows.'</span></p>
   </div>
 
-  <div class="col-md-3">
-    <p>Izin : <span class="badge badge-info">'.$izin->num_rows.'</span></p>
-  </div>
-</div>
-</div>';?>
+	  <div class="col-md-3">
+	    <p>Izin : <span class="badge badge-info">'.$izin->num_rows.'</span></p>
+	  </div>
+    <div class="col-md-3">
+      <p>Dalam penugasan : <span class="badge badge-primary">'.$tugas->num_rows.'</span></p>
+    </div>
+	</div>
+	</div>';?>
 
 <script>
   $('#swdatatable').dataTable({

@@ -21,6 +21,17 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
     $result_attendance = $connection->query($query_attendance);
     echo'<!-- App Capsule -->
     <div id="appCapsule">
+        <div class="section mt-2">
+            <div class="card">
+                <div class="card-body">
+                  <h4 class="mb-1">'.$active_assignment['assignment_number'].'</h4>
+                  <p class="mb-1"><ion-icon name="location-outline"></ion-icon> '.htmlspecialchars($active_assignment['assignment_location'], ENT_QUOTES, 'UTF-8').'</p>
+                  <p class="mb-1"><ion-icon name="calendar-outline"></ion-icon> '.tgl_ind($active_assignment['assignment_start']).' - '.tgl_ind($active_assignment['assignment_end']).'</p>
+                  <p class="mb-2">'.nl2br(htmlspecialchars($active_assignment['assignment_description'], ENT_QUOTES, 'UTF-8')).'</p>
+                  <a href="'.$base_url.'action/sw-assignment-print.php?id='.epm_encode($active_assignment['assignment_id']).'" target="_blank" class="btn btn-outline-primary btn-sm"><ion-icon name="document-text-outline"></ion-icon> Lihat Surat Tugas</a>
+                </div>
+            </div>
+        </div>
         <div class="section wallet-card-section pt-1">
             <div class="wallet-card">
                 <div class="balance">

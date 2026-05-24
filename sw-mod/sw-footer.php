@@ -13,10 +13,10 @@ echo'
             </div>
         </a>
 
-        <a href="./?mod='.($active_assignment ? 'penugasan' : 'absent').'" class="item">
+        <a href="./?mod=penugasan" class="item">
             <div class="col">
-                <ion-icon name="'.($active_assignment ? 'briefcase-outline' : 'camera-outline').'"></ion-icon>
-                <strong>'.($active_assignment ? 'Tugas' : 'Absen').'</strong>
+                <ion-icon name="briefcase-outline"></ion-icon>
+                <strong>Tugas</strong>
             </div>
         </a>
 
