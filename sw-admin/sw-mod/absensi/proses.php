@@ -212,7 +212,8 @@ echo'
 
       $query_hadir="SELECT presence_id FROM presence WHERE $filter AND present_id='1' ORDER BY presence_id DESC";
       $hadir= $connection->query($query_hadir);
-      $query_tugas="SELECT assignment_attendance_id FROM assignment_attendance WHERE employees_id='$id' AND MONTH(attendance_date)='$bulan' AND YEAR(attendance_date)='$tahun'";
+      $tugas_year = isset($_POST['year']) ? mysqli_real_escape_string($connection, $_POST['year']) : $tahun;
+      $query_tugas="SELECT assignment_attendance_id FROM assignment_attendance WHERE employees_id='$id' AND MONTH(attendance_date)='$bulan' AND YEAR(attendance_date)='$tugas_year'";
       $tugas= $connection->query($query_tugas);
 
       $query_sakit="SELECT presence_id FROM presence WHERE $filter AND present_id='2' ORDER BY presence_id";
