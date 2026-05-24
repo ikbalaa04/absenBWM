@@ -13,17 +13,31 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
         session_destroy();
         header("location:./");
 }else{
+  $current_position_name = '';
+  $current_shift_name = '';
+  $query_current_position = "SELECT position_name FROM position WHERE position_id='$row_user[position_id]' LIMIT 1";
+  $result_current_position = $connection->query($query_current_position);
+  if($result_current_position && $result_current_position->num_rows > 0){
+      $row_current_position = $result_current_position->fetch_assoc();
+      $current_position_name = $row_current_position['position_name'];
+  }
+  $query_current_shift = "SELECT shift_name FROM shift WHERE shift_id='$row_user[shift_id]' LIMIT 1";
+  $result_current_shift = $connection->query($query_current_shift);
+  if($result_current_shift && $result_current_shift->num_rows > 0){
+      $row_current_shift = $result_current_shift->fetch_assoc();
+      $current_shift_name = $row_current_shift['shift_name'];
+  }
+  $profile_photo_url = $base_url.'sw-content/avatar.jpg';
+  if (!empty($row_user['photo']) && file_exists(__DIR__.'/../sw-content/karyawan/'.$row_user['photo'])) {
+      $profile_photo_url = $base_url.'sw-content/karyawan/'.$row_user['photo'];
+  }
   echo'<!-- App Capsule -->
     <div id="appCapsule">
         <div class="section mt-3 text-center">
             <div class="avatar-section">
                 <input type="file" class="upload" name="file" id="avatar" accept=".jpg, .jpeg, ,gif, .png" capture="camera">
                 <a href="#">';
-                if($row_user['photo'] ==''){
-                echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w100 rounded-circle profile-avatar">';
-                }else{
-                    echo'
-                    <img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" alt="avatar" class="imaged w100 rounded-circle profile-avatar">';}
+                echo'<img src="'.$profile_photo_url.'" alt="avatar" class="imaged w100 rounded-circle profile-avatar">';
                         echo'
                     <span class="button">
                         <ion-icon name="camera-outline"></ion-icon>
@@ -60,34 +74,16 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                         <div class="form-group boxed">
                             <div class="input-wrapper">
                                 <label class="label" for="select4">Jabatan</label>
-                                <select class="form-control custom-select" name="position_id">';
-                                      $query="SELECT * from position order by position_name ASC";
-                                      $result = $connection->query($query);
-                                      while($rowa = $result->fetch_assoc()) { 
-                                      if($rowa['position_id'] == $row_user['position_id']){
-                                        echo'<option value="'.$rowa['position_id'].'" selected>'.$rowa['position_name'].'</option>';
-                                      }else{
-                                        echo'<option value="'.$rowa['position_id'].'">'.$rowa['position_name'].'</option>';
-                                      }
-                                      }echo'
-                                </select>
+                                <input type="hidden" name="position_id" value="'.$row_user['position_id'].'">
+                                <input type="text" class="form-control" value="'.$current_position_name.'" style="background:#eeeeee" readonly>
                             </div>
                         </div>
 
                         <div class="form-group boxed">
                             <div class="input-wrapper">
                                 <label class="label" for="select4">Jam Kerja</label>
-                                <select class="form-control custom-select" name="shift_id">';
-                                     $query="SELECT shift_id,shift_name from shift order by shift_name ASC";
-                                      $result = $connection->query($query);
-                                      while($rowa = $result->fetch_assoc()) {
-                                      if($rowa['shift_id'] == $row_user['shift_id']){ 
-                                        echo'<option value="'.$rowa['shift_id'].'" selected>'.$rowa['shift_name'].'</option>';
-                                      }else{
-                                        echo'<option value="'.$rowa['shift_id'].'">'.$rowa['shift_name'].'</option>';
-                                      }
-                                      }echo'
-                                </select>
+                                <input type="hidden" name="shift_id" value="'.$row_user['shift_id'].'">
+                                <input type="text" class="form-control" value="'.$current_shift_name.'" style="background:#eeeeee" readonly>
                             </div>
                         </div>
 

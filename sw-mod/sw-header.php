@@ -51,6 +51,10 @@ echo'
     <!-- * loader -->';
 if(isset($_COOKIE['COOKIES_MEMBER'])){
   $active_assignment = assignment_get_active_for_employee($connection, $row_user['id'], $date);
+  $user_photo_url = $base_url.'sw-content/avatar.jpg';
+  if (!empty($row_user['photo']) && file_exists(__DIR__.'/../sw-content/karyawan/'.$row_user['photo'])) {
+    $user_photo_url = $base_url.'sw-content/karyawan/'.$row_user['photo'];
+  }
   echo'
 <!-- App Header -->
     <div class="appHeader bg-danger text-light">
@@ -63,26 +67,20 @@ if(isset($_COOKIE['COOKIES_MEMBER'])){
             <img src="'.$base_url.'sw-content/'.$site_logo_file.'?v='.time().'" alt="logo" class="logo">
         </div>
         <div class="right">
-            <div class="headerButton" data-toggle="dropdown" id="dropdownMenuLink" aria-haspopup="true">';
-              if($row_user['photo'] ==''){
-                echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w32 header-avatar">';
-              }else{
-                echo'
-                <img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" alt="image" class="imaged w32 header-avatar">';}
-              echo'
-               <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">';?>
-                <a class="dropdown-item" onclick="location.href='./?mod=profile';" href="./?mod=profile"><ion-icon size="small" name="person-outline"></ion-icon>Profil</a>
-                <a class="dropdown-item logout-link" href="./?mod=logout"><ion-icon size="small" name="log-out-outline"></ion-icon>Keluar</a>
+            <a href="#" class="headerButton dropdown-toggle" data-toggle="dropdown" id="dropdownMenuLink" aria-haspopup="true" aria-expanded="false">
+                <img src="'.$user_photo_url.'" alt="image" class="imaged w32 header-avatar">
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
+                <a class="dropdown-item" href="./?mod=profile"><ion-icon size="small" name="person-outline"></ion-icon>Profil</a>
+                <a class="dropdown-item logout-link" href="'.$base_url.'?mod=logout"><ion-icon size="small" name="log-out-outline"></ion-icon>Keluar</a>
               </div>
-            </div>
         </div>
             <div class="progress" style="display:none;position:absolute;top:50px;z-index:4;left:0px;width: 100%">
                 <div id="progressBar" class="progress-bar progress-bar-striped bg-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
                     <span class="sr-only">0%</span>
                 </div>
             </div>
-    </div>
-<?php
+    </div>';
 echo'<!-- App Sidebar -->
     <div class="modal fade panelbox panelbox-left" id="sidebarPanel" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
@@ -91,11 +89,7 @@ echo'<!-- App Sidebar -->
                     <!-- profile box -->
                     <div class="profileBox pt-2 pb-2">
                         <div class="image-wrapper">';
-                        if($row_user['photo'] ==''){
-                        echo'<img src="'.$base_url.'sw-content/avatar.jpg" alt="image" class="imaged w36 header-avatar">';
-                        }else{
-                        echo'<img src="'.$base_url.'sw-content/karyawan/'.$row_user['photo'].'" class="imaged w36 header-avatar">';
-                        }
+                        echo'<img src="'.$user_photo_url.'" alt="image" class="imaged w36 header-avatar">';
                           echo'
                         </div>
                         <div class="in">
