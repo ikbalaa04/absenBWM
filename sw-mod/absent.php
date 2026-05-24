@@ -13,6 +13,10 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
         session_destroy();
         header("location:./"); 
 }else{
+  if (assignment_user_has_active($connection, $row_user['id'], $date)) {
+    header('location:./?mod=penugasan');
+    exit();
+  }
 
   echo'<!-- App Capsule -->
     <div id="appCapsule">

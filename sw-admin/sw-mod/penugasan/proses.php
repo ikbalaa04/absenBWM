@@ -1,0 +1,147 @@
+<?php
+session_start();
+if(empty($_SESSION['SESSION_USER']) && empty($_SESSION['SESSION_ID'])){
+    header('location:../../login/');
+ exit;}
+else {
+require_once'../../../sw-library/sw-config.php';
+require_once'../../login/login_session.php';
+include('../../../sw-library/sw-function.php');
+
+function assignment_number($connection, $date) {
+  $year = date('Y', strtotime($date));
+  $month = date('m', strtotime($date));
+  $prefix = 'ST/'.$year.'/'.$month.'/';
+  $prefix_sql = mysqli_real_escape_string($connection, $prefix);
+  $result = $connection->query("SELECT assignment_number FROM assignments WHERE assignment_number LIKE '$prefix_sql%' ORDER BY assignment_id DESC LIMIT 1");
+  $next = 1;
+  if ($result && $result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $last = (int)substr($row['assignment_number'], -4);
+    $next = $last + 1;
+  }
+  return $prefix.sprintf('%04d', $next);
+}
+
+switch (@$_GET['action']){
+case 'add':
+  $error = array();
+
+  if (empty($_POST['employees_id'])) {
+      $error[] = 'Staff wajib dipilih';
+    } else {
+      $employees_id = mysqli_real_escape_string($connection, $_POST['employees_id']);
+  }
+
+  if (empty($_POST['assignment_start'])) {
+      $error[] = 'Tanggal mulai wajib diisi';
+    } else {
+      $assignment_start = date('Y-m-d', strtotime($_POST['assignment_start']));
+  }
+
+  if (empty($_POST['assignment_end'])) {
+      $error[] = 'Tanggal selesai wajib diisi';
+    } else {
+      $assignment_end = date('Y-m-d', strtotime($_POST['assignment_end']));
+  }
+
+  if (!empty($assignment_start) && !empty($assignment_end) && strtotime($assignment_start) > strtotime($assignment_end)) {
+      $error[] = 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai';
+  }
+
+  if (empty($_POST['assignment_location'])) {
+      $error[] = 'Lokasi/tujuan tugas wajib diisi';
+    } else {
+      $assignment_location = mysqli_real_escape_string($connection, strip_tags($_POST['assignment_location']));
+  }
+
+  if (empty($_POST['assignment_description'])) {
+      $error[] = 'Keterangan tugas wajib diisi';
+    } else {
+      $assignment_description = mysqli_real_escape_string($connection, strip_tags($_POST['assignment_description']));
+  }
+
+  if (empty($error)) {
+    $check = $connection->query("SELECT assignment_id FROM assignments WHERE employees_id='$employees_id' AND assignment_status='active' AND assignment_start <= '$assignment_end' AND assignment_end >= '$assignment_start' LIMIT 1");
+    if ($check && $check->num_rows > 0) {
+      echo'Staff sudah memiliki penugasan aktif pada rentang tanggal tersebut.';
+      break;
+    }
+
+    $assignment_number = mysqli_real_escape_string($connection, assignment_number($connection, $assignment_start));
+    $add ="INSERT INTO assignments (employees_id,assignment_start,assignment_end,assignment_location,assignment_description,assignment_number,assignment_status,created_at,updated_at)
+          VALUES('$employees_id','$assignment_start','$assignment_end','$assignment_location','$assignment_description','$assignment_number','active','$timeNow','$timeNow')";
+    if($connection->query($add) === false) {
+        echo'Data tidak berhasil disimpan: '.$connection->error;
+    } else{
+        echo'success';
+    }
+  } else {
+    echo implode('<br>', $error);
+  }
+break;
+
+case 'extend':
+  $error = array();
+  if (empty($_POST['assignment_id'])) {
+      $error[] = 'ID penugasan wajib diisi';
+    } else {
+      $assignment_id = mysqli_real_escape_string($connection, $_POST['assignment_id']);
+  }
+  if (empty($_POST['assignment_end'])) {
+      $error[] = 'Tanggal selesai wajib diisi';
+    } else {
+      $assignment_end = date('Y-m-d', strtotime($_POST['assignment_end']));
+  }
+
+  if (empty($error)) {
+    $query = $connection->query("SELECT employees_id,assignment_start FROM assignments WHERE assignment_id='$assignment_id' LIMIT 1");
+    if (!$query || $query->num_rows == 0) {
+      echo'Data penugasan tidak ditemukan.';
+      break;
+    }
+    $row = $query->fetch_assoc();
+    if (strtotime($assignment_end) < strtotime($row['assignment_start'])) {
+      echo'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.';
+      break;
+    }
+    $update="UPDATE assignments SET assignment_end='$assignment_end', assignment_status='active', updated_at='$timeNow' WHERE assignment_id='$assignment_id'";
+    if($connection->query($update) === false) {
+        echo'Data tidak berhasil disimpan: '.$connection->error;
+    } else{
+        echo'success';
+    }
+  } else {
+    echo implode('<br>', $error);
+  }
+break;
+
+case 'update-status':
+  $error = array();
+  if (empty($_POST['id'])) {
+      $error[] = 'ID penugasan wajib diisi';
+    } else {
+      $assignment_id = mysqli_real_escape_string($connection, $_POST['id']);
+  }
+  $allowed_status = array('active','completed','cancelled');
+  if (empty($_GET['status']) || !in_array($_GET['status'], $allowed_status)) {
+      $error[] = 'Status tidak valid';
+    } else {
+      $status = mysqli_real_escape_string($connection, $_GET['status']);
+  }
+
+  if (empty($error)) {
+    $update="UPDATE assignments SET assignment_status='$status', updated_at='$timeNow' WHERE assignment_id='$assignment_id'";
+    if($connection->query($update) === false) {
+        echo'Data tidak berhasil disimpan: '.$connection->error;
+    } else{
+        echo'success';
+    }
+  } else {
+    echo implode('<br>', $error);
+  }
+break;
+}
+
+}
+?>

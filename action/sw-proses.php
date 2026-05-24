@@ -250,6 +250,10 @@ break;
 // ------------- Absen -------------*/
 case 'absent':
 $error = array();
+if (assignment_user_has_active($connection, $row_user['id'], $date)) {
+  echo'Staff sedang dalam penugasan aktif. Silakan absen melalui menu Penugasan.';
+  break;
+}
 if (empty($_FILES['webcam']['name']) || empty($_FILES['webcam']['tmp_name'])) {
       $error[] = 'Foto absen wajib diambil';
     } else {
@@ -457,6 +461,75 @@ case 'update-password':
     else{           
         echo'Bidang inputan tidak boleh ada yang kosong..!';
     }
+break;
+
+// ------------- Absen Penugasan -------------*/
+case 'assignment-attendance':
+$error = array();
+$active_assignment = assignment_get_active_for_employee($connection, $row_user['id'], $date);
+if (!$active_assignment) {
+  echo'Saat ini Anda tidak memiliki penugasan aktif.';
+  break;
+}
+if (empty($_FILES['webcam']['name']) || empty($_FILES['webcam']['tmp_name'])) {
+      $error[] = 'Foto absen wajib diambil';
+    } else {
+      $files        = $_FILES["webcam"]["name"];
+      $lokasi_file  = $_FILES['webcam']['tmp_name'];
+      $ukuran_file  = $_FILES['webcam']['size'];
+      $extension    = strtolower(getExtension($files));
+      if (!in_array($extension, $allowed_ext)) {
+        $error[] = 'Gambar/Foto yang di unggah tidak sesuai dengan format, Berkas harus berformat JPG,JPEG,PNG..!';
+      } elseif ($ukuran_file >= 5000000) {
+        $error[] = 'Foto terlalu besar Maksimal Size 5MB.!';
+      } else {
+        $image_size = getimagesize($lokasi_file);
+        if ($image_size === false) {
+          $error[] = 'File yang diunggah bukan gambar valid.';
+        } else {
+          list($width, $height) = $image_size;
+          if($extension=="jpg" || $extension=="jpeg" ){$src = imagecreatefromjpeg($lokasi_file);}
+          else {$src = imagecreatefrompng($lokasi_file);}
+          if (!$src) {
+            $error[] = 'Foto absen tidak dapat diproses.';
+          } else {
+            $width_new  = 300;
+            $height_new = ($height/$width)*$width_new;
+            $tmp_name   = imagecreatetruecolor($width_new,$height_new);
+            imagecopyresampled($tmp_name,$src,0,0,0,0,$width_new,$height_new,$width,$height);
+          }
+        }
+      }
+}
+if (empty($_GET['latitude'])) {
+      $error[] = 'Silahkan Izinkan Lokasi Anda saat ini!';
+    } else {
+      $latitude= mysqli_real_escape_string($connection, $_GET['latitude']);
+}
+
+if (empty($error)){
+  $assignment_id = mysqli_real_escape_string($connection, $active_assignment['assignment_id']);
+  $query_check = "SELECT assignment_attendance_id FROM assignment_attendance WHERE assignment_id='$assignment_id' AND employees_id='$row_user[id]' AND attendance_date='$date'";
+  $result_check = $connection->query($query_check);
+  if($result_check && $result_check->num_rows > 0){
+    echo'Sebelumnya "'.$row_user['employees_name'].'" sudah melakukan absen penugasan pada Tanggal '.tanggal_ind($date).'.';
+    break;
+  }
+
+  $filename =''.$date.'-assignment-'.time().'-'.$row_user['id'].'.jpeg';
+  $directory= "../sw-content/absent/".$filename;
+  $information = mysqli_real_escape_string($connection, 'Dalam tugas - '.$active_assignment['assignment_number']);
+  $add ="INSERT INTO assignment_attendance (assignment_id,employees_id,attendance_date,attendance_time,picture,latitude_longtitude,information,created_at)
+        values('$assignment_id','$row_user[id]','$date','$time','$filename','$latitude','$information','$timeNow')";
+  if($connection->query($add) === false) {
+      echo'Sepertinya Sistem Kami sedang error!';
+  } else{
+      echo'success/Selamat Anda berhasil Absen Penugasan pada Tanggal '.tanggal_ind($date).' dan Jam : '.$time.'.';
+      imagejpeg($tmp_name,$directory,80);
+  }
+} else {
+  echo implode('<br>', $error);
+}
 break;
 
 /* -------- UPDATE PHOTO ----------------*/

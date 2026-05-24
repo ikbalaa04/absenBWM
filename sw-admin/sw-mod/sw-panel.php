@@ -42,6 +42,9 @@ echo'<aside class="main-sidebar">
       if($mod =='absensi'){echo'<li class="active">'; }else{echo'<li>';}
       echo'<a href="./?mod=absensi"><i class="fa fa-list-alt" aria-hidden="true"></i> <span>Data Absensi</span></a></li>';
 
+      if($mod =='penugasan'){echo'<li class="active">'; }else{echo'<li>';}
+      echo'<a href="./?mod=penugasan"><i class="fa fa-briefcase" aria-hidden="true"></i> <span>Penugasan</span></a></li>';
+
       if($mod =='setting'){echo'<li class="active">'; }else{echo'<li>';}
       echo'<a href="./?mod=setting"><i class="fa fa-cogs" aria-hidden="true"></i> <span>Pengaturan Web</span></a></li>';
 

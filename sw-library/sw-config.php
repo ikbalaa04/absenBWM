@@ -52,3 +52,5 @@ if (!function_exists('base_url')) {
 $base_url = base_url();
 require_once __DIR__.'/attendance-rules.php';
 attendance_ensure_schema($connection);
+require_once __DIR__.'/assignment-rules.php';
+assignment_ensure_schema($connection);

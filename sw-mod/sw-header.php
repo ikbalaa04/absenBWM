@@ -50,6 +50,7 @@ echo'
     </div>
     <!-- * loader -->';
 if(isset($_COOKIE['COOKIES_MEMBER'])){
+  $active_assignment = assignment_get_active_for_employee($connection, $row_user['id'], $date);
   echo'
 <!-- App Header -->
     <div class="appHeader bg-danger text-light">
@@ -117,14 +118,23 @@ echo'<!-- App Sidebar -->
                                 </div> Home 
                             </a>
                         </li>
-                        <li>
-                            <a href="./?mod=absent" class="item">
+                        <li>';
+                            if($active_assignment){
+                              echo'<a href="./?mod=penugasan" class="item">
+                                <div class="icon-box bg-danger">
+                                    <ion-icon name="briefcase-outline"></ion-icon>
+                                </div>
+                                    Penugasan
+                            </a>';
+                            } else {
+                              echo'<a href="./?mod=absent" class="item">
                                 <div class="icon-box bg-danger">
                                     <ion-icon name="scan-outline"></ion-icon>
                                 </div>
                                     Absen
-                            </a>
-                        </li>
+                            </a>';
+                            }
+                        echo'</li>
 
                         <li>
                             <a href="./?mod=cuty" class="item">

@@ -3,6 +3,7 @@
 } else {
 
 if(isset($_COOKIE['COOKIES_MEMBER'])){
+$active_assignment = assignment_get_active_for_employee($connection, $row_user['id'], $date);
 echo'
 <div class="appBottomMenu">
         <a href="./?mod=home" class="item">
@@ -12,10 +13,10 @@ echo'
             </div>
         </a>
 
-        <a href="./?mod=absent" class="item">
+        <a href="./?mod='.($active_assignment ? 'penugasan' : 'absent').'" class="item">
             <div class="col">
-                <ion-icon name="camera-outline"></ion-icon>
-                <strong>Absen</strong>
+                <ion-icon name="'.($active_assignment ? 'briefcase-outline' : 'camera-outline').'"></ion-icon>
+                <strong>'.($active_assignment ? 'Tugas' : 'Absen').'</strong>
             </div>
         </a>
 
@@ -78,7 +79,7 @@ echo'
 }
 echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/sw-script.js?v='.filemtime(__DIR__ . '/sw-assets/js/sw-script.js').'"></script>';
-if ($mod =='absent'){?>
+if ($mod =='absent' OR $mod =='penugasan'){?>
 <script type="text/javascript">
     var result;
     var geoOptions = {
@@ -152,7 +153,9 @@ if ($mod =='absent'){?>
         sourceId: cameras[0]
     });
 
-    Webcam.attach('.webcam-capture');
+    if (document.querySelector('.webcam-capture')) {
+        Webcam.attach('.webcam-capture');
+    }
     // preload shutter audio clip
     var shutter = new Audio();
     //shutter.autoplay = true;
@@ -181,6 +184,29 @@ if ($mod =='absent'){?>
                         swal({title: 'Oops!', text:text, icon: 'error', timer: 3500,});
                     }
             });    
+        } );
+    }
+    function captureassignment() {
+    var latitude = $('.latitude').html();
+        if (!latitude) {
+            requestLocation(captureassignment);
+            return;
+        }
+        shutter.play();
+        Webcam.snap( function(data_uri) {
+            Webcam.upload(data_uri, window.swBaseUrl+'action/sw-proses.php?action=assignment-attendance&latitude='+encodeURIComponent(latitude)+'',
+                function(code,text) {
+                    $data       =''+text+'';
+                    var results = $data.split("/");
+                    $results = results[0];
+                    $results2 = results[1];
+                    if($results =='success'){
+                        swal({title: 'Berhasil!', text:$results2, icon: 'success', timer: 3500,});
+                        setTimeout("location.href = './?mod=home';",3600);
+                    }else{
+                        swal({title: 'Oops!', text:text, icon: 'error', timer: 3500,});
+                    }
+            });
         } );
     }
 </script>

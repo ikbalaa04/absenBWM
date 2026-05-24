@@ -85,12 +85,37 @@ echo'
       $query_absen ="SELECT presence_id,presence_date,time_in,time_out,picture_in,picture_out,present_id, latitude_longtitude_in,latitude_longtitude_out,information,TIMEDIFF(TIME(time_in),'$shift_time_in') AS selisih,if (time_in>'$shift_time_in','Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status, TIMEDIFF(TIME(time_out),'$shift_time_out') AS selisih_out FROM presence WHERE $filter ORDER BY presence_id DESC";
       $result_absen = $connection->query($query_absen);
       $row_absen = $result_absen->fetch_assoc();
+      $query_assignment_absen ="SELECT assignment_attendance.*,assignments.assignment_number,assignments.assignment_location FROM assignment_attendance INNER JOIN assignments ON assignments.assignment_id=assignment_attendance.assignment_id WHERE assignment_attendance.employees_id='$id' AND assignment_attendance.attendance_date='$date_month_year' ORDER BY assignment_attendance.assignment_attendance_id DESC LIMIT 1";
+      $result_assignment_absen = $connection->query($query_assignment_absen);
+      $is_assignment_attendance = ($result_assignment_absen && $result_assignment_absen->num_rows > 0);
+      if($is_assignment_attendance){
+        $row_assignment_absen = $result_assignment_absen->fetch_assoc();
+        $row_absen = array(
+          'presence_id' => '',
+          'presence_date' => $row_assignment_absen['attendance_date'],
+          'time_in' => $row_assignment_absen['attendance_time'],
+          'time_out' => '-',
+          'picture_in' => $row_assignment_absen['picture'],
+          'picture_out' => '',
+          'present_id' => '1',
+          'latitude_longtitude_in' => $row_assignment_absen['latitude_longtitude'],
+          'latitude_longtitude_out' => '',
+          'information' => 'Dalam tugas<br>'.$row_assignment_absen['assignment_number'].' - '.htmlspecialchars($row_assignment_absen['assignment_location'], ENT_QUOTES, 'UTF-8'),
+          'selisih' => '-',
+          'status' => 'Dalam tugas',
+          'selisih_out' => '-'
+        );
+      }
       // Status Kehadiran
       $querya ="SELECT present_id,present_name FROM present_status WHERE present_id='$row_absen[present_id]'";
       $resulta= $connection->query($querya);
       $rowa =  $resulta->fetch_assoc();
         // Status Kehadiran
-        if($row_absen['time_in'] == NULL){
+        if($is_assignment_attendance){
+          $status_hadir ='<label class="label label-primary">Dalam tugas</label>';
+          $time_in = $row_absen['time_in'];
+        }
+        elseif($row_absen['time_in'] == NULL){
           if (date("l",mktime (0,0,0,$bulan,$d,$tahun)) == "Sunday") {
             $status_hadir ='Libur Akhir Pekan';
           }else{
@@ -104,7 +129,10 @@ echo'
         }
 
         // Status Absensi Jam Masuk
-        if($row_absen['status']=='Telat'){
+        if($is_assignment_attendance){
+          $status_time_in ='<label class="label label-primary">Dalam tugas</label>';
+        }
+        elseif($row_absen['status']=='Telat'){
           $status_time_in ='<label class="label label-danger">Terlambat</label>';
         }
           elseif ($row_absen['status']=='Tepat Waktu') {
@@ -114,13 +142,25 @@ echo'
           $status_time_in ='<label class="label label-danger">'.$row_absen['status'].'</label>';
         }
 
-        if($row_absen['time_out'] > $shift_time_out){
+        if($is_assignment_attendance){
+          $selisih_out = '-';
+        }
+        elseif($row_absen['time_out'] > $shift_time_out){
           $selisih_out ='';
         }else{
           $selisih_out = $row_absen['selisih_out'];
         }
-        list($latitude,  $longitude) = explode(',', $row_absen['latitude_longtitude_in']);
-        list($latitude_out,  $longitude_out) = explode(',', $row_absen['latitude_longtitude_out']);
+        $latitude = $longitude = $latitude_out = $longitude_out = '';
+        if(!empty($row_absen['latitude_longtitude_in'])){
+          $latlng_in = explode(',', $row_absen['latitude_longtitude_in']);
+          $latitude = isset($latlng_in[0]) ? $latlng_in[0] : '';
+          $longitude = isset($latlng_in[1]) ? $latlng_in[1] : '';
+        }
+        if(!empty($row_absen['latitude_longtitude_out'])){
+          $latlng_out = explode(',', $row_absen['latitude_longtitude_out']);
+          $latitude_out = isset($latlng_out[0]) ? $latlng_out[0] : '';
+          $longitude_out = isset($latlng_out[1]) ? $latlng_out[1] : '';
+        }
         echo'
         <tr style="background:'.$background.';color:'.$warna.'">
           <td class="text-center">'.$d.'</td>
@@ -147,9 +187,14 @@ echo'
           <td class="text-center">'.$selisih_out.'</td>
           <td>'.$status_hadir.'<br>'.$row_absen['information'].'</td>
 
-          <td class="text-right">
-              <button type="button" class="btn btn-warning btn-xs btn-modal enable-tooltip" title="Lokasi" data-latitude="'.$latitude.'" data-longitude="'.$longitude.'"><i class="fa fa-map-marker"></i> Masuk</button>
-              <button type="button" class="btn btn-warning btn-xs btn-modal enable-tooltip" title="Lokasi" data-latitude="'.$latitude_out.'" data-longitude="'.$longitude_out.'"><i class="fa fa-map-marker"></i> Pulang</button></td>
+          <td class="text-right">';
+              if($latitude !== '' && $longitude !== ''){
+                echo'<button type="button" class="btn btn-warning btn-xs btn-modal enable-tooltip" title="Lokasi" data-latitude="'.$latitude.'" data-longitude="'.$longitude.'"><i class="fa fa-map-marker"></i> '.($is_assignment_attendance ? 'Tugas' : 'Masuk').'</button> ';
+              }
+              if(!$is_assignment_attendance && $latitude_out !== '' && $longitude_out !== ''){
+                echo'<button type="button" class="btn btn-warning btn-xs btn-modal enable-tooltip" title="Lokasi" data-latitude="'.$latitude_out.'" data-longitude="'.$longitude_out.'"><i class="fa fa-map-marker"></i> Pulang</button>';
+              }
+              echo'</td>
           </tr>';
         }
         echo'
@@ -167,6 +212,8 @@ echo'
 
       $query_hadir="SELECT presence_id FROM presence WHERE $filter AND present_id='1' ORDER BY presence_id DESC";
       $hadir= $connection->query($query_hadir);
+      $query_tugas="SELECT assignment_attendance_id FROM assignment_attendance WHERE employees_id='$id' AND MONTH(attendance_date)='$bulan' AND YEAR(attendance_date)='$tahun'";
+      $tugas= $connection->query($query_tugas);
 
       $query_sakit="SELECT presence_id FROM presence WHERE $filter AND present_id='2' ORDER BY presence_id";
       $sakit = $connection->query($query_sakit);
@@ -194,6 +241,9 @@ echo'
 
         <div class="col-md-3">
           <p>Izin : <span class="label label-info">'.$izin->num_rows.'</span></p>
+        </div>
+        <div class="col-md-3">
+          <p>Dalam tugas : <span class="label label-primary">'.$tugas->num_rows.'</span></p>
         </div>
 
       </div>';
