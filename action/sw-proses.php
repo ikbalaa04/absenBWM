@@ -249,6 +249,11 @@ if (assignment_user_has_active($connection, $row_user['id'], $date)) {
   echo'Staff sedang dalam penugasan aktif. Silakan absen melalui menu Penugasan.';
   break;
 }
+$off_day_message = attendance_off_day_message($date);
+if ($off_day_message !== '') {
+  echo $off_day_message;
+  break;
+}
 if (empty($_FILES['webcam']['name']) || empty($_FILES['webcam']['tmp_name'])) {
       $error[] = 'Foto absen wajib diambil';
     } else {

@@ -55,6 +55,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
     <!-- * App Capsule -->';}
   else{
   $active_assignment = assignment_get_active_for_employee($connection, $row_user['id'], $date);
+  $off_day_message = attendance_off_day_message($date);
 
   echo'<!-- App Capsule -->
     <div id="appCapsule">
@@ -72,7 +73,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                 <!-- Wallet Footer -->
                 <div class="wallet-footer">
                     <div class="item">
-                        <a href="./?mod=absent">
+                        <a href="'.($off_day_message === '' ? './?mod=absent' : 'javascript:void(0)').'">
                             <div class="icon-wrapper bg-danger">
                                 <ion-icon name="camera-outline"></ion-icon>
                             </div>
@@ -126,6 +127,16 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                         <div class="value text-white">'.$active_assignment['assignment_number'].'</div>
                         <div class="text-white">'.htmlspecialchars($active_assignment['assignment_location'], ENT_QUOTES, 'UTF-8').' | '.tgl_ind($active_assignment['assignment_start']).' - '.tgl_ind($active_assignment['assignment_end']).'</div>
                     </div></a>
+                </div>';
+            }
+            elseif($off_day_message !== ''){
+                echo'
+                <div class="col-12">
+                    <div class="stat-box bg-secondary">
+                        <div class="title text-white">Absensi Reguler</div>
+                        <div class="value text-white">Libur</div>
+                        <div class="text-white">'.$off_day_message.'</div>
+                    </div>
                 </div>';
             }
             elseif($result_absent->num_rows > 0){

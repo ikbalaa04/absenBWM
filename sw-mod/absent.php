@@ -17,6 +17,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
     header('location:./?mod=penugasan');
     exit();
   }
+  $off_day_message = attendance_off_day_message($date);
 
   echo'<!-- App Capsule -->
     <div id="appCapsule">
@@ -42,7 +43,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                     <div class="webcam-capture-body text-center">
                         <div class="webcam-capture"></div>
                         <div class="form-group basic">';
-	                            if($result_absent->num_rows > 0){
+	                            if($off_day_message !== ''){
+	                                  echo'
+	                                  <button class="btn btn-secondary btn-lg btn-block" type="button" disabled><ion-icon name="calendar-outline"></ion-icon>'.$off_day_message.'</button>';
+	                            }
+	                            elseif($result_absent->num_rows > 0){
 	                                $row_absent_page = $result_absent->fetch_assoc();
 	                                if((int)$row_absent_page['checkout_required'] === 0){
 	                                  echo'

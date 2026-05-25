@@ -61,8 +61,29 @@ if (!function_exists('attendance_distance_meter')) {
   }
 }
 
+if (!function_exists('attendance_is_regular_off_day')) {
+  function attendance_is_regular_off_day($presence_date) {
+    return (int)date('w', strtotime($presence_date)) === 6;
+  }
+}
+
+if (!function_exists('attendance_off_day_message')) {
+  function attendance_off_day_message($presence_date) {
+    if (attendance_is_regular_off_day($presence_date)) {
+      return 'Hari Sabtu libur, absensi reguler tidak dibuka.';
+    }
+
+    return '';
+  }
+}
+
 if (!function_exists('attendance_validate_checkin')) {
   function attendance_validate_checkin($employee, $latitude_longitude, $presence_date) {
+    $off_day_message = attendance_off_day_message($presence_date);
+    if ($off_day_message !== '') {
+      return $off_day_message;
+    }
+
     $require_location = isset($employee['require_location']) ? (int)$employee['require_location'] : 1;
     if ($require_location === 1) {
       if (empty($employee['latitude']) || empty($employee['longitude'])) {

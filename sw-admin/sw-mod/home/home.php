@@ -16,6 +16,35 @@ if(empty($connection)){
   $query_shift ="SELECT shift_id FROM shift";
   $result_count_shift = $connection->query($query_shift);
 
+  $dashboard_limit = 10;
+  $page_absent = isset($_GET['page_absent']) ? max(1, (int)$_GET['page_absent']) : 1;
+  $page_login = isset($_GET['page_login']) ? max(1, (int)$_GET['page_login']) : 1;
+  $page_cuty = isset($_GET['page_cuty']) ? max(1, (int)$_GET['page_cuty']) : 1;
+  $offset_absent = ($page_absent - 1) * $dashboard_limit;
+  $offset_login = ($page_login - 1) * $dashboard_limit;
+  $offset_cuty = ($page_cuty - 1) * $dashboard_limit;
+
+  if (!function_exists('dashboard_pagination')) {
+    function dashboard_pagination($param, $current_page, $total_rows, $limit) {
+      $total_pages = (int)ceil($total_rows / $limit);
+      if ($total_pages <= 1) {
+        return '';
+      }
+
+      $html = '<div class="box-footer clearfix"><ul class="pagination pagination-sm no-margin pull-right">';
+      for ($i = 1; $i <= $total_pages; $i++) {
+        $active = ($i == $current_page) ? ' class="active"' : '';
+        $query = $_GET;
+        $query['mod'] = 'home';
+        $query[$param] = $i;
+        $html .= '<li'.$active.'><a href="./?'.http_build_query($query).'">'.$i.'</a></li>';
+      }
+      $html .= '</ul></div>';
+
+      return $html;
+    }
+  }
+
 
 echo'
 <div class="content-wrapper">
@@ -100,6 +129,7 @@ echo'
           <h3 class="box-title">Absensi Hari ini</h3>
         </div>
           <div class="box-body no-padding">
+            <div class="table-responsive">
             <table class="table">
               <tbody>
                 <tr>
@@ -109,14 +139,18 @@ echo'
                   <th>Jam Pulang</th>
                   <th class="text-right">Aksi</th>
                 </tr>
-                <tr>';
-                $query_absent_day ="SELECT presence.employees_id,presence.time_in,presence.time_out,employees.employees_name FROM presence,employees WHERE presence.employees_id=employees.id AND presence.presence_date='$date' ORDER BY presence.presence_id LIMIT 10";
+                ';
+                $query_absent_count ="SELECT presence.presence_id FROM presence,employees WHERE presence.employees_id=employees.id AND presence.presence_date='$date'";
+                $result_absent_count = $connection->query($query_absent_count);
+                $total_absent_day = $result_absent_count ? $result_absent_count->num_rows : 0;
+                $query_absent_day ="SELECT presence.employees_id,presence.time_in,presence.time_out,employees.employees_name FROM presence,employees WHERE presence.employees_id=employees.id AND presence.presence_date='$date' ORDER BY presence.presence_id DESC LIMIT $dashboard_limit OFFSET $offset_absent";
                 $result_absent_day = $connection->query($query_absent_day);
                 if($result_absent_day->num_rows > 0){
-                $no=0;
+                $no=$offset_absent;
                 while ($row = $result_absent_day->fetch_assoc()) {
                   $no++;
                   echo'
+                <tr>
                   <td class="text-center">'.$no.'</td>
                   <td>'.$row['employees_name'].'</td>
                   <td>'.$row['time_in'].'</td>
@@ -126,53 +160,13 @@ echo'
                 echo'
               </tbody>
             </table>
+            </div>
           </div>
+          '.dashboard_pagination('page_absent', $page_absent, $total_absent_day, $dashboard_limit).'
         </div>
       </div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <div class="box box-solid">
-        <div class="box-header with-border">
-          <h3 class="box-title">Permohonan Cuti</h3>
-          <div class="box-tools pull-right">
-            <a href="./?mod=cuty" class="btn btn-success btn-flat">Data Cuti</a>
-          </div>
-        </div>
-          <div class="box-body no-padding">
-          <table class="table">
-            <tbody>
-                <tr>
-                  <th style="width: 10px" class="text-center">No.</th>
-                  <th>Nama</th>
-                  <th>Tanggal Cuti</th>
-                  <th class="text-center">Jumlah</th>
-                  <th class="text-right">Masuk Kerja</th>
-                </tr>
-                <tr>';
-                $query_cuty="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE employees.id=cuty.employees_id AND cuty.cuty_status='3' order by cuty.cuty_id DESC LIMIT 10";
-                $result_cuty = $connection->query($query_cuty);
-                if($result_cuty->num_rows > 0){
-                $no=0;
-                while ($row_cuty= $result_cuty->fetch_assoc()) {
-                $no++;
-                  echo'
-                  <td class="text-center">'.$no.'</td>
-                  <td>'.$row_cuty['employees_name'].'</td>
-                  <td>'.tgl_ind($row_cuty['cuty_start']).' sampai '.tgl_ind($row_cuty['cuty_end']).'</td>
-                  <td class="text-center"><label class="label label-warning">'.$row_cuty['cuty_total'].'</label></td>
-                  <td class="text-right">'.tgl_ind($row_cuty['date_work']).'</td>
-                </tr>';}
-                }
-          echo'
-            </tbody>
-          </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="clearfix"></div>
-
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="box box-solid">
         <div class="box-header with-border">
           <h3 class="box-title">Last Login Karyawan</h3>
@@ -191,10 +185,13 @@ echo'
                   <th class="text-right">Last Login</th>
                 </tr>
                 ';
-                $query_last_login="SELECT employees_name,employees_email,created_login FROM employees ORDER BY created_login DESC LIMIT 10";
+                $query_last_login_count="SELECT id FROM employees";
+                $result_last_login_count = $connection->query($query_last_login_count);
+                $total_last_login = $result_last_login_count ? $result_last_login_count->num_rows : 0;
+                $query_last_login="SELECT employees_name,employees_email,created_login FROM employees ORDER BY created_login DESC LIMIT $dashboard_limit OFFSET $offset_login";
                 $result_last_login = $connection->query($query_last_login);
                 if($result_last_login->num_rows > 0){
-                $no=0;
+                $no=$offset_login;
                 while ($row_login= $result_last_login->fetch_assoc()) {
                 $no++;
                 $last_login = ($row_login['created_login'] != '0000-00-00 00:00:00' && !empty($row_login['created_login'])) ? tgl_indo($row_login['created_login']).' - '.jam_indo($row_login['created_login']) : '<span class="text-muted">Belum login</span>';
@@ -211,6 +208,56 @@ echo'
           </table>
           </div>
           </div>
+          '.dashboard_pagination('page_login', $page_login, $total_last_login, $dashboard_limit).'
+        </div>
+      </div>
+
+      <div class="clearfix"></div>
+
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="box box-solid">
+        <div class="box-header with-border">
+          <h3 class="box-title">Permohonan Cuti</h3>
+          <div class="box-tools pull-right">
+            <a href="./?mod=cuty" class="btn btn-success btn-flat">Data Cuti</a>
+          </div>
+        </div>
+          <div class="box-body no-padding">
+          <div class="table-responsive">
+          <table class="table">
+            <tbody>
+                <tr>
+                  <th style="width: 10px" class="text-center">No.</th>
+                  <th>Nama</th>
+                  <th>Tanggal Cuti</th>
+                  <th class="text-center">Jumlah</th>
+                  <th class="text-right">Masuk Kerja</th>
+                </tr>
+                ';
+                $query_cuty_count="SELECT cuty.cuty_id FROM employees,cuty WHERE employees.id=cuty.employees_id AND cuty.cuty_status='3'";
+                $result_cuty_count = $connection->query($query_cuty_count);
+                $total_cuty = $result_cuty_count ? $result_cuty_count->num_rows : 0;
+                $query_cuty="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE employees.id=cuty.employees_id AND cuty.cuty_status='3' order by cuty.cuty_id DESC LIMIT $dashboard_limit OFFSET $offset_cuty";
+                $result_cuty = $connection->query($query_cuty);
+                if($result_cuty->num_rows > 0){
+                $no=$offset_cuty;
+                while ($row_cuty= $result_cuty->fetch_assoc()) {
+                $no++;
+                  echo'
+                <tr>
+                  <td class="text-center">'.$no.'</td>
+                  <td>'.$row_cuty['employees_name'].'</td>
+                  <td>'.tgl_ind($row_cuty['cuty_start']).' sampai '.tgl_ind($row_cuty['cuty_end']).'</td>
+                  <td class="text-center"><label class="label label-warning">'.$row_cuty['cuty_total'].'</label></td>
+                  <td class="text-right">'.tgl_ind($row_cuty['date_work']).'</td>
+                </tr>';}
+                }
+          echo'
+            </tbody>
+          </table>
+          </div>
+          </div>
+          '.dashboard_pagination('page_cuty', $page_cuty, $total_cuty, $dashboard_limit).'
         </div>
       </div>
   </div>
