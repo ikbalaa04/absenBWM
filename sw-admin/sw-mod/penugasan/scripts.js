@@ -42,6 +42,7 @@ $(document).on('click', '.btn-extend', function(){
 $(document).on('click', '.btn-edit', function(){
     $('#edit-assignment-id').val($(this).attr('data-id'));
     $('#edit-employees-id').val($(this).attr('data-employees'));
+    $('#edit-assignment-signer-id').val($(this).attr('data-signer'));
     $('#edit-assignment-start').val($(this).attr('data-start'));
     $('#edit-assignment-end').val($(this).attr('data-end'));
     $('#edit-assignment-location').val($(this).attr('data-location'));

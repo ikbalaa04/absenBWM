@@ -23,6 +23,13 @@ function assignment_number($connection, $date) {
   return $prefix.sprintf('%04d', $next);
 }
 
+function validate_assignment_signer($connection, $assignment_signer_id) {
+  $assignment_signer_id = mysqli_real_escape_string($connection, $assignment_signer_id);
+  $query = "SELECT employees.id FROM employees INNER JOIN position ON position.position_id=employees.position_id WHERE employees.id='$assignment_signer_id' AND position.position_name LIKE '%Manajemen%' LIMIT 1";
+  $result = $connection->query($query);
+  return $result && $result->num_rows > 0;
+}
+
 switch (@$_GET['action']){
 case 'add':
   $error = array();
@@ -31,6 +38,15 @@ case 'add':
       $error[] = 'Staff wajib dipilih';
     } else {
       $employees_id = mysqli_real_escape_string($connection, $_POST['employees_id']);
+  }
+
+  if (empty($_POST['assignment_signer_id'])) {
+      $error[] = 'Pemberi tugas wajib dipilih';
+    } else {
+      $assignment_signer_id = mysqli_real_escape_string($connection, $_POST['assignment_signer_id']);
+      if (!validate_assignment_signer($connection, $assignment_signer_id)) {
+        $error[] = 'Pemberi tugas harus user dengan jabatan Manajemen';
+      }
   }
 
   if (empty($_POST['assignment_start'])) {
@@ -69,8 +85,8 @@ case 'add':
     }
 
     $assignment_number = mysqli_real_escape_string($connection, assignment_number($connection, $assignment_start));
-    $add ="INSERT INTO assignments (employees_id,assignment_start,assignment_end,assignment_location,assignment_description,assignment_number,assignment_status,created_at,updated_at)
-          VALUES('$employees_id','$assignment_start','$assignment_end','$assignment_location','$assignment_description','$assignment_number','active','$timeNow','$timeNow')";
+    $add ="INSERT INTO assignments (employees_id,assignment_start,assignment_end,assignment_location,assignment_description,assignment_number,assignment_signer_id,assignment_status,created_at,updated_at)
+          VALUES('$employees_id','$assignment_start','$assignment_end','$assignment_location','$assignment_description','$assignment_number','$assignment_signer_id','active','$timeNow','$timeNow')";
     if($connection->query($add) === false) {
         echo'Data tidak berhasil disimpan: '.$connection->error;
     } else{
@@ -94,6 +110,15 @@ case 'update':
       $error[] = 'Staff wajib dipilih';
     } else {
       $employees_id = mysqli_real_escape_string($connection, $_POST['employees_id']);
+  }
+
+  if (empty($_POST['assignment_signer_id'])) {
+      $error[] = 'Pemberi tugas wajib dipilih';
+    } else {
+      $assignment_signer_id = mysqli_real_escape_string($connection, $_POST['assignment_signer_id']);
+      if (!validate_assignment_signer($connection, $assignment_signer_id)) {
+        $error[] = 'Pemberi tugas harus user dengan jabatan Manajemen';
+      }
   }
 
   if (empty($_POST['assignment_start'])) {
@@ -145,6 +170,7 @@ case 'update':
               assignment_end='$assignment_end',
               assignment_location='$assignment_location',
               assignment_description='$assignment_description',
+              assignment_signer_id='$assignment_signer_id',
               assignment_status='$assignment_status',
               updated_at='$timeNow'
               WHERE assignment_id='$assignment_id'";

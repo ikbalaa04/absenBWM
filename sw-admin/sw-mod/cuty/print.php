@@ -22,6 +22,13 @@ $query="SELECT employees.employees_name,cuty.*,position.position_name FROM emplo
 $result = $connection->query($query);
 if($result->num_rows > 0){
 $row    = $result->fetch_assoc();
+$letter_header_file = !empty($site_letter_header) ? basename($site_letter_header) : '';
+$letter_header_path = __DIR__.'/../../../sw-content/'.$letter_header_file;
+if(!empty($letter_header_file) && file_exists($letter_header_path)){
+  $letter_header_html = '<div class="letter-header text-center"><img class="letter-header-img" src="../../../sw-content/'.htmlspecialchars($letter_header_file, ENT_QUOTES, 'UTF-8').'" alt="Header Surat"></div>';
+} else {
+  $letter_header_html = '<h3 class="text-center">PERMOHONAN PENGAMBILAN CUTI<br>'.$site_company.'</h3><p class="text-center">'.$site_address.'</p><hr>';
+}
 echo'
 <!DOCTYPE html>
 <html>
@@ -39,6 +46,7 @@ echo'
       margin-top:70px;
       text-transform:uppercase
     }
+    .letter-header{border-bottom:1px solid black;padding-bottom:12px;margin-bottom:20px}.letter-header-img{max-width:100%;max-height:140px}
     hr{
       border-top: 1px solid black;
     }
@@ -58,9 +66,7 @@ echo'
 
 <section class="container_box">
       <div class="row">
-          <h3 class="text-center">PERMOHONAN PENGAMBILAN CUTI<br>'.$site_company.'</h3>
-          <p class="text-center">'.$site_address.'</p>
-          <hr>
+          '.$letter_header_html.'
         <div class="content_box">
           <p>Yth. HRD '.$site_company.'<br>
           di tempat<p>

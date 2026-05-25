@@ -15,6 +15,16 @@ $connection = NEW mysqli( $DB_HOST, $DB_USER, $DB_PASSWD, $DB_NAME );
 if ($connection->connect_error){
 		echo 'Gagal koneksi ke database';
 	} else {
+		$site_columns = array();
+		$result_columns = $connection->query("SHOW COLUMNS FROM sw_site");
+		if ($result_columns) {
+			while ($column = $result_columns->fetch_assoc()) {
+				$site_columns[$column['Field']] = true;
+			}
+		}
+		if (empty($site_columns['site_letter_header'])) {
+			$connection->query("ALTER TABLE sw_site ADD site_letter_header varchar(150) NOT NULL DEFAULT '' AFTER site_logo");
+		}
 		$query_site  = "SELECT * FROM sw_site LIMIT 1";
 		$result_site = $connection->query($query_site);
 		$row_site    = $result_site->fetch_assoc();

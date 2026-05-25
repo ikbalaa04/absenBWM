@@ -12,6 +12,35 @@ $salt = '$%DEf0&TTd#%dSuTyr47542"_-^@#&*!=QxR094{a911}+';
 
 switch (@$_GET['action']){
 
+case 'export':
+  $filename = 'data-karyawan-'.date('Ymd-His').'.csv';
+  header('Content-Type: text/csv; charset=utf-8');
+  header('Content-Disposition: attachment; filename="'.$filename.'"');
+  $output = fopen('php://output', 'w');
+  fputcsv($output, array('No', 'Staff ID', 'Nama', 'Email', 'Jabatan', 'Shift', 'Lokasi', 'Last Login'));
+  $query="SELECT employees.*,position.position_name,shift.shift_name,building.name FROM employees,position,shift,building WHERE employees.position_id=position.position_id AND employees.shift_id=shift.shift_id AND employees.building_id=building.building_id ORDER BY employees.id DESC";
+  $result = $connection->query($query);
+  $no = 0;
+  if($result && $result->num_rows > 0){
+    while ($row = $result->fetch_assoc()) {
+      $no++;
+      $last_login = ($row['created_login'] != '0000-00-00 00:00:00' && !empty($row['created_login'])) ? tgl_indo($row['created_login']).' - '.jam_indo($row['created_login']) : 'Belum login';
+      fputcsv($output, array(
+        $no,
+        $row['employees_code'],
+        $row['employees_name'],
+        $row['employees_email'],
+        $row['position_name'],
+        $row['shift_name'],
+        $row['name'],
+        $last_login
+      ));
+    }
+  }
+  fclose($output);
+  exit;
+break;
+
 case 'add':
   $error = array();
   $employees_code = mysqli_real_escape_string($connection, generate_employee_code($connection, 'IND', $year));

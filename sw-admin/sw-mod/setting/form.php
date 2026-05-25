@@ -74,6 +74,20 @@ case 'setting':
           </div>
         </div>
 
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Header Surat</label>
+          <div class="col-sm-6">';
+            if(!empty($site_letter_header) && file_exists(__DIR__.'/../../../sw-content/'.$site_letter_header)){
+              echo'<img style="max-width:100%;max-height:120px" src="../sw-content/'.$site_letter_header.'">';
+            } else {
+              echo'<p class="text-muted">Belum ada header surat. Surat akan memakai header teks.</p>';
+            }
+            echo'<br><br>
+              <input type="file" class="btn btn-default" name="site_letter_header" accept="image/png, image/jpeg">
+              <p class="text-red">*Format PNG/JPEG, kosongkan apabila tidak mengganti</p>
+          </div>
+        </div>
+
       <!-- /.box-body -->
       <div class="box-footer">
         <label class="col-sm-2 control-label"></label>
