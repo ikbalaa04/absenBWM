@@ -390,30 +390,8 @@ case 'profile':
       $employees_name= mysqli_real_escape_string($connection, $_POST['employees_name']);
   }
 
-  if (empty($_POST['position_id'])) {
-      $error[] = 'tidak boleh kosong';
-    } else {
-      $position_id = mysqli_real_escape_string($connection, $_POST['position_id']);
-  }
-
-  if (empty($_POST['shift_id'])) {
-      $error[] = 'tidak boleh kosong';
-    } else {
-      $shift_id = mysqli_real_escape_string($connection, $_POST['shift_id']);
-  }
-
-  if (empty($_POST['building_id'])) {
-      $error[] = 'tidak boleh kosong';
-    } else {
-      $building_id = mysqli_real_escape_string($connection, $_POST['building_id']);
-  }
-
-
   if (empty($error)) { 
-    $update="UPDATE employees SET employees_name='$employees_name',
-            position_id='$position_id',
-            shift_id='$shift_id',
-            building_id='$building_id' WHERE id='$row_user[id]'"; 
+    $update="UPDATE employees SET employees_name='$employees_name' WHERE id='$row_user[id]'"; 
     if($connection->query($update) === false) { 
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';

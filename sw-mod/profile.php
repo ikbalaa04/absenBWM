@@ -15,6 +15,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
 }else{
   $current_position_name = '';
   $current_shift_name = '';
+  $current_building_name = '';
   $query_current_position = "SELECT position_name FROM position WHERE position_id='$row_user[position_id]' LIMIT 1";
   $result_current_position = $connection->query($query_current_position);
   if($result_current_position && $result_current_position->num_rows > 0){
@@ -26,6 +27,12 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   if($result_current_shift && $result_current_shift->num_rows > 0){
       $row_current_shift = $result_current_shift->fetch_assoc();
       $current_shift_name = $row_current_shift['shift_name'];
+  }
+  $query_current_building = "SELECT name,address FROM building WHERE building_id='$row_user[building_id]' LIMIT 1";
+  $result_current_building = $connection->query($query_current_building);
+  if($result_current_building && $result_current_building->num_rows > 0){
+      $row_current_building = $result_current_building->fetch_assoc();
+      $current_building_name = !empty($row_current_building['name']) ? $row_current_building['name'] : $row_current_building['address'];
   }
   $profile_photo_url = $base_url.'sw-content/avatar.jpg';
   if (!empty($row_user['photo']) && file_exists(__DIR__.'/../sw-content/karyawan/'.$row_user['photo'])) {
@@ -54,10 +61,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                         <div class="form-group boxed">
                             <div class="input-wrapper">
                                 <label class="label" for="text4">Staff ID</label>
-                                <input type="text" class="form-control" value="'.$row_user['employees_code'].'" required>
-                                <i class="clear-input">
-                                    <ion-icon name="close-circle"></ion-icon>
-                                </i>
+                                <input type="text" class="form-control" value="'.$row_user['employees_code'].'" style="background:#eeeeee" readonly>
                             </div>
                         </div>
 
@@ -74,7 +78,6 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                         <div class="form-group boxed">
                             <div class="input-wrapper">
                                 <label class="label" for="select4">Jabatan</label>
-                                <input type="hidden" name="position_id" value="'.$row_user['position_id'].'">
                                 <input type="text" class="form-control" value="'.$current_position_name.'" style="background:#eeeeee" readonly>
                             </div>
                         </div>
@@ -82,7 +85,6 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                         <div class="form-group boxed">
                             <div class="input-wrapper">
                                 <label class="label" for="select4">Jam Kerja</label>
-                                <input type="hidden" name="shift_id" value="'.$row_user['shift_id'].'">
                                 <input type="text" class="form-control" value="'.$current_shift_name.'" style="background:#eeeeee" readonly>
                             </div>
                         </div>
@@ -91,17 +93,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                         <div class="form-group boxed">
                             <div class="input-wrapper">
                                 <label class="label" for="password4">Lokasi Penempatan</label>
-                                <select class="form-control custom-select" name="building_id">';
-                                $query  ="SELECT building_id,name,address from building";
-                                $result = $connection->query($query);
-                                while($row = $result->fetch_assoc()) {
-                                    if($row['building_id'] == $row_user['building_id']){ 
-                                        echo'<option value="'.$row['building_id'].'" selected>'.$row['name'].'</option>';
-                                    }else{
-                                        echo'<option value="'.$row['building_id'].'">'.$row['name'].'</option>';
-                                    }
-                                }echo'
-                                </select>
+                                <input type="text" class="form-control" value="'.$current_building_name.'" style="background:#eeeeee" readonly>
                             </div>
                         </div>
 
