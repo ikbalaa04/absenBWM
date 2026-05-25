@@ -9,7 +9,7 @@ $year     = DATE('Y');
 $time     = DATE('H:i:s');
 $timeNow  = DATE('Y-m-d H:i:s');
 
-function generate_employee_code($connection, $prefix = 'P-', $year = null) {
+function generate_employee_code($connection, $prefix = 'IND', $year = null) {
   if ($year === null) {
     $year = date('Y');
   }

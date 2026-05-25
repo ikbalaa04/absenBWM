@@ -85,7 +85,7 @@ break;
 /* ------------- REGISTRASI ---------------*/
 case 'registrasi':
 $error = array();
-  $employees_code = mysqli_real_escape_string($connection, generate_employee_code($connection, 'P-', $year));
+  $employees_code = mysqli_real_escape_string($connection, generate_employee_code($connection, 'IND', $year));
 
   if (empty($_POST['employees_name'])) {
       $error[] = 'tidak boleh kosong';

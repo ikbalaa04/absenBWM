@@ -169,6 +169,46 @@ echo'
           </div>
         </div>
       </div>
+
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <div class="box box-solid">
+        <div class="box-header with-border">
+          <h3 class="box-title">Last Login Karyawan</h3>
+          <div class="box-tools pull-right">
+            <a href="./?mod=karyawan" class="btn btn-success btn-flat">Data Karyawan</a>
+          </div>
+        </div>
+          <div class="box-body no-padding">
+          <table class="table">
+            <tbody>
+                <tr>
+                  <th style="width: 10px" class="text-center">No.</th>
+                  <th>Nama</th>
+                  <th>Email</th>
+                  <th class="text-right">Last Login</th>
+                </tr>
+                ';
+                $query_last_login="SELECT employees_name,employees_email,created_login FROM employees ORDER BY created_login DESC LIMIT 10";
+                $result_last_login = $connection->query($query_last_login);
+                if($result_last_login->num_rows > 0){
+                $no=0;
+                while ($row_login= $result_last_login->fetch_assoc()) {
+                $no++;
+                $last_login = ($row_login['created_login'] != '0000-00-00 00:00:00' && !empty($row_login['created_login'])) ? tgl_indo($row_login['created_login']).' - '.jam_indo($row_login['created_login']) : '<span class="text-muted">Belum login</span>';
+                  echo'
+                <tr>
+                  <td class="text-center">'.$no.'</td>
+                  <td>'.$row_login['employees_name'].'</td>
+                  <td>'.$row_login['employees_email'].'</td>
+                  <td class="text-right">'.$last_login.'</td>
+                </tr>';}
+                }
+          echo'
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
   </div>
 </section>
 </div>';

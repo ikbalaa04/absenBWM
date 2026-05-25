@@ -33,7 +33,7 @@ if ($gclient->getAccessToken()) {
 				//$username = $ex[0]; // Ambil kata pertama
 
 				// Lakukan insert data user baru tanpa password
-				$employees_code = generate_employee_code($connection, 'P-', $year);
+				$employees_code = generate_employee_code($connection, 'IND', $year);
 
 				// Posisi
 				$query_position="SELECT position_id FROM position order by position_id ASC";

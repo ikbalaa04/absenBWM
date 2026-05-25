@@ -44,6 +44,7 @@ echo'
               <th>Jabatan</th>
               <th>Shift</th>
               <th>Lokasi</th>
+              <th>Last Login</th>
               <th style="width:150px" class="text-right">Aksi</th>
             </tr>
             </thead>
@@ -63,6 +64,7 @@ echo'
                 <td>'.$row['position_name'].'</td>
                 <td>'.$row['shift_name'].'</td>
                 <td>'.$row['name'].'</td>
+                <td>'.(($row['created_login'] != '0000-00-00 00:00:00' && !empty($row['created_login'])) ? tgl_indo($row['created_login']).' - '.jam_indo($row['created_login']) : '<span class="text-muted">Belum login</span>').'</td>
                 <td class="text-right">
                   <div class="btn-group">';
                   if($level_user==1){

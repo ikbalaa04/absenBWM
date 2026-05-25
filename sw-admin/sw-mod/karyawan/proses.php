@@ -14,7 +14,7 @@ switch (@$_GET['action']){
 
 case 'add':
   $error = array();
-  $employees_code = mysqli_real_escape_string($connection, generate_employee_code($connection, 'P-', $year));
+  $employees_code = mysqli_real_escape_string($connection, generate_employee_code($connection, 'IND', $year));
 
   if (empty($_POST['employees_email'])) {
       $error[] = 'tidak boleh kosong';
@@ -339,7 +339,7 @@ if(!empty($_FILES['files']['name']) && in_array($_FILES['files']['type'], $csvMi
             // Parse data from CSV file line by line
             while(($line = fgetcsv($csvFile)) !== FALSE){
                 // Get row data
-                $employees_code     = !empty($line[0]) ? $line[0] : generate_employee_code($connection, 'P-', $year);
+                $employees_code     = !empty($line[0]) ? $line[0] : generate_employee_code($connection, 'IND', $year);
                 $employees_email    = $line[1];
                 $employees_password = hash('sha256',$salt.$line[2]);
                 $employees_name     = $line[3];

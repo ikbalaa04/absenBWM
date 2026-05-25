@@ -41,12 +41,13 @@ echo'
               <th>Username</th>
               <th>Email</th>
               <th>Registrasi</th>
+              <th>Last Login</th>
               <th>Level</th>
               <th style="width:120px" class="text-center">Aksi</th>
             </tr>
             </thead>
             <tbody>';
-            $query="SELECT user.user_id,user.username,user.fullname,user.email,user.registered,user.level,user.level,user_level.level_id,user_level.level_name FROM user,user_level WHERE user.level=user_level.level_id order by user.user_id DESC";
+            $query="SELECT user.user_id,user.username,user.fullname,user.email,user.registered,user.created_login,user.level,user.level,user_level.level_id,user_level.level_name FROM user,user_level WHERE user.level=user_level.level_id order by user.user_id DESC";
             $result = $connection->query($query);
             if($result->num_rows > 0){
             $no=0;
@@ -59,6 +60,7 @@ echo'
                 <td>'.$row_a['username'].'</td>
                 <td>'.$row_a['email'].'</td>
                 <td>'.tgl_indo($row_a['registered']).' - '.jam_indo($row_a['registered']).'</td>
+                <td>'.(($row_a['created_login'] != '0000-00-00 00:00:00' && !empty($row_a['created_login'])) ? tgl_indo($row_a['created_login']).' - '.jam_indo($row_a['created_login']) : '<span class="text-muted">Belum login</span>').'</td>
                 <td>'.$row_a['level_name'].'</td>
                 <td class="text-right">
                   <div class="btn-group btn-group-xs">';
