@@ -285,11 +285,22 @@ $('#update-password').submit(function (e) {
 /* --------- UPDATE PHOTO PROFILE ---------------*/
  $(document).on('change','#avatar',function(){
         var file_data = $('#avatar').prop('files')[0];  
+        if (!file_data) {
+          return false;
+        }
         var image_name = file_data.name;
         var image_extension = image_name.split('.').pop().toLowerCase();
 
         if(jQuery.inArray(image_extension,['gif','jpg','jpeg','png']) == -1){
           swal({title: 'Oops!', text: 'File yang di unggah tidak sesuai dengan format, File harus jpg, jpeg, gif, png.!', icon: 'error', timer: 2000,});
+          $('#avatar').val('');
+          return false;
+        }
+
+        if(file_data.size > 5000000){
+          swal({title: 'Oops!', text: 'File terlalu besar maksimal 5MB.!', icon: 'error', timer: 2000,});
+          $('#avatar').val('');
+          return false;
         }
 
         var form_data = new FormData();

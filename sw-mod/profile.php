@@ -42,7 +42,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
     <div id="appCapsule">
         <div class="section mt-3 text-center">
             <div class="avatar-section">
-                <input type="file" class="upload" name="file" id="avatar" accept=".jpg, .jpeg, ,gif, .png" capture="camera">
+                <input type="file" class="upload" name="file" id="avatar" accept="image/jpeg,image/png,image/gif">
                 <a href="#">';
                 echo'<img src="'.$profile_photo_url.'" alt="avatar" class="imaged w100 rounded-circle profile-avatar">';
                         echo'

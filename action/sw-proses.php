@@ -516,46 +516,61 @@ break;
 
 /* -------- UPDATE PHOTO ----------------*/
 case 'update-photo':
-  $file_name   = $_FILES['file'] ['name'];
-  $size        = $_FILES['file'] ['size'];
-  $error       = $_FILES['file'] ['error'];
-  $tmpName     = $_FILES['file']['tmp_name'];
-  $filepath      = '../sw-content/karyawan/';
-  $valid       = array('jpg','gif','jpeg'); 
-  if(strlen($file_name)){   
-       // Perintah untuk mengecek format gambar
-        $extension = getExtension($file_name);
-        $extension = strtolower($extension);
-      if(in_array($extension,$valid)){ 
-         if($size < 500000){   
-           // Perintah pengganti nama files
-           $photo_new   =''.$row_user['id'].'-'.strip_tags(md5($file_name)).'-'.seo_title($time).'.'.$extension.'';
-           $pathFile    = $filepath.$photo_new;
+  if (empty($_FILES['file']['name']) || empty($_FILES['file']['tmp_name'])) {
+    echo'Foto profil belum dipilih.';
+    break;
+  }
 
-            $query = "SELECT photo FROM employees WHERE id='$row_user[id]'"; 
-                $result = $connection->query($query);
-                $rows= $result->fetch_assoc();
-                $photo = $rows['photo'];
-                if(file_exists("../sw-content/$photo")){
-                  unlink( "../sw-content/karyawan/$photo");
-                 }
-           $update ="UPDATE employees SET photo='$photo_new' WHERE id=$row_user[id]";
-            if($connection->query($update) === false) { 
-               echo'Pengaturan tidak dapat disimpan, coba ulangi beberapa saat lagi.!';
-               die($connection->error.__LINE__); 
-            } else   {
-              echo'success';
-               move_uploaded_file($tmpName, $pathFile);
-            }
-          }
-         else{ // Jika Gambar melebihi size 
-              echo'File terlalu besar maksimal files 5MB.!';  
-           }         
-       }
-       else{
-          echo 'File yang di unggah tidak sesuai dengan format, File harus jpg, jpeg, gif, png.!';
-        }
-     }   
+  $file_name   = $_FILES['file']['name'];
+  $size        = $_FILES['file']['size'];
+  $upload_error = $_FILES['file']['error'];
+  $tmpName     = $_FILES['file']['tmp_name'];
+  $filepath    = '../sw-content/karyawan/';
+  $valid       = array('jpg','jpeg','png','gif');
+  $extension   = strtolower(getExtension($file_name));
+
+  if ($upload_error !== UPLOAD_ERR_OK) {
+    echo'Foto profil gagal diupload, coba ulangi.';
+    break;
+  }
+
+  if(!in_array($extension, $valid)){
+    echo'File yang di unggah tidak sesuai dengan format, File harus jpg, jpeg, gif, png.!';
+    break;
+  }
+
+  if($size > 5000000){
+    echo'File terlalu besar maksimal files 5MB.!';
+    break;
+  }
+
+  if(getimagesize($tmpName) === false){
+    echo'File yang diunggah bukan gambar valid.';
+    break;
+  }
+
+  $photo_new = $row_user['id'].'-'.strip_tags(md5($file_name.time())).'-'.seo_title($time).'.'.$extension;
+  $pathFile = $filepath.$photo_new;
+
+  $query = "SELECT photo FROM employees WHERE id='$row_user[id]'"; 
+  $result = $connection->query($query);
+  $rows = $result->fetch_assoc();
+  $photo = $rows['photo'];
+  if(!empty($photo) && file_exists("../sw-content/karyawan/$photo")){
+    unlink("../sw-content/karyawan/$photo");
+  }
+
+  $update ="UPDATE employees SET photo='$photo_new' WHERE id=$row_user[id]";
+  if($connection->query($update) === false) { 
+    echo'Pengaturan tidak dapat disimpan, coba ulangi beberapa saat lagi.!';
+    die($connection->error.__LINE__); 
+  } else {
+    if(move_uploaded_file($tmpName, $pathFile)){
+      echo'success';
+    } else {
+      echo'Foto profil gagal disimpan di server.';
+    }
+  }
 break;
 
 
