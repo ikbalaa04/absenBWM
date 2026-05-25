@@ -1,5 +1,5 @@
 <?php session_start(); error_reporting(0);
-if(empty($_SESSION['SESSION_USER']) && empty($_SESSION['SESSION_ID'])){
+if(empty($_SESSION['SESSION_USER']) || empty($_SESSION['SESSION_ID'])){
     header('location:../../login/');
  exit;}
 else {

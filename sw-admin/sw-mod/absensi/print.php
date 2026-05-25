@@ -2,7 +2,7 @@
     require_once'../../../sw-library/sw-config.php'; 
     require_once'../../../sw-library/sw-function.php';
     include_once'../../../sw-library/vendor/autoload.php';
-if(empty($_SESSION['SESSION_USER']) && empty($_SESSION['SESSION_ID'])){
+if(empty($_SESSION['SESSION_USER']) || empty($_SESSION['SESSION_ID'])){
     //Kondisi tidak login
    header('location:../login/');
 }

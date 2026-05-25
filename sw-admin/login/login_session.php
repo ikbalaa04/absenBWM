@@ -1,31 +1,40 @@
-<?PHP if(empty($_SESSION['SESSION_USER']) && empty($_SESSION['SESSION_ID'])){
-    header('Location:../login');
-    unset($_SESSION['SESSION_USER']);
-	unset($_SESSION['SESSION_ID']);
-	session_destroy();
+<?PHP
+if (session_status() !== PHP_SESSION_ACTIVE) {
+	session_start();
+}
 
-}else{
-$SESSION_USER=''; $SESSION_ID='';
-if(!empty($_SESSION['SESSION_USER'])){$SESSION_USER=$_SESSION['SESSION_USER'];}
-if(!empty($_SESSION['SESSION_ID'])){$SESSION_ID=$_SESSION['SESSION_ID'];}
+if (!function_exists('admin_session_expired')) {
+	function admin_session_expired() {
+		global $base_url;
 
-$query_login= "SELECT * FROM user where session='$SESSION_USER' and user_id='$SESSION_ID'";
- //login
-	$result_login = $connection->query($query_login);
-	$log_login = $result_login->num_rows;
-	$row_user = $result_login->fetch_assoc();
-	extract($row_user);
-	$user_id 	= htmlentities($row_user['user_id']);
-	$level_user = htmlentities($row_user['level']);
-
-if($log_login == '0'){ 
-		//redirect(''.$url_login.'');
-		//echo "Login itu hukumnya adalah <h1>Wajib</h1> ^_^";
-		unset($_SESSION['SESSION_ID']);
 		unset($_SESSION['SESSION_USER']);
+		unset($_SESSION['SESSION_ID']);
 		session_destroy();
-} else {	
+
+		$login_url = !empty($base_url) ? $base_url.'?mod=login&role=admin' : '../login/';
+		header('Location:'.$login_url);
+		exit();
+	}
+}
+
+if (empty($_SESSION['SESSION_USER']) || empty($_SESSION['SESSION_ID'])) {
+	admin_session_expired();
+}
+
+$SESSION_USER = mysqli_real_escape_string($connection, $_SESSION['SESSION_USER']);
+$SESSION_ID   = (int) $_SESSION['SESSION_ID'];
+
+$query_login  = "SELECT * FROM user WHERE session='$SESSION_USER' AND user_id='$SESSION_ID' LIMIT 1";
+$result_login = $connection->query($query_login);
+
+if (!$result_login || $result_login->num_rows == 0) {
+	admin_session_expired();
+}
+
+$row_user   = $result_login->fetch_assoc();
+$user_id    = htmlentities($row_user['user_id']);
+$level_user = htmlentities($row_user['level']);
+extract($row_user);
 
 #------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------
-}}

@@ -1,7 +1,7 @@
 <?php @session_start();
 
 require_once'../../../sw-library/sw-config.php';
-if(empty($_SESSION['SESSION_USER']) && empty($_SESSION['SESSION_ID'])){
+if(empty($_SESSION['SESSION_USER']) || empty($_SESSION['SESSION_ID'])){
   header('location:../../login/');
   exit;
 }

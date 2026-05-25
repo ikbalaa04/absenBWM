@@ -1,10 +1,10 @@
 <?php
 session_start();
-if(empty($_SESSION['SESSION_ADMIN']) && empty($_SESSION['SESSION_ID_ADMIN'])){
+if(empty($_SESSION['SESSION_USER']) || empty($_SESSION['SESSION_ID'])){
     header('location:../../login/');
  exit;}
 else {
-require_once'../../../sw-library/config.php';
+require_once'../../../sw-library/sw-config.php';
 require_once'../../login/login_session.php';
 include('../../../sw-library/sw-function.php');
 $salt = '$%DSuTyr47542@#&*!=QxR094{a911}+';
