@@ -170,7 +170,9 @@ echo'
         </div>
       </div>
 
-      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+      <div class="clearfix"></div>
+
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="box box-solid">
         <div class="box-header with-border">
           <h3 class="box-title">Last Login Karyawan</h3>
@@ -179,6 +181,7 @@ echo'
           </div>
         </div>
           <div class="box-body no-padding">
+          <div class="table-responsive">
           <table class="table">
             <tbody>
                 <tr>
@@ -206,6 +209,7 @@ echo'
           echo'
             </tbody>
           </table>
+          </div>
           </div>
         </div>
       </div>
