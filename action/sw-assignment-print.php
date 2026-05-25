@@ -49,7 +49,7 @@ if (empty($error)) {
     <p>Yang bertanda tangan di bawah ini menugaskan kepada:</p>
     <table>
       <tr><td width="170">Nama</td><td>: '.$row['employees_name'].'</td></tr>
-      <tr><td>NIK</td><td>: '.$row['employees_code'].'</td></tr>
+      <tr><td>Staff ID</td><td>: '.$row['employees_code'].'</td></tr>
       <tr><td>Jabatan</td><td>: '.$row['position_name'].'</td></tr>
       <tr><td>Waktu Penugasan</td><td>: '.tgl_ind($row['assignment_start']).' sampai '.tgl_ind($row['assignment_end']).'</td></tr>
       <tr><td>Lokasi/Tujuan</td><td>: '.htmlspecialchars($row['assignment_location'], ENT_QUOTES, 'UTF-8').'</td></tr>
