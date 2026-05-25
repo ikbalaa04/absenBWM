@@ -14,12 +14,13 @@ switch (@$_GET['action']){
 
 /* -------  CETAK PDF----------*/
 case 'pdf':
-$query ="SELECT employees.id,employees.employees_name,employees.position_id,position.position_name,shift.time_in,shift.time_out FROM employees,position,shift WHERE employees.position_id=position.position_id AND employees.shift_id=shift.shift_id AND employees.id='$row_user[id]'";
+	$query ="SELECT employees.id,employees.employees_name,employees.position_id,position.position_name,shift.time_in,shift.time_out,shift.checkout_required FROM employees,position,shift WHERE employees.position_id=position.position_id AND employees.shift_id=shift.shift_id AND employees.id='$row_user[id]'";
 $result = $connection->query($query);
   if($result->num_rows > 0){
   $row= $result->fetch_assoc();
-  $shift_time_in  = $row['time_in'];
-	$shift_time_out  = $row['time_out'];
+	  $shift_time_in  = $row['time_in'];
+		$shift_time_out  = $row['time_out'];
+		$checkout_required = (int)$row['checkout_required'];
 if(isset($_GET['from']) OR isset($_GET['to'])){
       $from = date('Y-m-d', strtotime($_GET['from']));
       $to   = date('Y-m-d', strtotime($_GET['to']));
@@ -98,7 +99,10 @@ echo'
           $status_time_in ='';
         }
 
-        if($row_absen['status_pulang']=='Pulang Cepat'){
+	        if($checkout_required === 0){
+	          $status_pulang='<span class="badge badge-info">Tidak wajib</span>';
+	        }
+	        elseif($row_absen['status_pulang']=='Pulang Cepat'){
           $status_pulang='<span class="badge badge-danger">'.$row_absen['status_pulang'].'</span>';
         }
         else{
@@ -110,7 +114,7 @@ echo'
               <td class="text-center">'.$no.'</td>
               <td>'.tanggal_indo($row_absen['presence_date'], true).'</td>
               <td>'.$row_absen['time_in'].' '.$status_time_in.'</td>
-              <td>'.$row_absen['time_out'].' '.$status_pulang.'</td>
+	              <td>'.($checkout_required === 0 ? '-' : $row_absen['time_out']).' '.$status_pulang.'</td>
               <td>'.$row_aa['present_name'].'</td>
               <td>'.$row_absen['information'].'</td>
             </tr>';
@@ -158,13 +162,14 @@ echo'
 
 break;
 case 'excel':
-$query ="SELECT employees.id,employees.employees_name,employees.position_id,position.position_name,shift.time_in,shift.time_out FROM employees,position,shift WHERE employees.position_id=position.position_id AND employees.shift_id=shift.shift_id AND employees.id='$row_user[id]'";
+	$query ="SELECT employees.id,employees.employees_name,employees.position_id,position.position_name,shift.time_in,shift.time_out,shift.checkout_required FROM employees,position,shift WHERE employees.position_id=position.position_id AND employees.shift_id=shift.shift_id AND employees.id='$row_user[id]'";
 $result = $connection->query($query);
 
   if($result->num_rows > 0){
   $row= $result->fetch_assoc();
-  $shift_time_in  = $row['time_in'];
-  $shift_time_out  = $row['time_out'];
+	  $shift_time_in  = $row['time_in'];
+	  $shift_time_out  = $row['time_out'];
+	  $checkout_required = (int)$row['checkout_required'];
 
   if(isset($_GET['from']) OR isset($_GET['to'])){
         $from = date('Y-m-d', strtotime($_GET['from']));
@@ -236,7 +241,10 @@ echo'
           $status_time_in ='';
         }
 
-        if($row_absen['status_pulang']=='Pulang Cepat'){
+	        if($checkout_required === 0){
+	          $status_pulang='<span class="badge badge-info">Tidak wajib</span>';
+	        }
+	        elseif($row_absen['status_pulang']=='Pulang Cepat'){
           $status_pulang='<span class="badge badge-danger">'.$row_absen['status_pulang'].'</span>';
         }
         else{
@@ -247,7 +255,7 @@ echo'
               <td class="text-center">'.$no.'</td>
               <td>'.tanggal_indo($row_absen['presence_date'], true).'</td>
               <td>'.$row_absen['time_in'].' '.$status_time_in.'</td>
-              <td>'.$row_absen['time_out'].' '. $status_pulang.'</td>
+	              <td>'.($checkout_required === 0 ? '-' : $row_absen['time_out']).' '. $status_pulang.'</td>
               <td>'.$row_aa['present_name'].'</td>
               <td>'.$information.'</td>
             </tr>';

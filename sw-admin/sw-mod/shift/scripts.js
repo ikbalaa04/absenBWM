@@ -20,7 +20,7 @@ function loading(){
 
 /* ----------- Add ------------*/
 $('.add-shift').submit(function (e) {
-    if($('input[type=text]').val()==''){    
+    if($('.add-shift input[name=shift_name]').val()=='' || $('.add-shift input[name=time_in]').val()=='' || ($('.add-shift input[name=checkout_required]').is(':checked') && $('.add-shift input[name=time_out]').val()=='')){    
         swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
         return false;
         loading();
@@ -58,7 +58,7 @@ $('.add-shift').submit(function (e) {
 
 /* -------------------- Edit ------------------- */
 $('.update-shift').submit(function (e) {
-    if($('#txtname').val()==''){    
+    if($('#txtname').val()=='' || $('#txtin').val()=='' || ($('#txtcheckout').is(':checked') && $('#txtout').val()=='')){    
          swal({title: 'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
          loading();
         return false;

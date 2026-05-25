@@ -7,15 +7,7 @@ if ($mod ==''){
 if(!isset($_COOKIE['COOKIES_MEMBER'])){
 $selected_role = (isset($_GET['role']) && $_GET['role'] == 'admin') ? 'admin' : 'user';
 
-$query = mysqli_query($connection, "SELECT max( employees_code) as kodeTerbesar FROM employees");
-$data = mysqli_fetch_array($query);
-$kode_karyawan = $data['kodeTerbesar'];
-$urutan = (int) substr($kode_karyawan, 3, 3);
-$urutan++;
-$huruf = "OM";
-$kode_karyawan = $huruf . sprintf("%03s", $urutan);
-
- echo'
+	 echo'
  
  <!-- App Capsule -->
     <div id="appCapsule">

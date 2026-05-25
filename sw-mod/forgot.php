@@ -6,15 +6,7 @@ if ($mod ==''){
     include_once 'sw-mod/sw-header.php';
 if(!isset($_COOKIE['COOKIES_MEMBER']) OR !isset($_COOKIE['COOKIES_COOKIES'])){
 
-$query = mysqli_query($connection, "SELECT max( employees_code) as kodeTerbesar FROM employees");
-$data = mysqli_fetch_array($query);
-$kode_karyawan = $data['kodeTerbesar'];
-$urutan = (int) substr($kode_karyawan, 3, 3);
-$urutan++;
-$huruf = "OM";
-$kode_karyawan = $huruf . sprintf("%03s", $urutan);
-
- echo'
+	 echo'
  <!-- App Capsule -->
     <div id="appCapsule">
         <div class="section mt-1 text-center">

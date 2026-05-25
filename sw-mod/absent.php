@@ -42,12 +42,18 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                     <div class="webcam-capture-body text-center">
                         <div class="webcam-capture"></div>
                         <div class="form-group basic">';
-                            if($result_absent->num_rows > 0){
-                                echo'
-                                <button class="btn btn-success btn-lg btn-block" onClick="captureimage(0)"><ion-icon name="camera-outline"></ion-icon>Absen Pulang</button>';}
-                                else{
-                                echo'
-                                <button class="btn btn-success btn-lg btn-block" onClick="captureimage(0)"><ion-icon name="camera-outline"></ion-icon>Absen Masuk</button>';}
+	                            if($result_absent->num_rows > 0){
+	                                $row_absent_page = $result_absent->fetch_assoc();
+	                                if((int)$row_absent_page['checkout_required'] === 0){
+	                                  echo'
+	                                  <button class="btn btn-secondary btn-lg btn-block" type="button" disabled><ion-icon name="checkmark-circle-outline"></ion-icon>Sudah Absen Hari Ini</button>';
+	                                }else{
+	                                  echo'
+	                                  <button class="btn btn-success btn-lg btn-block" onClick="captureimage(0)"><ion-icon name="camera-outline"></ion-icon>Absen Pulang</button>';
+	                                }}
+	                                else{
+	                                echo'
+	                                <button class="btn btn-success btn-lg btn-block" onClick="captureimage(0)"><ion-icon name="camera-outline"></ion-icon>Absen Masuk</button>';}
                         echo'
                         </div>';
                 echo'

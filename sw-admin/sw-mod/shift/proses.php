@@ -26,14 +26,15 @@ case 'add':
   }
 
 
-  if (empty($_POST['time_out'])) {
-      $error[] = 'tidak boleh kosong';
-    } else {
-      $time_out = mysqli_real_escape_string($connection, $_POST['time_out']);
-  }
+	  $checkout_required = isset($_POST['checkout_required']) ? 1 : 0;
+	  if ($checkout_required === 1 && empty($_POST['time_out'])) {
+	      $error[] = 'tidak boleh kosong';
+	    } else {
+	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : '00:00:00';
+	  }
 
-  if (empty($error)) { 
-    $add ="INSERT INTO  shift (shift_name,time_in,time_out) values('$shift_name','$time_in','$time_out')"; 
+	  if (empty($error)) { 
+	    $add ="INSERT INTO  shift (shift_name,time_in,time_out,checkout_required) values('$shift_name','$time_in','$time_out','$checkout_required')"; 
     if($connection->query($add) === false) { 
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
@@ -69,16 +70,18 @@ case 'update':
   }
 
 
-  if (empty($_POST['time_out'])) {
-      $error[] = 'tidak boleh kosong';
-    } else {
-      $time_out = mysqli_real_escape_string($connection, $_POST['time_out']);
-  }
+	  $checkout_required = isset($_POST['checkout_required']) ? 1 : 0;
+	  if ($checkout_required === 1 && empty($_POST['time_out'])) {
+	      $error[] = 'tidak boleh kosong';
+	    } else {
+	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : '00:00:00';
+	  }
 
-  if (empty($error)) { 
-    $update="UPDATE shift SET shift_name='$shift_name',
-            time_in='$time_in',
-            time_out='$time_out' WHERE shift_id='$id'"; 
+	  if (empty($error)) { 
+	    $update="UPDATE shift SET shift_name='$shift_name',
+	            time_in='$time_in',
+	            time_out='$time_out',
+	            checkout_required='$checkout_required' WHERE shift_id='$id'"; 
     if($connection->query($update) === false) { 
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';

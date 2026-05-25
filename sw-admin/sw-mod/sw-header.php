@@ -28,7 +28,7 @@ echo'
   <link rel="stylesheet" href="./sw-assets/css/AdminLTE.min.css">
   <link rel="stylesheet" href="./sw-assets/css/skin-blue-light.css">
   <link rel="stylesheet" href="./sw-assets/css/font-awesome.css">
-  <link rel="stylesheet" href="./sw-assets/css/sw-custom.css">
+	  <link rel="stylesheet" href="./sw-assets/css/sw-custom.css?v='.filemtime(__DIR__ . '/../sw-assets/css/sw-custom.css').'">
   <link rel="stylesheet" href="./sw-assets/plugins/datepicker/datepicker3.css">
   <link rel="stylesheet" href="./sw-assets/plugins/timepicker/bootstrap-timepicker.min.css">
   <link rel="stylesheet" type="text/css" href="./sw-assets/css/simple-lightbox.min.css">

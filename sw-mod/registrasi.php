@@ -15,13 +15,13 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) OR !isset($_COOKIE['COOKIES_COOKIES'])){
             <form id="form-registrasi">
                 <div class="card">
                     <div class="card-body pb-1">
-                        <div class="form-group basic">
-                            <div class="input-wrapper">
-                                <label class="label">Staff ID</label>
-                                <input type="text" class="form-control" id="employees_code" name="employees_code" required>
-                                <i class="clear-input"><ion-icon name="close-circle"></ion-icon></i>
-                            </div>
-                        </div>
+	                        <div class="form-group basic">
+	                            <div class="input-wrapper">
+	                                <label class="label">Staff ID</label>
+	                                <input type="text" class="form-control" value="Dibuat otomatis saat mendaftar" readonly>
+	                                <i class="clear-input"><ion-icon name="close-circle"></ion-icon></i>
+	                            </div>
+	                        </div>
 
                         <div class="form-group basic">
                             <div class="input-wrapper">

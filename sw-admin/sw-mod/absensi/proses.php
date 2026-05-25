@@ -69,16 +69,17 @@ echo'
         $filter ="employees_id='$id' AND presence_date='$date_month_year' AND MONTH(presence_date) ='$month' AND employees_id='$id'";
       }
 
-      $query ="SELECT employees.id,shift.shift_id,shift.time_in,shift.time_out FROM employees,shift WHERE employees.shift_id=shift.shift_id AND employees.id='$id'";
+	      $query ="SELECT employees.id,shift.shift_id,shift.time_in,shift.time_out,shift.checkout_required FROM employees,shift WHERE employees.shift_id=shift.shift_id AND employees.id='$id'";
       $result = $connection->query($query);
       $row    = $result->fetch_assoc();
 
 
-      $query_shift ="SELECT time_in,time_out FROM shift WHERE shift_id='$row[shift_id]'";
+	      $query_shift ="SELECT time_in,time_out,checkout_required FROM shift WHERE shift_id='$row[shift_id]'";
       $result_shift = $connection->query($query_shift);
       $row_shift = $result_shift->fetch_assoc();
-      $shift_time_in = $row_shift['time_in'];
-      $shift_time_out = $row_shift['time_out'];
+	      $shift_time_in = $row_shift['time_in'];
+	      $shift_time_out = $row_shift['time_out'];
+	      $checkout_required = (int)$row_shift['checkout_required'];
       $newtimestamp = strtotime(''.$shift_time_in.' + 05 minute');
       $newtimestamp = date('H:i:s', $newtimestamp);
 
@@ -142,9 +143,9 @@ echo'
           $status_time_in ='<label class="label label-danger">'.$row_absen['status'].'</label>';
         }
 
-        if($is_assignment_attendance){
-          $selisih_out = '-';
-        }
+	        if($is_assignment_attendance || $checkout_required === 0){
+	          $selisih_out = '-';
+	        }
         elseif($row_absen['time_out'] > $shift_time_out){
           $selisih_out ='';
         }else{
@@ -177,13 +178,15 @@ echo'
           <td class="text-center">'.$row_absen['time_in'].' '.$status_time_in.'</td>
           <td class="text-center">'.$row_absen['selisih'].'</td>
           <td class="text-center picture">';
-              if($row_absen['picture_out'] ==NULL){
-                echo'<img src="'.$asset_url.'sw-content/avatar.jpg" width="40" height="40">';}
+	              if($checkout_required === 0){
+	                echo'<span class="label label-default">Tidak wajib</span>';}
+	              elseif($row_absen['picture_out'] ==NULL){
+	                echo'<img src="'.$asset_url.'sw-content/avatar.jpg" width="40" height="40">';}
               else{
                 echo'<a class="image-link" href="'.$asset_url.'sw-content/absent/'.$row_absen['picture_out'].'">
                       <img src="'.$asset_url.'sw-content/absent/'.$row_absen['picture_out'].'" width="40" height="40"></a>';}
               echo'</td>
-          <td class="text-center">'.$row_absen['time_out'].'</td>
+	          <td class="text-center">'.($checkout_required === 0 ? '-' : $row_absen['time_out']).'</td>
           <td class="text-center">'.$selisih_out.'</td>
           <td>'.$status_hadir.'<br>'.$row_absen['information'].'</td>
 
@@ -191,7 +194,7 @@ echo'
               if($latitude !== '' && $longitude !== ''){
                 echo'<button type="button" class="btn btn-warning btn-xs btn-modal enable-tooltip" title="Lokasi" data-latitude="'.$latitude.'" data-longitude="'.$longitude.'"><i class="fa fa-map-marker"></i> '.($is_assignment_attendance ? 'Tugas' : 'Masuk').'</button> ';
               }
-              if(!$is_assignment_attendance && $latitude_out !== '' && $longitude_out !== ''){
+	              if(!$is_assignment_attendance && $checkout_required === 1 && $latitude_out !== '' && $longitude_out !== ''){
                 echo'<button type="button" class="btn btn-warning btn-xs btn-modal enable-tooltip" title="Lokasi" data-latitude="'.$latitude_out.'" data-longitude="'.$longitude_out.'"><i class="fa fa-map-marker"></i> Pulang</button>';
               }
               echo'</td>

@@ -33,14 +33,7 @@ if ($gclient->getAccessToken()) {
 				//$username = $ex[0]; // Ambil kata pertama
 
 				// Lakukan insert data user baru tanpa password
-				$query = mysqli_query($connection, "SELECT max(employees_code) as kodeTerbesar FROM employees");
-				$data = mysqli_fetch_array($query);
-				$kode_karyawan = $data['kodeTerbesar'];
-				$urutan = (int) substr($kode_karyawan, 3, 3);
-				$urutan++;
-				$huruf = "P-";
-				$kode_karyawan = $huruf . sprintf("%03s", $urutan);
-				$employees_code = ''.$kode_karyawan.'-'.$year.'';
+				$employees_code = generate_employee_code($connection, 'P-', $year);
 
 				// Posisi
 				$query_position="SELECT position_id FROM position order by position_id ASC";

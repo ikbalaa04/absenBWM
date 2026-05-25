@@ -11,9 +11,9 @@ echo'
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover">
   <title>'.$website_name.'</title>
-  <meta name="theme-color" content="#63ab45">
-  <meta name="msapplication-navbutton-color" content="#63ab45">
-  <meta name="apple-mobile-web-app-status-bar-style" content="#63ab45">
+  <meta name="theme-color" content="#111844">
+  <meta name="msapplication-navbutton-color" content="#111844">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#111844">
 
     <!-- Favicons -->
   <link rel="shortcut icon" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">

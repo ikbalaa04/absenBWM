@@ -40,15 +40,16 @@ echo'
               <tr>
                 <th style="width:20px" class="text-center">No</th>
                 <th class="text-center">ID</th>
-                <th>Nama Shift</th>
-                <th>Waktu Masuk</th>
-                <th>Waktu Pulang</th>
-                <th class="text-center">Jumlah Pegawai</th>
+	                <th>Nama Shift</th>
+	                <th>Waktu Masuk</th>
+	                <th>Waktu Pulang</th>
+	                <th>Absen Pulang</th>
+	                <th class="text-center">Jumlah Pegawai</th>
                 <th style="width:100px">Aksi</th>
               </tr>
               </thead>
               <tbody>';
-              $query="SELECT shift_id,shift_name,time_in,time_out FROM shift order by shift_id DESC";
+	              $query="SELECT shift_id,shift_name,time_in,time_out,checkout_required FROM shift order by shift_id DESC";
               $result = $connection->query($query);
               if($result->num_rows > 0){
               $no=0;
@@ -60,15 +61,16 @@ echo'
                 <tr>
                   <td class="text-center">'.$no.'</td>
                   <td class="text-center">'.$row['shift_id'].'</td>
-                  <td>'.$row['shift_name'].'</td>
-                  <td>'.$row['time_in'].'</td>
-                  <td>'.$row['time_out'].'</td>
+	                  <td>'.$row['shift_name'].'</td>
+	                  <td>'.$row['time_in'].'</td>
+	                  <td>'.($row['checkout_required'] == 1 ? $row['time_out'] : '-').'</td>
+	                  <td>'.($row['checkout_required'] == 1 ? 'Wajib' : 'Tidak wajib').'</td>
                   <td class="text-center"><span class="badge bg-yellow">'.$result_count->num_rows.'</span></td>
                   <td>
                     <div class="btn-group">';
                     if($level_user==1){
                     echo'
-                      <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['shift_id'];?>';getElementById('txtname').value='<?PHP echo $row['shift_name'];?>';getElementById('txtin').value='<?PHP echo $row['time_in'];?>';getElementById('txtout').value='<?PHP echo $row['time_out'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a>
+	                      <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['shift_id'];?>';getElementById('txtname').value='<?PHP echo $row['shift_name'];?>';getElementById('txtin').value='<?PHP echo $row['time_in'];?>';getElementById('txtout').value='<?PHP echo $row['time_out'];?>';getElementById('txtcheckout').checked=<?PHP echo $row['checkout_required'] == 1 ? 'true' : 'false';?>;"><i class="fa fa-pencil-square-o"></i> Ubah</a>
                     <?php echo'
                     <buton data-id="'.epm_encode($row['shift_id']).'" class="btn btn-xs btn-danger delete" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
                   else{
@@ -116,17 +118,24 @@ echo'
             </div>
         </div>
 
-        <div class="form-group">
-            <label>Waktu Pulang</label>
+	        <div class="form-group">
+	            <label>Waktu Pulang</label>
             <div class="input-group">
-              <input type="text" name="time_out" class="form-control timepicker" required>
+	              <input type="text" name="time_out" class="form-control timepicker">
               <div class="input-group-addon">
                 <i class="fa fa-clock-o"></i>
               </div>
             </div>
-        </div>
-
-      </div>
+	        </div>
+	
+	        <div class="checkbox">
+	            <label>
+	                <input type="checkbox" name="checkout_required" value="1" checked> Wajib absen pulang
+	            </label>
+	            <p class="help-block">Matikan untuk shift WFH atau staff lapangan yang hanya absen satu kali per hari.</p>
+	        </div>
+	
+	      </div>
       <div class="modal-footer">
         <button type="submit" class="btn btn-primary pull-left"><i class="fa fa-check"></i> Simpan</button>
         <button type="button" class="btn btn-danger pull-right" data-dismiss="modal"><i class="fa fa-remove"></i> Batal</button>
@@ -153,26 +162,33 @@ echo'
               <input type="text" class="form-control" id="txtname" name="shift_name" required>
           </div>
 
-          <div class="form-group">
-              <label>Waktu Masuk</label>
-              <div class="input-group">
-                <input type="text" name="time_in" id="txtin" class="form-control timepicker" data-date-format="HH:mm:ss" value="" required>
-                <div class="input-group-addon">
-                  <i class="fa fa-clock-o"></i>
-                </div>
-              </div>
-          </div>
+	          <div class="form-group">
+	              <label>Waktu Masuk</label>
+	              <div class="input-group">
+	                <input type="text" name="time_in" id="txtin" class="form-control timepicker" data-date-format="HH:mm:ss" value="" required>
+	                <div class="input-group-addon">
+	                  <i class="fa fa-clock-o"></i>
+	                </div>
+	              </div>
+	          </div>
 
-          <div class="form-group">
-              <label>Waktu Pulang</label>
-              <div class="input-group">
-                <input type="text" name="time_out" id="txtout" class="form-control timepicker" required>
-                <div class="input-group-addon">
-                  <i class="fa fa-clock-o"></i>
-                </div>
-              </div>
-          </div>
-      </div>
+	          <div class="form-group">
+	              <label>Waktu Pulang</label>
+	              <div class="input-group">
+	                <input type="text" name="time_out" id="txtout" class="form-control timepicker">
+	                <div class="input-group-addon">
+	                  <i class="fa fa-clock-o"></i>
+	                </div>
+	              </div>
+	          </div>
+	
+	          <div class="checkbox">
+	              <label>
+	                  <input type="checkbox" name="checkout_required" id="txtcheckout" value="1"> Wajib absen pulang
+	              </label>
+	              <p class="help-block">Matikan untuk shift WFH atau staff lapangan yang hanya absen satu kali per hari.</p>
+	          </div>
+	      </div>
       <div class="modal-footer">
         <button type="submit" class="btn btn-primary pull-left"><i class="fa fa-check"></i> Simpan</button>
         <button type="button" class="btn btn-danger pull-right" data-dismiss="modal"><i class="fa fa-remove"></i> Batal</button>

@@ -23,7 +23,7 @@
     if(!empty($_COOKIE['COOKIES_COOKIES'])){$COOKIES_COOKIES   =  $_COOKIE['COOKIES_COOKIES'];}
     if(!empty($_COOKIE['COOKIES_MEMBER'])){$COOKIES_MEMBER     =  epm_decode($_COOKIE['COOKIES_MEMBER']);}
     require_once'sw-mod/out/sw-cookies.php';
-    $query_absent   ="SELECT employees_id,time_in,time_out FROM presence WHERE employees_id='$row_user[id]' AND presence_date='$date'";
+    $query_absent   ="SELECT presence.employees_id,presence.time_in,presence.time_out,shift.checkout_required FROM presence INNER JOIN employees ON employees.id=presence.employees_id INNER JOIN shift ON shift.shift_id=employees.shift_id WHERE presence.employees_id='$row_user[id]' AND presence.presence_date='$date'";
     $result_absent  = $connection->query($query_absent);
    // $row_absent     = $result_absent->fetch_assoc();
   }

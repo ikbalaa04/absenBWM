@@ -145,7 +145,7 @@ echo'
                 <div class="form-group">
                   <label class="col-sm-2 control-label">Staff ID</label>
                   <div class="col-sm-6">
-                    <input type="text" class="form-control" name="employees_code" required>
+                    <input type="text" class="form-control" value="Dibuat otomatis saat disimpan" readonly>
                   </div>
                 </div>
 

@@ -85,12 +85,7 @@ break;
 /* ------------- REGISTRASI ---------------*/
 case 'registrasi':
 $error = array();
-
-  if (empty($_POST['employees_code'])) {
-      $error[] = 'tidak boleh kosong';
-    } else {
-      $employees_code= anti_injection($_POST['employees_code']);
-  }
+  $employees_code = mysqli_real_escape_string($connection, generate_employee_code($connection, 'P-', $year));
 
   if (empty($_POST['employees_name'])) {
       $error[] = 'tidak boleh kosong';
@@ -294,7 +289,7 @@ if (empty($_GET['latitude'])) {
 
 if (empty($error)){
     // Cek User yang sudah login -----------------------------------------------
-    $query_u="SELECT employees.id,employees.employees_code,employees.employees_name,employees.shift_id,shift.shift_id,shift.time_in,shift.time_out,position.require_location,location_building.latitude,location_building.longitude,location_building.radius_meter FROM employees INNER JOIN shift ON employees.shift_id=shift.shift_id INNER JOIN position ON employees.position_id=position.position_id LEFT JOIN building AS location_building ON location_building.building_id=IF(position.building_id IS NOT NULL AND position.building_id > 0, position.building_id, employees.building_id) WHERE employees.id='$row_user[id]'";
+	    $query_u="SELECT employees.id,employees.employees_code,employees.employees_name,employees.shift_id,shift.shift_id,shift.time_in,shift.time_out,shift.checkout_required,position.require_location,location_building.latitude,location_building.longitude,location_building.radius_meter FROM employees INNER JOIN shift ON employees.shift_id=shift.shift_id INNER JOIN position ON employees.position_id=position.position_id LEFT JOIN building AS location_building ON location_building.building_id=IF(position.building_id IS NOT NULL AND position.building_id > 0, position.building_id, employees.building_id) WHERE employees.id='$row_user[id]'";
     $result_u = $connection->query($query_u);
     if($result_u->num_rows > 0){
     $row_u = $result_u->fetch_assoc();
@@ -307,9 +302,13 @@ if (empty($error)){
         // Cek data Absen Berdasarkan tanggal sekarang
         $query  ="SELECT employees_id,time_in,time_out FROM presence WHERE employees_id='$row_u[id]' AND presence_date='$date'";
         $result = $connection->query($query);
-        if($result->num_rows > 0){
-          $row = $result->fetch_assoc();
-          // Update Absensi Pulang
+	        if($result->num_rows > 0){
+	          $row = $result->fetch_assoc();
+	          if((int)$row_u['checkout_required'] === 0){
+	            echo'Sebelumnya "'.$row_user['employees_name'].'" sudah absen pada Tanggal '.tanggal_ind($date).'. Shift ini cukup absen satu kali per hari.';
+	            break;
+	          }
+	          // Update Absensi Pulang
               if($row['time_out']=='00:00:00'){
                 //Update Jam Pulang
                 /* -------- Upload Foto Pulang -------*/
@@ -607,11 +606,12 @@ echo'<table class="table rounded" id="swdatatable">
     </thead>
     <tbody>';
     $no=0;
-    $query_shift ="SELECT time_in,time_out FROM shift WHERE shift_id='$row_user[shift_id]'";
+	    $query_shift ="SELECT time_in,time_out,checkout_required FROM shift WHERE shift_id='$row_user[shift_id]'";
     $result_shift = $connection->query($query_shift);
     $row_shift = $result_shift->fetch_assoc();
-    $shift_time_in  = $row_shift['time_in'];
-    $shift_time_out = $row_shift['time_out'];
+	    $shift_time_in  = $row_shift['time_in'];
+	    $shift_time_out = $row_shift['time_out'];
+	    $checkout_required = (int)$row_shift['checkout_required'];
     $newtimestamp   = strtotime(''.$shift_time_in.' + 05 minute');
     $newtimestamp   = date('H:i:s', $newtimestamp);
 
@@ -640,9 +640,12 @@ echo'<table class="table rounded" id="swdatatable">
           $status='<span class="badge badge-danger">'.$row_absen['status'].'</span>';
         }
 
-        if($row_absen['status_pulang']=='Pulang Cepat'){
-          $status_pulang='<span class="badge badge-danger">'.$row_absen['status_pulang'].'</span>';
-        }
+	        if($checkout_required === 0){
+	          $status_pulang='<span class="badge badge-secondary">Tidak wajib</span>';
+	        }
+	        elseif($row_absen['status_pulang']=='Pulang Cepat'){
+	          $status_pulang='<span class="badge badge-danger">'.$row_absen['status_pulang'].'</span>';
+	        }
         else{
           $status_pulang='';
         }
@@ -655,8 +658,14 @@ echo'<table class="table rounded" id="swdatatable">
             <td><a class="image-link" href="./sw-content/absent/'.$row_absen['picture_in'].'">
             <span class="badge badge-success">'.$row_absen['time_in'].'</span></a>'.$status.'</td>
 
-            <td><a class="image-link" href="./sw-content/absent/'.$row_absen['picture_out'].'">
-            <span class="badge badge-success">'.$row_absen['time_out'].'</span></a> '.$status_pulang.'</td>
+	            <td>';
+	            if($checkout_required === 0){
+	              echo'<span class="badge badge-secondary">-</span> '.$status_pulang;
+	            }else{
+	              echo'<a class="image-link" href="./sw-content/absent/'.$row_absen['picture_out'].'">
+	            <span class="badge badge-success">'.$row_absen['time_out'].'</span></a> '.$status_pulang;
+	            }
+	            echo'</td>
 
             <td class="hidden-sm">'.$row_aa['present_name'].''.$information.'</td>
             <td class="text-center">

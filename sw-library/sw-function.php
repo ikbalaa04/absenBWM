@@ -9,6 +9,38 @@ $year     = DATE('Y');
 $time     = DATE('H:i:s');
 $timeNow  = DATE('Y-m-d H:i:s');
 
+function generate_employee_code($connection, $prefix = 'P-', $year = null) {
+  if ($year === null) {
+    $year = date('Y');
+  }
+
+  $safe_prefix = mysqli_real_escape_string($connection, $prefix);
+  $safe_year = mysqli_real_escape_string($connection, $year);
+  $like = $safe_prefix.'%-'.$safe_year;
+  $max_number = 0;
+
+  $query = mysqli_query($connection, "SELECT employees_code FROM employees WHERE employees_code LIKE '$like'");
+  if ($query) {
+    while ($row = mysqli_fetch_assoc($query)) {
+      if (preg_match('/^'.preg_quote($prefix, '/').'([0-9]+)-'.preg_quote($year, '/').'$/', $row['employees_code'], $matches)) {
+        $number = (int) $matches[1];
+        if ($number > $max_number) {
+          $max_number = $number;
+        }
+      }
+    }
+  }
+
+  do {
+    $max_number++;
+    $employees_code = $prefix.sprintf('%03d', $max_number).'-'.$year;
+    $safe_employees_code = mysqli_real_escape_string($connection, $employees_code);
+    $check = mysqli_query($connection, "SELECT id FROM employees WHERE employees_code='$safe_employees_code' LIMIT 1");
+  } while ($check && mysqli_num_rows($check) > 0);
+
+  return $employees_code;
+}
+
 function ubah_tgl2($tanggal) {
    $pisah   = explode('-',$tanggal);
    $larik   = array($pisah[2],$pisah[1],$pisah[0]);

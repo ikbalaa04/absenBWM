@@ -170,15 +170,16 @@ CREATE TABLE `shift` (
   `shift_id` int(11) NOT NULL,
   `shift_name` varchar(20) NOT NULL,
   `time_in` time NOT NULL,
-  `time_out` time NOT NULL
+  `time_out` time NOT NULL,
+  `checkout_required` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `shift`
 --
 
-INSERT INTO `shift` (`shift_id`, `shift_name`, `time_in`, `time_out`) VALUES
-(1, 'FULL TIME', '07:30:00', '17:00:00');
+INSERT INTO `shift` (`shift_id`, `shift_name`, `time_in`, `time_out`, `checkout_required`) VALUES
+(1, 'FULL TIME', '07:30:00', '17:00:00', 1);
 
 -- --------------------------------------------------------
 

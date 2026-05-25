@@ -138,7 +138,16 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                     </div>
                 </div>';
 
-                if($row_absent['time_out']=='00:00:00'){
+	                if((int)$row_absent['checkout_required'] === 0){
+	                echo'
+	                <div class="col-6">
+	                    <div class="stat-box bg-secondary">
+	                        <div class="title text-white">Absen Pulang</div>
+	                        <div class="value text-white">Tidak wajib</div>
+	                    </div>
+	                </div>';
+	                }
+	                elseif($row_absent['time_out']=='00:00:00'){
                 echo'
                 <div class="col-6">
                     <a href="./?mod=absent"><div class="stat-box bg-success">
