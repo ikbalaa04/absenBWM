@@ -13,11 +13,16 @@ echo'
   <title>'.$website_name.'</title>
   <meta name="theme-color" content="#111844">
   <meta name="msapplication-navbutton-color" content="#111844">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="'.$website_name.'">
   <meta name="apple-mobile-web-app-status-bar-style" content="#111844">
 
     <!-- Favicons -->
+  <link rel="manifest" href="'.$base_url.'manifest.json?v=20260525">
   <link rel="shortcut icon" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
   <link rel="apple-touch-icon" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
+  <link rel="apple-touch-icon" sizes="192x192" href="'.$base_url.'sw-content/pwa-icon-192.png?v=20260525">
   <link rel="apple-touch-icon" sizes="72x72" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
   <link rel="apple-touch-icon" sizes="114x114" href="'.$base_url.'sw-content/favicon.png?v=20260518-indecon">
   
@@ -31,6 +36,7 @@ echo'
 
   <link rel="stylesheet" href="'.$base_url.'sw-mod/sw-assets/css/style.css?v=20260518-green2">
   <link rel="stylesheet" href="'.$base_url.'sw-mod/sw-assets/css/sw-custom.css?v='.filemtime(__DIR__ . '/sw-assets/css/sw-custom.css').'">
+  <script src="'.$base_url.'pwa-register.js?v=20260525" defer></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">';
   if($mod =='history'){
     echo'
