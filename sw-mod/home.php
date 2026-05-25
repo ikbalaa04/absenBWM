@@ -132,7 +132,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                 $row_absent     = $result_absent->fetch_assoc();
                 echo'
                 <div class="col-6">
-                    <div class="stat-box bg-danger">
+	                    <div class="stat-box bg-success">
                         <div class="title text-white">Absen Masuk</div>
                         <div class="value text-white">'.$row_absent['time_in'].'</div>
                     </div>
@@ -141,7 +141,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
 	                if((int)$row_absent['checkout_required'] === 0){
 	                echo'
 	                <div class="col-6">
-	                    <div class="stat-box bg-secondary">
+		                    <div class="stat-box bg-success">
 	                        <div class="title text-white">Absen Pulang</div>
 	                        <div class="value text-white">Tidak wajib</div>
 	                    </div>
@@ -167,14 +167,14 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
             else{
                 echo'
                 <div class="col-6">
-                    <a href="./?mod=absent"><div class="stat-box bg-danger">
+	                    <a href="./?mod=absent"><div class="stat-box bg-success">
                         <div class="title text-white">Absen Masuk</div>
                         <div class="value text-white">Belum absen</div>
                     </div></a>
                 </div>
 
                 <div class="col-6">
-                    <div class="stat-box bg-secondary">
+	                    <div class="stat-box bg-success">
                         <div class="title text-white">Absen Pulang</div>
                         <div class="value text-white">Belum Absen</div>
                     </div>
