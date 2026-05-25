@@ -25,7 +25,14 @@ echo'
           <div class="box-tools pull-right">';
           if($level_user==1){
             echo'
-            <a href="sw-mod/karyawan/proses.php?action=export" class="btn btn-primary" title="Export"><i class="fa fa-download"></i> Export</a>
+            <div class="btn-group">
+              <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"><i class="fa fa-download"></i> Export <span class="caret"></span></button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="sw-mod/karyawan/proses.php?action=export&type=xls"><i class="fa fa-file-excel-o"></i> Excel</a></li>
+                <li><a href="sw-mod/karyawan/proses.php?action=export&type=pdf" target="_blank"><i class="fa fa-file-pdf-o"></i> PDF</a></li>
+                <li><a href="sw-mod/karyawan/proses.php?action=export&type=csv"><i class="fa fa-file-text-o"></i> CSV</a></li>
+              </ul>
+            </div>
             <a href="#import" class="btn btn-warning" title="Import" data-toggle="modal"> Import</a>
             <a href="./?mod='.$mod.'&op=add" class="btn btn-success btn-flat"><i class="fa fa-plus"></i> Tambah Baru</a>';}
           else{
@@ -50,7 +57,7 @@ echo'
             </tr>
             </thead>
             <tbody>';
-            $query="SELECT employees.*,position.position_name,shift.shift_name,building.name  FROM employees,position,shift,building WHERE employees.position_id=position.position_id AND employees.shift_id=shift.shift_id AND employees.building_id=building.building_id  order by employees.id DESC";
+            $query="SELECT employees.*,position.position_name,shift.shift_name,building.name  FROM employees,position,shift,building WHERE employees.position_id=position.position_id AND employees.shift_id=shift.shift_id AND employees.building_id=building.building_id  order by employees.employees_code ASC";
             $result = $connection->query($query);
             if($result->num_rows > 0){
             $no=0;

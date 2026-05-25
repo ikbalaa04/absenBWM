@@ -10,34 +10,119 @@ include('../../../sw-library/sw-function.php');
 $max_size = 2000000; //2MB
 $salt = '$%DEf0&TTd#%dSuTyr47542"_-^@#&*!=QxR094{a911}+';
 
-switch (@$_GET['action']){
-
-case 'export':
-  $filename = 'data-karyawan-'.date('Ymd-His').'.csv';
-  header('Content-Type: text/csv; charset=utf-8');
-  header('Content-Disposition: attachment; filename="'.$filename.'"');
-  $output = fopen('php://output', 'w');
-  fputcsv($output, array('No', 'Staff ID', 'Nama', 'Email', 'Jabatan', 'Shift', 'Lokasi', 'Last Login'));
-  $query="SELECT employees.*,position.position_name,shift.shift_name,building.name FROM employees,position,shift,building WHERE employees.position_id=position.position_id AND employees.shift_id=shift.shift_id AND employees.building_id=building.building_id ORDER BY employees.id DESC";
+function karyawan_export_rows($connection) {
+  $rows = array();
+  $query="SELECT employees.*,position.position_name,shift.shift_name,building.name FROM employees,position,shift,building WHERE employees.position_id=position.position_id AND employees.shift_id=shift.shift_id AND employees.building_id=building.building_id ORDER BY employees.employees_code ASC";
   $result = $connection->query($query);
   $no = 0;
   if($result && $result->num_rows > 0){
     while ($row = $result->fetch_assoc()) {
       $no++;
       $last_login = ($row['created_login'] != '0000-00-00 00:00:00' && !empty($row['created_login'])) ? tgl_indo($row['created_login']).' - '.jam_indo($row['created_login']) : 'Belum login';
-      fputcsv($output, array(
-        $no,
-        $row['employees_code'],
-        $row['employees_name'],
-        $row['employees_email'],
-        $row['position_name'],
-        $row['shift_name'],
-        $row['name'],
-        $last_login
-      ));
+      $rows[] = array(
+        'no' => $no,
+        'employees_code' => $row['employees_code'],
+        'employees_name' => $row['employees_name'],
+        'employees_email' => $row['employees_email'],
+        'position_name' => $row['position_name'],
+        'shift_name' => $row['shift_name'],
+        'building_name' => $row['name'],
+        'last_login' => $last_login
+      );
     }
   }
-  fclose($output);
+
+  return $rows;
+}
+
+switch (@$_GET['action']){
+
+case 'export':
+  $type = !empty($_GET['type']) ? strtolower($_GET['type']) : 'csv';
+  $rows = karyawan_export_rows($connection);
+  $export_date = date('Ymd-His');
+
+  if ($type == 'pdf') {
+    require_once'../../../sw-library/vendor/autoload.php';
+    $html = '<html><head><style>
+      body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#000}
+      h3{text-align:center;margin:0 0 14px}
+      table{width:100%;border-collapse:collapse}
+      th,td{border:1px solid #777;padding:6px;vertical-align:top}
+      th{background:#f0f0f0}
+      .text-center{text-align:center}
+    </style></head><body>
+      <h3>DATA KARYAWAN</h3>
+      <table>
+        <thead>
+          <tr>
+            <th width="30">No</th>
+            <th>Staff ID</th>
+            <th>Nama</th>
+            <th>Email</th>
+            <th>Jabatan</th>
+            <th>Shift</th>
+            <th>Lokasi</th>
+            <th>Last Login</th>
+          </tr>
+        </thead>
+        <tbody>';
+    foreach ($rows as $row) {
+      $html .= '<tr>
+        <td class="text-center">'.$row['no'].'</td>
+        <td>'.htmlspecialchars($row['employees_code'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['employees_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['employees_email'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['position_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['shift_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['building_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['last_login'], ENT_QUOTES, 'UTF-8').'</td>
+      </tr>';
+    }
+    $html .= '</tbody></table></body></html>';
+    $mpdf = new \Mpdf\Mpdf(array('orientation' => 'L'));
+    $mpdf->WriteHTML($html);
+    $mpdf->Output('Data-Karyawan-'.$export_date.'.pdf', 'I');
+    exit;
+  }
+
+  if ($type == 'xls') {
+    header("Content-type: application/vnd-ms-excel; charset=utf-8");
+    header("Content-Disposition: attachment; filename=Data-Karyawan-$export_date.xls");
+    echo '<table border="1">
+      <tr>
+        <th>No</th>
+        <th>Staff ID</th>
+        <th>Nama</th>
+        <th>Email</th>
+        <th>Jabatan</th>
+        <th>Shift</th>
+        <th>Lokasi</th>
+        <th>Last Login</th>
+      </tr>';
+    foreach ($rows as $row) {
+      echo '<tr>
+        <td>'.$row['no'].'</td>
+        <td>'.htmlspecialchars($row['employees_code'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['employees_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['employees_email'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['position_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['shift_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['building_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['last_login'], ENT_QUOTES, 'UTF-8').'</td>
+      </tr>';
+    }
+    echo '</table>';
+    exit;
+  }
+
+  header('Content-Type: text/csv; charset=utf-8');
+  header('Content-Disposition: attachment; filename="Data-Karyawan-'.$export_date.'.csv"');
+  $output = fopen('php://output', 'w');
+  fputcsv($output, array('No', 'Staff ID', 'Nama', 'Email', 'Jabatan', 'Shift', 'Lokasi', 'Last Login'));
+  foreach ($rows as $row) {
+    fputcsv($output, array($row['no'], $row['employees_code'], $row['employees_name'], $row['employees_email'], $row['position_name'], $row['shift_name'], $row['building_name'], $row['last_login']));
+  }
   exit;
 break;
 
