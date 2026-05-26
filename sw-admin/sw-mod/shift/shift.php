@@ -63,7 +63,7 @@ echo'
 	                <th>Nama Shift</th>
 	                <th>Aturan Kantor</th>
 	                <th>Aturan Luar Kantor</th>
-	                <th>Minimal Mingguan</th>
+	                <th>Jam Kerja</th>
 	                <th>Absen Pulang</th>
 	                <th class="text-center">Jumlah Pegawai</th>
                 <th style="width:100px">Aksi</th>

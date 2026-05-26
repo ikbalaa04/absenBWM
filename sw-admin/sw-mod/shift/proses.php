@@ -81,7 +81,7 @@ case 'export':
     <th>Masuk Kantor</th>
     <th>Pulang Kantor</th>
     <th>Minimal Kantor / Minggu</th>
-    <th>Minimal Mingguan</th>
+    <th>Jam Kerja</th>
     <th>Aturan Luar Kantor</th>
     <th>Masuk Luar Kantor</th>
     <th>Pulang Luar Kantor</th>
