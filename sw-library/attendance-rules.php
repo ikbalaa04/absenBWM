@@ -205,22 +205,42 @@ if (!function_exists('attendance_get_shift_rule')) {
   }
 }
 
+if (!function_exists('attendance_shift_weekly_targets')) {
+  function attendance_shift_weekly_targets($connection, $shift_id) {
+    $shift_id = mysqli_real_escape_string($connection, $shift_id);
+    $targets = array('office' => 0, 'outside' => 0);
+
+    $query = "SELECT min_work_minutes FROM shift WHERE shift_id='$shift_id' LIMIT 1";
+    $result = $connection->query($query);
+    if ($result && $result->num_rows > 0) {
+      $row = $result->fetch_assoc();
+      $targets['office'] = (int)$row['min_work_minutes'];
+    }
+
+    $query = "SELECT weekly_min_minutes FROM shift_attendance_rules WHERE shift_id='$shift_id' AND location_type='outside' LIMIT 1";
+    $result = $connection->query($query);
+    if ($result && $result->num_rows > 0) {
+      $row = $result->fetch_assoc();
+      $targets['outside'] = (int)$row['weekly_min_minutes'];
+    }
+
+    return $targets;
+  }
+}
+
 if (!function_exists('attendance_shift_weekly_work_minutes')) {
   function attendance_shift_weekly_work_minutes($connection, $shift_id, $attendance_mode) {
     $attendance_mode = attendance_normalize_mode($attendance_mode);
-    $office_rule = attendance_get_shift_rule($connection, $shift_id, 'office');
-    $outside_rule = attendance_get_shift_rule($connection, $shift_id, 'outside');
-    $office_minutes = (int)$office_rule['min_work_minutes'];
-    $outside_minutes = (int)$outside_rule['weekly_min_minutes'];
+    $targets = attendance_shift_weekly_targets($connection, $shift_id);
 
     if ($attendance_mode === 'remote') {
-      return $outside_minutes > 0 ? $outside_minutes : $office_minutes;
+      return $targets['outside'] > 0 ? $targets['outside'] : $targets['office'];
     }
     if ($attendance_mode === 'hybrid') {
-      return $office_minutes + $outside_minutes;
+      return $targets['office'] + $targets['outside'];
     }
 
-    return $office_minutes;
+    return $targets['office'];
   }
 }
 
