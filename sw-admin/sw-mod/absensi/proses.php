@@ -117,8 +117,10 @@ echo'
           $time_in = $row_absen['time_in'];
         }
         elseif($row_absen['time_in'] == NULL){
-          if (date("l",mktime (0,0,0,$bulan,$d,$tahun)) == "Sunday") {
-            $status_hadir ='Libur Akhir Pekan';
+          $off_day_label = attendance_off_day_label($date_month_year, $connection);
+          if ($off_day_label !== '') {
+            $status_hadir ='<span class="label label-info">'.$off_day_label.'</span>';
+            $row_absen['information'] = $off_day_label;
           }else{
             $status_hadir ='<span class="label label-danger">Tidak Hadir</span>';
           }

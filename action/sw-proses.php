@@ -664,9 +664,13 @@ if(isset($_POST['from']) OR isset($_POST['to'])){
       $to   = date('Y-m-d', strtotime($_POST['to']));
 
       $filter ="presence_date BETWEEN '$from' AND '$to'";
+      $history_start = $from;
+      $history_end = $to;
   } 
 	else{
 	      $filter ="MONTH(presence_date) ='$month'";
+	      $history_start = date('Y-'.$month.'-01');
+	      $history_end = date('Y-m-t', strtotime($history_start));
 	}
     if(isset($_POST['from']) OR isset($_POST['to'])){
       $assignment_filter ="assignment_attendance.attendance_date BETWEEN '$from' AND '$to'";
@@ -687,6 +691,7 @@ echo'<table class="table rounded" id="swdatatable">
     </thead>
     <tbody>';
     $no=0;
+    $history_used_dates = array();
 	    $query_shift ="SELECT time_in,time_out,checkout_required FROM shift WHERE shift_id='$row_user[shift_id]'";
     $result_shift = $connection->query($query_shift);
     $row_shift = $result_shift->fetch_assoc();
@@ -700,6 +705,7 @@ echo'<table class="table rounded" id="swdatatable">
     $result_absen = $connection->query($query_absen);
 	    if($result_absen->num_rows > 0){
 	        while ($row_absen = $result_absen->fetch_assoc()) {
+          $history_used_dates[$row_absen['presence_date']] = true;
 
           $query_status ="SELECT present_name FROM  present_status WHERE present_id='$row_absen[present_id]'";
           $result_status = $connection->query($query_status);
@@ -759,6 +765,7 @@ echo'<table class="table rounded" id="swdatatable">
       $result_assignment_history = $connection->query($query_assignment_history);
       if($result_assignment_history && $result_assignment_history->num_rows > 0){
         while ($row_assignment = $result_assignment_history->fetch_assoc()) {
+          $history_used_dates[$row_assignment['attendance_date']] = true;
           $no++;
           $assignment_info = 'Dalam penugasan<br>'.$row_assignment['assignment_number'].' - '.htmlspecialchars($row_assignment['assignment_location'], ENT_QUOTES, 'UTF-8');
           echo'
@@ -772,6 +779,25 @@ echo'<table class="table rounded" id="swdatatable">
               <td class="text-center"><button type="button" class="btn btn-secondary btn-sm" disabled>Tugas</button></td>
           </tr>';
         }
+      }
+      $history_cursor = strtotime($history_start);
+      $history_until = strtotime($history_end);
+      while ($history_cursor && $history_cursor <= $history_until) {
+        $history_date = date('Y-m-d', $history_cursor);
+        $off_day_label = attendance_off_day_label($history_date, $connection);
+        if ($off_day_label !== '' && empty($history_used_dates[$history_date])) {
+          $no++;
+          echo'
+          <tr>
+              <th class="text-center">'.$no.'</th>
+              <th scope="row">'.tgl_ind($history_date).'</th>
+              <td><span class="badge badge-info">Libur</span></td>
+              <td><span class="badge badge-secondary">-</span></td>
+              <td class="hidden-sm">'.$off_day_label.'</td>
+              <td class="text-center"><button type="button" class="btn btn-secondary btn-sm" disabled>Libur</button></td>
+          </tr>';
+        }
+        $history_cursor = strtotime('+1 day', $history_cursor);
       }
 	    echo'
 	    </tbody>

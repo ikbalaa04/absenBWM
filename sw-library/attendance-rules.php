@@ -148,7 +148,8 @@ if (!function_exists('attendance_distance_meter')) {
 
 if (!function_exists('attendance_is_regular_off_day')) {
   function attendance_is_regular_off_day($presence_date) {
-    return (int)date('w', strtotime($presence_date)) === 6;
+    $day_index = (int)date('w', strtotime($presence_date));
+    return $day_index === 0 || $day_index === 6;
   }
 }
 
@@ -171,7 +172,32 @@ if (!function_exists('attendance_off_day_message')) {
     }
 
     if (attendance_is_regular_off_day($presence_date)) {
-      return 'Hari Sabtu libur, absensi reguler tidak dibuka.';
+      return 'Selamat berlibur tanggal '.tgl_ind($presence_date).' - akhir pekan. Absensi reguler tidak dibuka.';
+    }
+
+    return '';
+  }
+}
+
+if (!function_exists('attendance_off_day_label')) {
+  function attendance_off_day_label($presence_date, $db_connection = null) {
+    if ($db_connection === null) {
+      global $connection;
+      $db_connection = isset($connection) ? $connection : null;
+    }
+
+    if (!empty($db_connection)) {
+      $holiday_date = mysqli_real_escape_string($db_connection, $presence_date);
+      $query = "SELECT holiday_name FROM attendance_holidays WHERE holiday_date='$holiday_date' AND is_active='1' LIMIT 1";
+      $result = $db_connection->query($query);
+      if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return 'Libur: '.$row['holiday_name'];
+      }
+    }
+
+    if (attendance_is_regular_off_day($presence_date)) {
+      return 'Libur Akhir Pekan';
     }
 
     return '';

@@ -248,7 +248,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
         </div>
     </div>
 ';
-    if($attendance_mode === 'office' || $attendance_mode === 'hybrid'){
+    if($off_day_message === '' && ($attendance_mode === 'office' || $attendance_mode === 'hybrid')){
       echo'
     <div class="section mt-2">
         <div class="stat-box weekly-work-progress">
@@ -267,7 +267,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
     </div>
 ';
     }
-    if(($attendance_mode === 'remote' || $attendance_mode === 'hybrid') && ($outside_weekly_min_minutes > 0 || $outside_weekly_limit_minutes > 0)){
+    if($off_day_message === '' && ($attendance_mode === 'remote' || $attendance_mode === 'hybrid') && ($outside_weekly_min_minutes > 0 || $outside_weekly_limit_minutes > 0)){
       $outside_title = $attendance_mode === 'remote' ? 'Jam Kerja Minggu Ini' : 'Jam Luar Kantor Minggu Ini';
       echo'
     <div class="section mt-2">
