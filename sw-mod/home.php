@@ -245,7 +245,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
         <div class="stat-box weekly-work-progress">
             <div class="weekly-work-head">
                 <div>
-                    <div class="title">'.($attendance_mode === 'hybrid' ? 'Jam Kantor Minggu Ini' : 'Jam Minimal Minggu Ini').'</div>
+                    <div class="title">'.($attendance_mode === 'hybrid' ? 'Jam Kantor Minggu Ini' : 'Jam Kerja Minggu Ini').'</div>
                     <div class="value">'.$office_work_label.' / '.$office_target_label.'</div>
                 </div>
                 <div class="weekly-work-percent">'.$office_percent.'%</div>
@@ -259,7 +259,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
 ';
     }
     if(($attendance_mode === 'remote' || $attendance_mode === 'hybrid') && ($outside_weekly_min_minutes > 0 || $outside_weekly_limit_minutes > 0)){
-      $outside_title = $attendance_mode === 'remote' ? 'Jam Minimal Minggu Ini' : 'Jam Luar Kantor Minggu Ini';
+      $outside_title = $attendance_mode === 'remote' ? 'Jam Kerja Minggu Ini' : 'Jam Luar Kantor Minggu Ini';
       echo'
     <div class="section mt-2">
         <div class="stat-box weekly-work-progress">
