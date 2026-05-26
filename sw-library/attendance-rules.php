@@ -229,18 +229,9 @@ if (!function_exists('attendance_shift_weekly_targets')) {
 }
 
 if (!function_exists('attendance_shift_weekly_work_minutes')) {
-  function attendance_shift_weekly_work_minutes($connection, $shift_id, $attendance_mode) {
-    $attendance_mode = attendance_normalize_mode($attendance_mode);
+  function attendance_shift_weekly_work_minutes($connection, $shift_id, $attendance_mode = '') {
     $targets = attendance_shift_weekly_targets($connection, $shift_id);
-
-    if ($attendance_mode === 'remote') {
-      return $targets['outside'] > 0 ? $targets['outside'] : $targets['office'];
-    }
-    if ($attendance_mode === 'hybrid') {
-      return $targets['office'] + $targets['outside'];
-    }
-
-    return $targets['office'];
+    return $targets['office'] + $targets['outside'];
   }
 }
 
