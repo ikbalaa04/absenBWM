@@ -145,9 +145,12 @@ echo'
           for($day = 1; $day <= $days_in_month; $day++){
             $current_date = $calendar_month.'-'.str_pad($day, 2, '0', STR_PAD_LEFT);
             $holiday = isset($holiday_map[$current_date]) ? $holiday_map[$current_date] : null;
+            $is_weekend = attendance_is_regular_off_day($current_date);
             $classes = 'holiday-cell';
             if($holiday){
               $classes .= (int)$holiday['is_active'] === 1 ? ' is-holiday' : ' is-inactive';
+            } elseif($is_weekend) {
+              $classes .= ' is-holiday';
             }
             $data_id = $holiday ? $holiday['holiday_id'] : '';
             $data_name = $holiday ? htmlspecialchars($holiday['holiday_name'], ENT_QUOTES, 'UTF-8') : '';
@@ -161,6 +164,8 @@ echo'
                 if(!empty($holiday['description'])){
                   echo'<div class="holiday-note">'.$holiday['description'].'</div>';
                 }
+              } elseif($is_weekend) {
+                echo'<div class="holiday-badge"><i class="fa fa-star"></i> Libur Akhir Pekan</div>';
               }
               echo'
             </div>';

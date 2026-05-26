@@ -119,8 +119,8 @@ echo'
         elseif($row_absen['time_in'] == NULL){
           $off_day_label = attendance_off_day_label($date_month_year, $connection);
           if ($off_day_label !== '') {
-            $status_hadir ='<span class="label label-info">'.$off_day_label.'</span>';
-            $row_absen['information'] = $off_day_label;
+            $status_hadir = $off_day_label;
+            $row_absen['information'] = '';
           }else{
             $status_hadir ='<span class="label label-danger">Tidak Hadir</span>';
           }
