@@ -47,7 +47,7 @@ case 'add':
 	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : '00:00:00';
 	  }
 	  $outside_time_out = ($use_outside_rule && !empty($_POST['outside_time_out'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
-	  $outside_min_work_minutes = !empty($_POST['outside_min_work_minutes']) ? (int)$_POST['outside_min_work_minutes'] : $min_work_minutes;
+	  $outside_min_work_minutes = ($use_outside_rule && !empty($_POST['outside_min_work_minutes'])) ? (int)$_POST['outside_min_work_minutes'] : 0;
 
 	  if (empty($error)) { 
 	    $add ="INSERT INTO  shift (shift_name,time_in,time_out,min_work_minutes,checkout_required) values('$shift_name','$time_in','$time_out','$min_work_minutes','$checkout_required')"; 
@@ -56,7 +56,7 @@ case 'add':
         echo'Data tidak berhasil disimpan!';
     } else{
         $shift_id = $connection->insert_id;
-        save_shift_attendance_rule($connection, $shift_id, 'office', $time_in, $time_out, $min_work_minutes);
+        save_shift_attendance_rule($connection, $shift_id, 'office', $time_in, $time_out, 0);
         save_shift_attendance_rule($connection, $shift_id, 'outside', $outside_time_in, $outside_time_out, $outside_min_work_minutes);
         echo'success';
     }}
@@ -99,7 +99,7 @@ case 'update':
 	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : '00:00:00';
 	  }
 	  $outside_time_out = ($use_outside_rule && !empty($_POST['outside_time_out'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
-	  $outside_min_work_minutes = !empty($_POST['outside_min_work_minutes']) ? (int)$_POST['outside_min_work_minutes'] : $min_work_minutes;
+	  $outside_min_work_minutes = ($use_outside_rule && !empty($_POST['outside_min_work_minutes'])) ? (int)$_POST['outside_min_work_minutes'] : 0;
 
 	  if (empty($error)) { 
 	    $update="UPDATE shift SET shift_name='$shift_name',
@@ -111,7 +111,7 @@ case 'update':
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
     } else{
-        save_shift_attendance_rule($connection, $id, 'office', $time_in, $time_out, $min_work_minutes);
+        save_shift_attendance_rule($connection, $id, 'office', $time_in, $time_out, 0);
         save_shift_attendance_rule($connection, $id, 'outside', $outside_time_in, $outside_time_out, $outside_min_work_minutes);
         echo'success';
     }}
