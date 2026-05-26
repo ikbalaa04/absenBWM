@@ -57,8 +57,8 @@ echo'
              while ($row= $result->fetch_assoc()) {
               $office_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'office');
               $outside_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'outside');
-              $has_outside_rule = ($outside_rule['time_in'] != $office_rule['time_in'] || $outside_rule['time_out'] != $office_rule['time_out']);
-              $outside_rule_label = $has_outside_rule ? 'Masuk '.$outside_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $outside_rule['time_out'] : '-').'<br>Minimal '.$outside_rule['min_work_minutes'].' menit<br><small>Dipakai untuk Remote/Hybrid</small>' : '<span class="text-muted">Tidak diatur</span>';
+              $has_outside_rule = ($outside_rule['time_in'] != $office_rule['time_in'] || $outside_rule['time_out'] != $office_rule['time_out'] || (int)$outside_rule['min_work_minutes'] > 0 || (int)$outside_rule['weekly_limit_minutes'] > 0);
+              $outside_rule_label = $has_outside_rule ? 'Masuk '.$outside_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $outside_rule['time_out'] : '-').'<br>Minimal '.$outside_rule['min_work_minutes'].' menit/hari<br>Maksimal '.$outside_rule['weekly_limit_minutes'].' menit/minggu<br><small>Toleransi '.$outside_rule['weekly_tolerance_minutes'].' menit</small>' : '<span class="text-muted">Tidak diatur</span>';
               $employees_count ="SELECT id FROM employees WHERE shift_id='$row[shift_id]'";
               $result_count = $connection->query($employees_count);
                 $no++;
@@ -76,7 +76,7 @@ echo'
                     <div class="btn-group">';
                     if($level_user==1){
                     echo'
-		                      <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['shift_id'];?>';getElementById('txtname').value='<?PHP echo $row['shift_name'];?>';getElementById('txtin').value='<?PHP echo $office_rule['time_in'];?>';getElementById('txtout').value='<?PHP echo $office_rule['time_out'];?>';getElementById('txtmin').value='<?PHP echo $row['min_work_minutes'];?>';getElementById('txtoutsidein').value='<?PHP echo $outside_rule['time_in'];?>';getElementById('txtoutsideout').value='<?PHP echo $outside_rule['time_out'];?>';getElementById('txtoutsidemin').value='<?PHP echo $outside_rule['min_work_minutes'];?>';getElementById('txtcheckout').checked=<?PHP echo $row['checkout_required'] == 1 ? 'true' : 'false';?>;setEditOutsideRule(<?PHP echo ($outside_rule['time_in'] != $office_rule['time_in'] || $outside_rule['time_out'] != $office_rule['time_out'] || (int)$outside_rule['min_work_minutes'] > 0) ? 'true' : 'false';?>);"><i class="fa fa-pencil-square-o"></i> Ubah</a>
+		                      <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['shift_id'];?>';getElementById('txtname').value='<?PHP echo $row['shift_name'];?>';getElementById('txtin').value='<?PHP echo $office_rule['time_in'];?>';getElementById('txtout').value='<?PHP echo $office_rule['time_out'];?>';getElementById('txtmin').value='<?PHP echo $row['min_work_minutes'];?>';getElementById('txtoutsidein').value='<?PHP echo $outside_rule['time_in'];?>';getElementById('txtoutsideout').value='<?PHP echo $outside_rule['time_out'];?>';getElementById('txtoutsidemin').value='<?PHP echo $outside_rule['min_work_minutes'];?>';getElementById('txtoutsidelimit').value='<?PHP echo $outside_rule['weekly_limit_minutes'];?>';getElementById('txtoutsidetolerance').value='<?PHP echo $outside_rule['weekly_tolerance_minutes'];?>';getElementById('txtcheckout').checked=<?PHP echo $row['checkout_required'] == 1 ? 'true' : 'false';?>;setEditOutsideRule(<?PHP echo $has_outside_rule ? 'true' : 'false';?>);"><i class="fa fa-pencil-square-o"></i> Ubah</a>
                     <?php echo'
                     <buton data-id="'.epm_encode($row['shift_id']).'" class="btn btn-xs btn-danger delete" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
                   else{
@@ -174,6 +174,18 @@ echo'
 	            <p class="help-block">Isi jika durasi minimal saat luar kantor berbeda. Jika kosong/0, sistem mengikuti minimal mingguan shift.</p>
 	        </div>
 
+	        <div class="form-group add-outside-rule" style="display:none">
+	            <label>Maksimal Jam Luar Kantor Mingguan (menit)</label>
+	            <input type="number" name="outside_weekly_limit_minutes" class="form-control" min="0" value="0">
+	            <p class="help-block">Batas akumulasi absen luar kantor per minggu.</p>
+	        </div>
+
+	        <div class="form-group add-outside-rule" style="display:none">
+	            <label>Toleransi Luar Kantor Mingguan (menit)</label>
+	            <input type="number" name="outside_weekly_tolerance_minutes" class="form-control" min="0" value="30">
+	            <p class="help-block">Ruang toleransi di akhir kuota. Ini bukan kuota normal.</p>
+	        </div>
+
 	        <div class="checkbox">
 	            <label>
 	                <input type="checkbox" name="checkout_required" value="1" checked> Wajib absen pulang
@@ -266,6 +278,18 @@ echo'
 	              <label>Minimal Durasi Kerja Luar Kantor (menit)</label>
 	              <input type="number" name="outside_min_work_minutes" id="txtoutsidemin" class="form-control" min="0" value="0">
 	              <p class="help-block">Isi jika durasi minimal saat luar kantor berbeda. Jika kosong/0, sistem mengikuti minimal mingguan shift.</p>
+	          </div>
+
+	          <div class="form-group edit-outside-rule" style="display:none">
+	              <label>Maksimal Jam Luar Kantor Mingguan (menit)</label>
+	              <input type="number" name="outside_weekly_limit_minutes" id="txtoutsidelimit" class="form-control" min="0" value="0">
+	              <p class="help-block">Batas akumulasi absen luar kantor per minggu.</p>
+	          </div>
+
+	          <div class="form-group edit-outside-rule" style="display:none">
+	              <label>Toleransi Luar Kantor Mingguan (menit)</label>
+	              <input type="number" name="outside_weekly_tolerance_minutes" id="txtoutsidetolerance" class="form-control" min="0" value="30">
+	              <p class="help-block">Ruang toleransi di akhir kuota. Ini bukan kuota normal.</p>
 	          </div>
 
 	          <div class="checkbox">

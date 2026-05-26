@@ -319,6 +319,10 @@ if (empty($error)){
     $rule_time_in = mysqli_real_escape_string($connection, $shift_rule['time_in']);
     $rule_time_out = mysqli_real_escape_string($connection, $shift_rule['time_out']);
     $rule_min_work_minutes = (int)$shift_rule['min_work_minutes'];
+    $outside_weekly_limit_minutes = (int)$shift_rule['weekly_limit_minutes'];
+    $outside_grace_minutes = (int)$shift_rule['weekly_tolerance_minutes'];
+    $week_start = date('Y-m-d', strtotime('monday this week', strtotime($date)));
+    $week_end = date('Y-m-d', strtotime('friday this week', strtotime($date)));
 
     $attendance_error = attendance_validate_checkin($row_u, $latitude, $date, $location_type);
     if ($attendance_error !== '') {
@@ -334,6 +338,15 @@ if (empty($error)){
 	          }
 	          // Update Absensi Pulang
               if($row['time_out']=='00:00:00'){
+                if ($location_type === 'outside' && $outside_weekly_limit_minutes > 0) {
+                  $outside_used_before_checkout = attendance_weekly_minutes_by_location($connection, $row_u['id'], $week_start, $week_end, 'outside', false);
+                  $current_outside_minutes = max(0, (strtotime($date.' '.$time) - strtotime($date.' '.$row['time_in'])) / 60);
+                  $outside_projected_minutes = (int)floor($outside_used_before_checkout + $current_outside_minutes);
+                  if ($outside_projected_minutes > ($outside_weekly_limit_minutes + $outside_grace_minutes)) {
+                    echo'Kuota luar kantor minggu ini sudah melewati batas. Maksimal '.floor($outside_weekly_limit_minutes / 60).' jam '.($outside_weekly_limit_minutes % 60).' menit + toleransi '.$outside_grace_minutes.' menit.';
+                    break;
+                  }
+                }
                 //Update Jam Pulang
                 /* -------- Upload Foto Pulang -------*/
                 $filename =''.$date.'-out-'.time().'-'.$row_user['id'].'.jpeg';
@@ -354,6 +367,13 @@ if (empty($error)){
               }
         // Else Absen Mmasuk
         }else{
+            if ($location_type === 'outside' && $outside_weekly_limit_minutes > 0) {
+              $outside_used_minutes = attendance_weekly_minutes_by_location($connection, $row_u['id'], $week_start, $week_end, 'outside', true);
+              if ($outside_used_minutes >= ($outside_weekly_limit_minutes + $outside_grace_minutes)) {
+                echo'Kuota luar kantor minggu ini sudah habis. Maksimal '.floor($outside_weekly_limit_minutes / 60).' jam '.($outside_weekly_limit_minutes % 60).' menit + toleransi '.$outside_grace_minutes.' menit.';
+                break;
+              }
+            }
             /* -------- Upload Foto Masuk -------*/
             $filename =''.$date.'-in-'.time().'-'.$row_user['id'].'.jpeg';
             $directory= "../sw-content/absent/".$filename;

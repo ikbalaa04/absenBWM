@@ -99,6 +99,16 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   $weekly_work_label = floor($weekly_work_minutes / 60).'j '.($weekly_work_minutes % 60).'m';
   $weekly_target_label = floor($weekly_target_minutes / 60).'j '.($weekly_target_minutes % 60).'m';
   $weekly_remaining_label = floor($weekly_remaining_minutes / 60).'j '.($weekly_remaining_minutes % 60).'m';
+  $outside_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'outside');
+  $outside_weekly_limit_minutes = (int)$outside_rule['weekly_limit_minutes'];
+  $outside_grace_minutes = (int)$outside_rule['weekly_tolerance_minutes'];
+  $outside_work_minutes = attendance_weekly_minutes_by_location($connection, $row_user['id'], $week_start, $week_end, 'outside', true);
+  $outside_percent = $outside_weekly_limit_minutes > 0 ? min(100, round(($outside_work_minutes / $outside_weekly_limit_minutes) * 100)) : 0;
+  $outside_remaining_minutes = max(0, ($outside_weekly_limit_minutes + $outside_grace_minutes) - $outside_work_minutes);
+  $outside_work_label = floor($outside_work_minutes / 60).'j '.($outside_work_minutes % 60).'m';
+  $outside_limit_label = floor($outside_weekly_limit_minutes / 60).'j '.($outside_weekly_limit_minutes % 60).'m';
+  $outside_remaining_label = floor($outside_remaining_minutes / 60).'j '.($outside_remaining_minutes % 60).'m';
+  $outside_progress_class = $outside_work_minutes > $outside_weekly_limit_minutes ? 'bg-warning' : 'bg-success';
 
   echo'<!-- App Capsule -->
     <div id="appCapsule">
@@ -254,6 +264,26 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
             <div class="weekly-work-foot">Sisa minimal: '.$weekly_remaining_label.' | Periode '.tgl_ind($week_start).' - '.tgl_ind($week_end).'</div>
         </div>
     </div>
+';
+    if($outside_weekly_limit_minutes > 0){
+      echo'
+    <div class="section mt-2">
+        <div class="stat-box weekly-work-progress">
+            <div class="weekly-work-head">
+                <div>
+                    <div class="title">Kuota Luar Kantor Minggu Ini</div>
+                    <div class="value">'.$outside_work_label.' / '.$outside_limit_label.'</div>
+                </div>
+                <div class="weekly-work-percent">'.$outside_percent.'%</div>
+            </div>
+            <div class="progress weekly-progress-bar">
+                <div class="progress-bar '.$outside_progress_class.'" role="progressbar" style="width: '.$outside_percent.'%" aria-valuenow="'.$outside_percent.'" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="weekly-work-foot">Sisa kuota termasuk toleransi: '.$outside_remaining_label.' | Toleransi akhir kuota: '.$outside_grace_minutes.' menit</div>
+        </div>
+    </div>';
+    }
+    echo'
 
 
     <div class="section mt-4">

@@ -50,6 +50,10 @@ $('.add-shift').submit(function (e) {
         swal({title:'Oops!', text: 'Jam luar kantor wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
         return false;
     }
+    if($('#add_use_outside_rule').is(':checked') && parseInt($('.add-shift input[name=outside_weekly_limit_minutes]').val() || '0', 10) <= 0){
+        swal({title:'Oops!', text: 'Maksimal jam luar kantor mingguan wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
+        return false;
+    }
     else{
         loading();
         e.preventDefault();
@@ -90,6 +94,11 @@ $('.update-shift').submit(function (e) {
     }
     if($('#edit_use_outside_rule').is(':checked') && ($('#txtoutsidein').val()=='' || ($('#txtcheckout').is(':checked') && $('#txtoutsideout').val()==''))){
          swal({title: 'Oops!', text: 'Jam luar kantor wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
+         loading();
+        return false;
+    }
+    if($('#edit_use_outside_rule').is(':checked') && parseInt($('#txtoutsidelimit').val() || '0', 10) <= 0){
+         swal({title: 'Oops!', text: 'Maksimal jam luar kantor mingguan wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
          loading();
         return false;
     }

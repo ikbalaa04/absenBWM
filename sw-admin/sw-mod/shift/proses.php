@@ -8,15 +8,17 @@ require_once'../../../sw-library/sw-config.php';
 require_once'../../login/login_session.php';
 include('../../../sw-library/sw-function.php');
 
-function save_shift_attendance_rule($connection, $shift_id, $location_type, $time_in, $time_out, $min_work_minutes) {
+function save_shift_attendance_rule($connection, $shift_id, $location_type, $time_in, $time_out, $min_work_minutes, $weekly_limit_minutes = 0, $weekly_tolerance_minutes = 30) {
   $shift_id = mysqli_real_escape_string($connection, $shift_id);
   $location_type = mysqli_real_escape_string($connection, $location_type);
   $time_in = mysqli_real_escape_string($connection, $time_in);
   $time_out = mysqli_real_escape_string($connection, $time_out);
   $min_work_minutes = (int)$min_work_minutes;
-  $connection->query("INSERT INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes)
-    VALUES ('$shift_id','$location_type','$time_in','$time_out','$min_work_minutes')
-    ON DUPLICATE KEY UPDATE time_in=VALUES(time_in), time_out=VALUES(time_out), min_work_minutes=VALUES(min_work_minutes)");
+  $weekly_limit_minutes = (int)$weekly_limit_minutes;
+  $weekly_tolerance_minutes = max(0, (int)$weekly_tolerance_minutes);
+  $connection->query("INSERT INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes,weekly_limit_minutes,weekly_tolerance_minutes)
+    VALUES ('$shift_id','$location_type','$time_in','$time_out','$min_work_minutes','$weekly_limit_minutes','$weekly_tolerance_minutes')
+    ON DUPLICATE KEY UPDATE time_in=VALUES(time_in), time_out=VALUES(time_out), min_work_minutes=VALUES(min_work_minutes), weekly_limit_minutes=VALUES(weekly_limit_minutes), weekly_tolerance_minutes=VALUES(weekly_tolerance_minutes)");
 }
 
 switch (@$_GET['action']){
@@ -48,6 +50,8 @@ case 'add':
 	  }
 	  $outside_time_out = ($use_outside_rule && !empty($_POST['outside_time_out'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
 	  $outside_min_work_minutes = ($use_outside_rule && !empty($_POST['outside_min_work_minutes'])) ? (int)$_POST['outside_min_work_minutes'] : 0;
+	  $outside_weekly_limit_minutes = ($use_outside_rule && !empty($_POST['outside_weekly_limit_minutes'])) ? (int)$_POST['outside_weekly_limit_minutes'] : 0;
+	  $outside_weekly_tolerance_minutes = ($use_outside_rule && isset($_POST['outside_weekly_tolerance_minutes'])) ? (int)$_POST['outside_weekly_tolerance_minutes'] : 30;
 
 	  if (empty($error)) { 
 	    $add ="INSERT INTO  shift (shift_name,time_in,time_out,min_work_minutes,checkout_required) values('$shift_name','$time_in','$time_out','$min_work_minutes','$checkout_required')"; 
@@ -56,8 +60,8 @@ case 'add':
         echo'Data tidak berhasil disimpan!';
     } else{
         $shift_id = $connection->insert_id;
-        save_shift_attendance_rule($connection, $shift_id, 'office', $time_in, $time_out, 0);
-        save_shift_attendance_rule($connection, $shift_id, 'outside', $outside_time_in, $outside_time_out, $outside_min_work_minutes);
+        save_shift_attendance_rule($connection, $shift_id, 'office', $time_in, $time_out, 0, 0, 0);
+        save_shift_attendance_rule($connection, $shift_id, 'outside', $outside_time_in, $outside_time_out, $outside_min_work_minutes, $outside_weekly_limit_minutes, $outside_weekly_tolerance_minutes);
         echo'success';
     }}
     else{           
@@ -100,6 +104,8 @@ case 'update':
 	  }
 	  $outside_time_out = ($use_outside_rule && !empty($_POST['outside_time_out'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
 	  $outside_min_work_minutes = ($use_outside_rule && !empty($_POST['outside_min_work_minutes'])) ? (int)$_POST['outside_min_work_minutes'] : 0;
+	  $outside_weekly_limit_minutes = ($use_outside_rule && !empty($_POST['outside_weekly_limit_minutes'])) ? (int)$_POST['outside_weekly_limit_minutes'] : 0;
+	  $outside_weekly_tolerance_minutes = ($use_outside_rule && isset($_POST['outside_weekly_tolerance_minutes'])) ? (int)$_POST['outside_weekly_tolerance_minutes'] : 30;
 
 	  if (empty($error)) { 
 	    $update="UPDATE shift SET shift_name='$shift_name',
@@ -111,8 +117,8 @@ case 'update':
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
     } else{
-        save_shift_attendance_rule($connection, $id, 'office', $time_in, $time_out, 0);
-        save_shift_attendance_rule($connection, $id, 'outside', $outside_time_in, $outside_time_out, $outside_min_work_minutes);
+        save_shift_attendance_rule($connection, $id, 'office', $time_in, $time_out, 0, 0, 0);
+        save_shift_attendance_rule($connection, $id, 'outside', $outside_time_in, $outside_time_out, $outside_min_work_minutes, $outside_weekly_limit_minutes, $outside_weekly_tolerance_minutes);
         echo'success';
     }}
     else{           

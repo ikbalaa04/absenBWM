@@ -15,10 +15,16 @@ CREATE TABLE IF NOT EXISTS `shift_attendance_rules` (
   `time_in` time NOT NULL,
   `time_out` time NOT NULL,
   `min_work_minutes` int(5) NOT NULL DEFAULT 0,
+  `weekly_limit_minutes` int(5) NOT NULL DEFAULT 0,
+  `weekly_tolerance_minutes` int(5) NOT NULL DEFAULT 30,
   PRIMARY KEY (`rule_id`),
   UNIQUE KEY `shift_location` (`shift_id`,`location_type`),
   KEY `shift_id` (`shift_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `shift_attendance_rules`
+  ADD COLUMN IF NOT EXISTS `weekly_limit_minutes` int(5) NOT NULL DEFAULT 0 AFTER `min_work_minutes`,
+  ADD COLUMN IF NOT EXISTS `weekly_tolerance_minutes` int(5) NOT NULL DEFAULT 30 AFTER `weekly_limit_minutes`;
 
 INSERT IGNORE INTO `shift_attendance_rules` (`shift_id`,`location_type`,`time_in`,`time_out`,`min_work_minutes`)
 SELECT `shift_id`, 'office', `time_in`, `time_out`, `min_work_minutes` FROM `shift`;
