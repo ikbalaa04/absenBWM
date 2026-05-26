@@ -20,6 +20,14 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
   $off_day_message = attendance_off_day_message($date);
   $attendance_mode = attendance_normalize_mode(isset($row_user['attendance_mode']) ? $row_user['attendance_mode'] : 'office');
   $default_location_type = $attendance_mode === 'remote' ? 'outside' : 'office';
+  $holiday_card_style = '<style>
+    .holiday-info-card{position:relative;overflow:hidden;border-radius:8px;padding:22px 16px;background:linear-gradient(135deg,#ff9f43,#20c997);color:#fff;box-shadow:0 10px 24px rgba(32,201,151,.24)}
+    .holiday-info-card .holiday-icon{font-size:44px;display:inline-flex;animation:holidayFloat 2.4s ease-in-out infinite}
+    .holiday-info-card .holiday-title{font-size:21px;font-weight:700;margin-top:6px}
+    .holiday-info-card .holiday-text{margin-top:6px;line-height:1.45}
+    .holiday-info-card:after{content:"";position:absolute;right:-28px;top:-28px;width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.18)}
+    @keyframes holidayFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(8deg)}}
+  </style>';
 
   echo'<!-- App Capsule -->
     <div id="appCapsule">
@@ -47,7 +55,12 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                         <div class="form-group basic">';
 	                            if($off_day_message !== ''){
 	                                  echo'
-	                                  <button class="btn btn-secondary btn-lg btn-block" type="button" disabled><ion-icon name="calendar-outline"></ion-icon>'.$off_day_message.'</button>';
+	                                  '.$holiday_card_style.'
+	                                  <div class="holiday-info-card">
+	                                    <div class="holiday-icon"><ion-icon name="sunny-outline"></ion-icon></div>
+	                                    <div class="holiday-title">Selamat Berlibur</div>
+	                                    <div class="holiday-text">'.$off_day_message.'</div>
+	                                  </div>';
 	                            }
 	                            elseif($result_absent->num_rows > 0){
 	                                $row_absent_page = $result_absent->fetch_assoc();

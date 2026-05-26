@@ -67,6 +67,16 @@ if (!function_exists('attendance_ensure_schema')) {
 	    if (empty($shift_columns['min_work_minutes'])) {
 	      $connection->query("ALTER TABLE shift ADD min_work_minutes int(5) NOT NULL DEFAULT 0 AFTER time_out");
 	    }
+	    $connection->query("CREATE TABLE IF NOT EXISTS attendance_holidays (
+	      holiday_id int(11) NOT NULL AUTO_INCREMENT,
+	      holiday_date date NOT NULL,
+	      holiday_name varchar(150) NOT NULL,
+	      description text NULL,
+	      is_active tinyint(1) NOT NULL DEFAULT 1,
+	      created_at datetime DEFAULT CURRENT_TIMESTAMP,
+	      PRIMARY KEY (holiday_id),
+	      UNIQUE KEY holiday_date (holiday_date)
+	    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 	    $connection->query("CREATE TABLE IF NOT EXISTS shift_attendance_rules (
 	      rule_id int(11) NOT NULL AUTO_INCREMENT,
 	      shift_id int(11) NOT NULL,
@@ -143,12 +153,69 @@ if (!function_exists('attendance_is_regular_off_day')) {
 }
 
 if (!function_exists('attendance_off_day_message')) {
-  function attendance_off_day_message($presence_date) {
+  function attendance_off_day_message($presence_date, $db_connection = null) {
+    if ($db_connection === null) {
+      global $connection;
+      $db_connection = isset($connection) ? $connection : null;
+    }
+
+    if (!empty($db_connection)) {
+      $holiday_date = mysqli_real_escape_string($db_connection, $presence_date);
+      $query = "SELECT holiday_name FROM attendance_holidays WHERE holiday_date='$holiday_date' AND is_active='1' LIMIT 1";
+      $result = $db_connection->query($query);
+      if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $range = attendance_holiday_range_label($db_connection, $presence_date);
+        return 'Selamat berlibur'.($range !== '' ? ' '.$range : '').' - '.$row['holiday_name'].'. Absensi reguler tidak dibuka.';
+      }
+    }
+
     if (attendance_is_regular_off_day($presence_date)) {
       return 'Hari Sabtu libur, absensi reguler tidak dibuka.';
     }
 
     return '';
+  }
+}
+
+if (!function_exists('attendance_holiday_range_label')) {
+  function attendance_holiday_range_label($db_connection, $presence_date) {
+    if (empty($db_connection)) {
+      return '';
+    }
+
+    $current = strtotime($presence_date);
+    if (!$current) {
+      return '';
+    }
+
+    $start = $current;
+    while (true) {
+      $previous_date = date('Y-m-d', strtotime('-1 day', $start));
+      $safe_previous = mysqli_real_escape_string($db_connection, $previous_date);
+      $result = $db_connection->query("SELECT holiday_id FROM attendance_holidays WHERE holiday_date='$safe_previous' AND is_active='1' LIMIT 1");
+      if (!$result || $result->num_rows <= 0) {
+        break;
+      }
+      $start = strtotime($previous_date);
+    }
+
+    $end = $current;
+    while (true) {
+      $next_date = date('Y-m-d', strtotime('+1 day', $end));
+      $safe_next = mysqli_real_escape_string($db_connection, $next_date);
+      $result = $db_connection->query("SELECT holiday_id FROM attendance_holidays WHERE holiday_date='$safe_next' AND is_active='1' LIMIT 1");
+      if (!$result || $result->num_rows <= 0) {
+        break;
+      }
+      $end = strtotime($next_date);
+    }
+
+    if (date('Y-m-d', $start) === date('Y-m-d', $end)) {
+      return 'tanggal '.tgl_ind(date('Y-m-d', $start));
+    }
+
+    return 'dari tanggal '.tgl_ind(date('Y-m-d', $start)).' - '.tgl_ind(date('Y-m-d', $end));
   }
 }
 

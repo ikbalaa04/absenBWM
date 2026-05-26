@@ -8,6 +8,17 @@ ALTER TABLE `employees`
 ALTER TABLE `shift`
   ADD COLUMN IF NOT EXISTS `min_work_minutes` int(5) NOT NULL DEFAULT 0 AFTER `time_out`;
 
+CREATE TABLE IF NOT EXISTS `attendance_holidays` (
+  `holiday_id` int(11) NOT NULL AUTO_INCREMENT,
+  `holiday_date` date NOT NULL,
+  `holiday_name` varchar(150) NOT NULL,
+  `description` text NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`holiday_id`),
+  UNIQUE KEY `holiday_date` (`holiday_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `shift_attendance_rules` (
   `rule_id` int(11) NOT NULL AUTO_INCREMENT,
   `shift_id` int(11) NOT NULL,

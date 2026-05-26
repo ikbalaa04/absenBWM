@@ -14,7 +14,7 @@ echo'<aside class="main-sidebar">
       if($mod =='home'){echo'<li class="active">'; }else{echo'<li>';}
       echo'<a href="./?mod=home"><i class="fa fa-home"></i><span>Dashboard</span></a></li>';
       
-      if($mod =='karyawan' OR $mod=='jabatan' OR $mod=='shift' OR $mod=='lokasi'){echo'<li class="active treeview">'; }else{
+      if($mod =='karyawan' OR $mod=='jabatan' OR $mod=='shift' OR $mod=='lokasi' OR $mod=='libur'){echo'<li class="active treeview">'; }else{
       echo'<li class="treeview">';}
       echo'
           <a href="#">
@@ -31,7 +31,9 @@ echo'<aside class="main-sidebar">
             if($mod =='shift'){echo'<li class="active">'; }else{echo'<li>';}
              echo'<a href="./?mod=shift"><i class="fa fa-circle-o"></i> Data Jam Kerja</a></li>';
              if($mod =='lokasi'){echo'<li class="active">'; }else{echo'<li>';}
-             echo'<a href="./?mod=lokasi"><i class="fa fa-circle-o"></i> Data Lokasi</a></li>
+             echo'<a href="./?mod=lokasi"><i class="fa fa-circle-o"></i> Data Lokasi</a></li>';
+             if($mod =='libur'){echo'<li class="active">'; }else{echo'<li>';}
+             echo'<a href="./?mod=libur"><i class="fa fa-circle-o"></i> Kalender Libur</a></li>
           </ul>
         </li>';
 

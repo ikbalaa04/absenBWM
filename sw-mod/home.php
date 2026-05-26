@@ -99,6 +99,14 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   $outside_quota_remaining_label = floor($outside_quota_remaining_minutes / 60).'j '.($outside_quota_remaining_minutes % 60).'m';
   $outside_quota_label = $outside_weekly_limit_minutes > 0 ? 'Batas maksimal: '.$outside_limit_label.' + toleransi '.$outside_grace_minutes.' menit | Sisa kuota: '.$outside_quota_remaining_label : 'Batas maksimal: Tidak dibatasi';
   $outside_progress_class = ($outside_weekly_limit_minutes > 0 && $outside_work_minutes > $outside_weekly_limit_minutes) ? 'bg-warning' : 'bg-success';
+  $holiday_card_style = '<style>
+    .holiday-info-card{position:relative;overflow:hidden;border-radius:8px;padding:18px;background:linear-gradient(135deg,#ff9f43,#20c997);color:#fff;box-shadow:0 10px 24px rgba(32,201,151,.24)}
+    .holiday-info-card .holiday-icon{font-size:38px;display:inline-flex;animation:holidayFloat 2.4s ease-in-out infinite}
+    .holiday-info-card .holiday-title{font-size:20px;font-weight:700;margin-top:6px}
+    .holiday-info-card .holiday-text{margin-top:4px;line-height:1.45}
+    .holiday-info-card:after{content:"";position:absolute;right:-28px;top:-28px;width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.18)}
+    @keyframes holidayFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(8deg)}}
+  </style>';
 
   echo'<!-- App Capsule -->
     <div id="appCapsule">
@@ -175,10 +183,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
             elseif($off_day_message !== ''){
                 echo'
                 <div class="col-12">
-                    <div class="stat-box bg-secondary">
-                        <div class="title text-white">Absensi Reguler</div>
-                        <div class="value text-white">Libur</div>
-                        <div class="text-white">'.$off_day_message.'</div>
+                    '.$holiday_card_style.'
+                    <div class="holiday-info-card text-center">
+                        <div class="holiday-icon"><ion-icon name="sunny-outline"></ion-icon></div>
+                        <div class="holiday-title">Selamat Berlibur</div>
+                        <div class="holiday-text">'.$off_day_message.'</div>
                     </div>
                 </div>';
             }
