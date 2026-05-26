@@ -4,6 +4,17 @@ if(empty($connection)){
 } else {
   $gotoprocess = "sw-mod/$mod/proses.php";
   include_once 'sw-mod/sw-panel.php';
+  if (!function_exists('format_shift_minutes')) {
+    function format_shift_minutes($minutes) {
+      $minutes = max(0, (int)$minutes);
+      $hours = floor($minutes / 60);
+      $remaining_minutes = $minutes % 60;
+      if ($remaining_minutes === 0) {
+        return $hours.' jam';
+      }
+      return $hours.' jam '.$remaining_minutes.' menit';
+    }
+  }
 echo'
   <div class="content-wrapper">';
     switch(@$_GET['op']){ 
@@ -26,9 +37,18 @@ echo'
           <div class="box-tools pull-right">';
           if($level_user==1){
             echo'
+            <div class="btn-group">
+              <button type="button" class="btn btn-primary btn-flat dropdown-toggle" data-toggle="dropdown"><i class="fa fa-download"></i> Export <span class="caret"></span></button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="sw-mod/shift/proses.php?action=export&type=xls"><i class="fa fa-file-excel-o"></i> Excel</a></li>
+                <li><a href="sw-mod/shift/proses.php?action=export&type=pdf" target="_blank"><i class="fa fa-file-pdf-o"></i> PDF</a></li>
+              </ul>
+            </div>
             <button type="button" class="btn btn-success btn-flat" data-toggle="modal" data-target="#modalAdd"><i class="fa fa-plus"></i> Tambah Baru</button>';}
             else{
-            echo'<button type="button" class="btn btn-success btn-flat access-failed"><i class="fa fa-plus"></i> Tambah Baru</button>';
+            echo'
+            <button type="button" class="btn btn-primary btn-flat access-failed"><i class="fa fa-download"></i> Export</button>
+            <button type="button" class="btn btn-success btn-flat access-failed"><i class="fa fa-plus"></i> Tambah Baru</button>';
             }
             echo'
           </div>
@@ -58,7 +78,7 @@ echo'
               $office_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'office');
               $outside_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'outside');
               $has_outside_rule = ($outside_rule['time_in'] != $office_rule['time_in'] || $outside_rule['time_out'] != $office_rule['time_out'] || (int)$outside_rule['min_work_minutes'] > 0 || (int)$outside_rule['weekly_limit_minutes'] > 0);
-              $outside_rule_label = $has_outside_rule ? 'Masuk '.$outside_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $outside_rule['time_out'] : '-').'<br>Minimal '.$outside_rule['min_work_minutes'].' menit/hari<br>Maksimal '.$outside_rule['weekly_limit_minutes'].' menit/minggu<br><small>Toleransi '.$outside_rule['weekly_tolerance_minutes'].' menit</small>' : '<span class="text-muted">Tidak diatur</span>';
+              $outside_rule_label = $has_outside_rule ? 'Masuk '.$outside_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $outside_rule['time_out'] : '-').'<br>Minimal '.format_shift_minutes($outside_rule['min_work_minutes']).'/hari<br>Maksimal '.format_shift_minutes($outside_rule['weekly_limit_minutes']).'/minggu<br><small>Toleransi '.format_shift_minutes($outside_rule['weekly_tolerance_minutes']).'</small>' : '<span class="text-muted">Tidak diatur</span>';
               $employees_count ="SELECT id FROM employees WHERE shift_id='$row[shift_id]'";
               $result_count = $connection->query($employees_count);
                 $no++;
@@ -69,7 +89,7 @@ echo'
 	                  <td>'.$row['shift_name'].'</td>
 	                  <td>Masuk '.$office_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $office_rule['time_out'] : '-').'</td>
 	                  <td>'.$outside_rule_label.'</td>
-	                  <td>'.$row['min_work_minutes'].' menit</td>
+	                  <td>'.format_shift_minutes($row['min_work_minutes']).'</td>
 	                  <td>'.($row['checkout_required'] == 1 ? 'Wajib' : 'Tidak wajib').'</td>
                   <td class="text-center"><span class="badge bg-yellow">'.$result_count->num_rows.'</span></td>
                   <td>
@@ -213,7 +233,7 @@ echo'
         <h4 class="modal-title">Update Data</h4>
       </div>
       <form class="form update-shift" method="post">
-       <input type="hidden" name="id" id="txtid" required" value="" readonly>
+       <input type="hidden" name="id" id="txtid" required value="" readonly>
       <div class="modal-body">
           <div class="form-group">
               <label>Nama Shift</label>

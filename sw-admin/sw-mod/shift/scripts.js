@@ -39,6 +39,10 @@ function loading(){
     $(".loading").delay(1500).fadeOut(500);
 }
 
+function cleanResponse(data) {
+    return $.trim(data || '');
+}
+
 /* ----------- Add ------------*/
 $('.add-shift').submit(function (e) {
     if($('.add-shift input[name=shift_name]').val()=='' || $('.add-shift input[name=time_in]').val()=='' || ($('.add-shift input[name=checkout_required]').is(':checked') && $('.add-shift input[name=time_out]').val()=='')){    
@@ -69,12 +73,13 @@ $('.add-shift').submit(function (e) {
               loading();
             },
             success: function (data) {
-                if (data == 'success') {
+                var response = cleanResponse(data);
+                if (response == 'success') {
                     swal({title: 'Berhasil!', text: 'Data Shift  berhasil disimpan.!', icon: 'success', timer: 1500,});
                    $('#modalAdd').modal('hide');
                    setTimeout(function(){ location.reload(); }, 1500);
                 } else {
-                    swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
+                    swal({title: 'Oops!', text: response || 'Data Shift tidak berhasil disimpan.', icon: 'error', timer: 1500,});
                 }
 
             },
@@ -117,13 +122,14 @@ $('.update-shift').submit(function (e) {
                 loading();
             },
             success: function (data) {
-                if (data == 'success') {
-                    swal({title: 'Berhasil!', text: 'Jabatan berhasil disimpan.!', icon: 'success', timer: 1500,});
+                var response = cleanResponse(data);
+                if (response == 'success') {
+                    swal({title: 'Berhasil!', text: 'Data Shift berhasil disimpan.!', icon: 'success', timer: 1500,});
                    $('#modalEdit').modal('hide');
                    setTimeout(function(){ location.reload(); }, 1500);
 
                 } else {
-                    swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
+                    swal({title: 'Oops!', text: response || 'Data Shift tidak berhasil disimpan.', icon: 'error', timer: 1500,});
                 }
 
             },
@@ -156,11 +162,12 @@ $('.update-shift').submit(function (e) {
                      type:'POST',    
                      data:{id:id},  
                     success:function(data){ 
-                        if (data == 'success') {
+                        var response = cleanResponse(data);
+                        if (response == 'success') {
                             swal({title: 'Berhasil!', text: 'Data berhasil dihapus.!', icon: 'success', timer: 1500,});
                             setTimeout(function(){ location.reload(); }, 1500);
                         } else {
-                            swal({title: 'Gagal!', text: data, icon: 'error', timer: 1500,});
+                            swal({title: 'Gagal!', text: response || 'Data tidak berhasil dihapus.', icon: 'error', timer: 1500,});
                             
                         }
                      }  
