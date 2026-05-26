@@ -36,7 +36,8 @@ case 'add':
       $time_in= mysqli_real_escape_string($connection, $_POST['time_in']);
   }
   $min_work_minutes = !empty($_POST['min_work_minutes']) ? (int)$_POST['min_work_minutes'] : 0;
-  $outside_time_in = !empty($_POST['outside_time_in']) ? mysqli_real_escape_string($connection, $_POST['outside_time_in']) : $time_in;
+  $use_outside_rule = !empty($_POST['use_outside_rule']);
+  $outside_time_in = ($use_outside_rule && !empty($_POST['outside_time_in'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_in']) : $time_in;
 
 
 	  $checkout_required = isset($_POST['checkout_required']) ? 1 : 0;
@@ -45,7 +46,7 @@ case 'add':
 	    } else {
 	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : '00:00:00';
 	  }
-	  $outside_time_out = !empty($_POST['outside_time_out']) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
+	  $outside_time_out = ($use_outside_rule && !empty($_POST['outside_time_out'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
 	  $outside_min_work_minutes = !empty($_POST['outside_min_work_minutes']) ? (int)$_POST['outside_min_work_minutes'] : $min_work_minutes;
 
 	  if (empty($error)) { 
@@ -87,7 +88,8 @@ case 'update':
       $time_in= mysqli_real_escape_string($connection, $_POST['time_in']);
   }
   $min_work_minutes = !empty($_POST['min_work_minutes']) ? (int)$_POST['min_work_minutes'] : 0;
-  $outside_time_in = !empty($_POST['outside_time_in']) ? mysqli_real_escape_string($connection, $_POST['outside_time_in']) : $time_in;
+  $use_outside_rule = !empty($_POST['use_outside_rule']);
+  $outside_time_in = ($use_outside_rule && !empty($_POST['outside_time_in'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_in']) : $time_in;
 
 
 	  $checkout_required = isset($_POST['checkout_required']) ? 1 : 0;
@@ -96,7 +98,7 @@ case 'update':
 	    } else {
 	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : '00:00:00';
 	  }
-	  $outside_time_out = !empty($_POST['outside_time_out']) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
+	  $outside_time_out = ($use_outside_rule && !empty($_POST['outside_time_out'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
 	  $outside_min_work_minutes = !empty($_POST['outside_min_work_minutes']) ? (int)$_POST['outside_min_work_minutes'] : $min_work_minutes;
 
 	  if (empty($error)) { 

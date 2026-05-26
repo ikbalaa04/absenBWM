@@ -58,18 +58,20 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   $off_day_message = attendance_off_day_message($date);
   $week_start = date('Y-m-d', strtotime('monday this week'));
   $week_end = date('Y-m-d', strtotime('friday this week'));
-  $office_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'office');
-  $outside_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'outside');
-  $office_min_minutes = (int)$office_rule['min_work_minutes'];
-  $outside_min_minutes = (int)$outside_rule['min_work_minutes'];
-  if ($office_min_minutes <= 0 && $office_rule['time_out'] != '00:00:00') {
-    $office_min_minutes = max(0, (strtotime($office_rule['time_out']) - strtotime($office_rule['time_in'])) / 60);
+  $shift_id = mysqli_real_escape_string($connection, $row_user['shift_id']);
+  $weekly_target_minutes = 0;
+  $query_weekly_shift = "SELECT min_work_minutes FROM shift WHERE shift_id='$shift_id' LIMIT 1";
+  $result_weekly_shift = $connection->query($query_weekly_shift);
+  if ($result_weekly_shift && $result_weekly_shift->num_rows > 0) {
+    $row_weekly_shift = $result_weekly_shift->fetch_assoc();
+    $weekly_target_minutes = (int)$row_weekly_shift['min_work_minutes'];
   }
-  if ($outside_min_minutes <= 0 && $outside_rule['time_out'] != '00:00:00') {
-    $outside_min_minutes = max(0, (strtotime($outside_rule['time_out']) - strtotime($outside_rule['time_in'])) / 60);
+  if ($weekly_target_minutes <= 0) {
+    $office_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'office');
+    if ($office_rule['time_out'] != '00:00:00') {
+      $weekly_target_minutes = max(0, (strtotime($office_rule['time_out']) - strtotime($office_rule['time_in'])) / 60) * 5;
+    }
   }
-  $daily_min_minutes = max($office_min_minutes, $outside_min_minutes);
-  $weekly_target_minutes = $daily_min_minutes * 5;
   $weekly_work_minutes = 0;
   $employee_id = mysqli_real_escape_string($connection, $row_user['id']);
   $query_weekly_presence = "SELECT presence_date,time_in,time_out,rule_min_work_minutes FROM presence WHERE employees_id='$employee_id' AND presence_date BETWEEN '$week_start' AND '$week_end' AND present_id='1'";

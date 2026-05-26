@@ -12,6 +12,27 @@ $('.timepicker').timepicker({
     format :'HH:mm'
 })
 
+function toggleOutsideRule(scope) {
+    var isChecked = $('#' + scope + '_use_outside_rule').is(':checked');
+    $('.' + scope + '-outside-rule').toggle(isChecked);
+}
+
+window.setEditOutsideRule = function(isEnabled) {
+    $('#edit_use_outside_rule').prop('checked', isEnabled);
+    toggleOutsideRule('edit');
+};
+
+$('#add_use_outside_rule').on('change', function() {
+    toggleOutsideRule('add');
+});
+
+$('#edit_use_outside_rule').on('change', function() {
+    toggleOutsideRule('edit');
+});
+
+toggleOutsideRule('add');
+toggleOutsideRule('edit');
+
 
 function loading(){
     $(".loading").show();
@@ -24,6 +45,10 @@ $('.add-shift').submit(function (e) {
         swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
         return false;
         loading();
+    }
+    if($('#add_use_outside_rule').is(':checked') && ($('.add-shift input[name=outside_time_in]').val()=='' || ($('.add-shift input[name=checkout_required]').is(':checked') && $('.add-shift input[name=outside_time_out]').val()==''))){
+        swal({title:'Oops!', text: 'Jam luar kantor wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
+        return false;
     }
     else{
         loading();
@@ -60,6 +85,11 @@ $('.add-shift').submit(function (e) {
 $('.update-shift').submit(function (e) {
     if($('#txtname').val()=='' || $('#txtin').val()=='' || ($('#txtcheckout').is(':checked') && $('#txtout').val()=='')){    
          swal({title: 'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
+         loading();
+        return false;
+    }
+    if($('#edit_use_outside_rule').is(':checked') && ($('#txtoutsidein').val()=='' || ($('#txtcheckout').is(':checked') && $('#txtoutsideout').val()==''))){
+         swal({title: 'Oops!', text: 'Jam luar kantor wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
          loading();
         return false;
     }
