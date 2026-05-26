@@ -57,7 +57,7 @@ echo'
 
 if(file_exists('sw-mod/'.$mod.'/scripts.js')){
 echo'
-  <script src="sw-mod/'.$mod.'/scripts.js"></script>';
+  <script src="sw-mod/'.$mod.'/scripts.js?v='.filemtime('sw-mod/'.$mod.'/scripts.js').'"></script>';
 }
 echo'
   <script type="text/javascript">

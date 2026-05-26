@@ -142,7 +142,7 @@ echo'
 
 	        <div class="checkbox">
 	            <label>
-	                <input type="checkbox" name="use_outside_rule" id="add_use_outside_rule" value="1"> Gunakan aturan luar kantor
+	                <input type="checkbox" name="use_outside_rule" id="add_use_outside_rule" value="1" onchange="$(&quot;.add-outside-rule&quot;).toggle(this.checked)"> Gunakan aturan luar kantor
 	            </label>
 	            <p class="help-block">Centang hanya jika shift ini dipakai karyawan Remote/Hybrid dengan jam luar kantor yang berbeda.</p>
 	        </div>
@@ -230,7 +230,7 @@ echo'
 
 	          <div class="checkbox">
 	              <label>
-	                  <input type="checkbox" name="use_outside_rule" id="edit_use_outside_rule" value="1"> Gunakan aturan luar kantor
+	                  <input type="checkbox" name="use_outside_rule" id="edit_use_outside_rule" value="1" onchange="$(&quot;.edit-outside-rule&quot;).toggle(this.checked)"> Gunakan aturan luar kantor
 	              </label>
 	              <p class="help-block">Centang hanya jika shift ini dipakai karyawan Remote/Hybrid dengan jam luar kantor yang berbeda.</p>
 	          </div>
