@@ -56,59 +56,51 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   else{
   $active_assignment = assignment_get_active_for_employee($connection, $row_user['id'], $date);
   $off_day_message = attendance_off_day_message($date);
+  $attendance_mode = attendance_normalize_mode(isset($row_user['attendance_mode']) ? $row_user['attendance_mode'] : 'office');
   $week_start = date('Y-m-d', strtotime('monday this week'));
   $week_end = date('Y-m-d', strtotime('friday this week'));
   $shift_id = mysqli_real_escape_string($connection, $row_user['shift_id']);
-  $weekly_target_minutes = 0;
+  $office_weekly_target_minutes = 0;
   $query_weekly_shift = "SELECT min_work_minutes FROM shift WHERE shift_id='$shift_id' LIMIT 1";
   $result_weekly_shift = $connection->query($query_weekly_shift);
   if ($result_weekly_shift && $result_weekly_shift->num_rows > 0) {
     $row_weekly_shift = $result_weekly_shift->fetch_assoc();
-    $weekly_target_minutes = (int)$row_weekly_shift['min_work_minutes'];
+    $office_weekly_target_minutes = (int)$row_weekly_shift['min_work_minutes'];
   }
-  if ($weekly_target_minutes <= 0) {
-    $office_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'office');
+  $office_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'office');
+  if ($office_weekly_target_minutes <= 0) {
     if ($office_rule['time_out'] != '00:00:00') {
-      $weekly_target_minutes = max(0, (strtotime($office_rule['time_out']) - strtotime($office_rule['time_in'])) / 60) * 5;
+      $office_weekly_target_minutes = max(0, (strtotime($office_rule['time_out']) - strtotime($office_rule['time_in'])) / 60) * 5;
     }
   }
-  $weekly_work_minutes = 0;
   $employee_id = mysqli_real_escape_string($connection, $row_user['id']);
-  $query_weekly_presence = "SELECT presence_date,time_in,time_out,rule_min_work_minutes FROM presence WHERE employees_id='$employee_id' AND presence_date BETWEEN '$week_start' AND '$week_end' AND present_id='1'";
-  $result_weekly_presence = $connection->query($query_weekly_presence);
-  if ($result_weekly_presence) {
-    while ($row_weekly = $result_weekly_presence->fetch_assoc()) {
-      if ($row_weekly['time_out'] != '00:00:00') {
-        $start_time = strtotime($row_weekly['presence_date'].' '.$row_weekly['time_in']);
-        $end_time = strtotime($row_weekly['presence_date'].' '.$row_weekly['time_out']);
-        if ($end_time < $start_time) {
-          $end_time += 86400;
-        }
-        $weekly_work_minutes += max(0, ($end_time - $start_time) / 60);
-      } elseif ($row_weekly['presence_date'] == $date) {
-        $start_time = strtotime($row_weekly['presence_date'].' '.$row_weekly['time_in']);
-        $weekly_work_minutes += max(0, (time() - $start_time) / 60);
-      } elseif ((int)$row_weekly['rule_min_work_minutes'] > 0) {
-        $weekly_work_minutes += (int)$row_weekly['rule_min_work_minutes'];
-      }
-    }
+  $office_work_minutes = attendance_weekly_minutes_by_location($connection, $row_user['id'], $week_start, $week_end, 'office', true);
+  $office_percent = $office_weekly_target_minutes > 0 ? min(100, round(($office_work_minutes / $office_weekly_target_minutes) * 100)) : 0;
+  if ($office_work_minutes > 0 && $office_percent <= 0) {
+    $office_percent = 1;
   }
-  $weekly_work_minutes = (int)floor($weekly_work_minutes);
-  $weekly_percent = $weekly_target_minutes > 0 ? min(100, round(($weekly_work_minutes / $weekly_target_minutes) * 100)) : 0;
-  $weekly_remaining_minutes = max(0, $weekly_target_minutes - $weekly_work_minutes);
-  $weekly_work_label = floor($weekly_work_minutes / 60).'j '.($weekly_work_minutes % 60).'m';
-  $weekly_target_label = floor($weekly_target_minutes / 60).'j '.($weekly_target_minutes % 60).'m';
-  $weekly_remaining_label = floor($weekly_remaining_minutes / 60).'j '.($weekly_remaining_minutes % 60).'m';
+  $office_remaining_minutes = max(0, $office_weekly_target_minutes - $office_work_minutes);
+  $office_work_label = floor($office_work_minutes / 60).'j '.($office_work_minutes % 60).'m';
+  $office_target_label = floor($office_weekly_target_minutes / 60).'j '.($office_weekly_target_minutes % 60).'m';
+  $office_remaining_label = floor($office_remaining_minutes / 60).'j '.($office_remaining_minutes % 60).'m';
   $outside_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'outside');
+  $outside_weekly_min_minutes = (int)$outside_rule['weekly_min_minutes'];
   $outside_weekly_limit_minutes = (int)$outside_rule['weekly_limit_minutes'];
   $outside_grace_minutes = (int)$outside_rule['weekly_tolerance_minutes'];
   $outside_work_minutes = attendance_weekly_minutes_by_location($connection, $row_user['id'], $week_start, $week_end, 'outside', true);
-  $outside_percent = $outside_weekly_limit_minutes > 0 ? min(100, round(($outside_work_minutes / $outside_weekly_limit_minutes) * 100)) : 0;
-  $outside_remaining_minutes = max(0, ($outside_weekly_limit_minutes + $outside_grace_minutes) - $outside_work_minutes);
+  $outside_percent = $outside_weekly_min_minutes > 0 ? min(100, round(($outside_work_minutes / $outside_weekly_min_minutes) * 100)) : 0;
+  if ($outside_work_minutes > 0 && $outside_percent <= 0) {
+    $outside_percent = 1;
+  }
+  $outside_min_remaining_minutes = max(0, $outside_weekly_min_minutes - $outside_work_minutes);
+  $outside_quota_remaining_minutes = $outside_weekly_limit_minutes > 0 ? max(0, ($outside_weekly_limit_minutes + $outside_grace_minutes) - $outside_work_minutes) : 0;
   $outside_work_label = floor($outside_work_minutes / 60).'j '.($outside_work_minutes % 60).'m';
+  $outside_min_label = floor($outside_weekly_min_minutes / 60).'j '.($outside_weekly_min_minutes % 60).'m';
   $outside_limit_label = floor($outside_weekly_limit_minutes / 60).'j '.($outside_weekly_limit_minutes % 60).'m';
-  $outside_remaining_label = floor($outside_remaining_minutes / 60).'j '.($outside_remaining_minutes % 60).'m';
-  $outside_progress_class = $outside_work_minutes > $outside_weekly_limit_minutes ? 'bg-warning' : 'bg-success';
+  $outside_min_remaining_label = floor($outside_min_remaining_minutes / 60).'j '.($outside_min_remaining_minutes % 60).'m';
+  $outside_quota_remaining_label = floor($outside_quota_remaining_minutes / 60).'j '.($outside_quota_remaining_minutes % 60).'m';
+  $outside_quota_label = $outside_weekly_limit_minutes > 0 ? 'Batas maksimal: '.$outside_limit_label.' + toleransi '.$outside_grace_minutes.' menit | Sisa kuota: '.$outside_quota_remaining_label : 'Batas maksimal: Tidak dibatasi';
+  $outside_progress_class = ($outside_weekly_limit_minutes > 0 && $outside_work_minutes > $outside_weekly_limit_minutes) ? 'bg-warning' : 'bg-success';
 
   echo'<!-- App Capsule -->
     <div id="appCapsule">
@@ -248,38 +240,42 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
         echo' 
         </div>
     </div>
-
-    <div class="section mt-2">
-        <div class="stat-box weekly-work-progress">
-            <div class="weekly-work-head">
-                <div>
-                    <div class="title">Jam Minimal Minggu Ini</div>
-                    <div class="value">'.$weekly_work_label.' / '.$weekly_target_label.'</div>
-                </div>
-                <div class="weekly-work-percent">'.$weekly_percent.'%</div>
-            </div>
-            <div class="progress weekly-progress-bar">
-                <div class="progress-bar bg-success" role="progressbar" style="width: '.$weekly_percent.'%" aria-valuenow="'.$weekly_percent.'" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-            <div class="weekly-work-foot">Sisa minimal: '.$weekly_remaining_label.' | Periode '.tgl_ind($week_start).' - '.tgl_ind($week_end).'</div>
-        </div>
-    </div>
 ';
-    if($outside_weekly_limit_minutes > 0){
+    if($attendance_mode === 'office' || $attendance_mode === 'hybrid'){
       echo'
     <div class="section mt-2">
         <div class="stat-box weekly-work-progress">
             <div class="weekly-work-head">
                 <div>
-                    <div class="title">Kuota Luar Kantor Minggu Ini</div>
-                    <div class="value">'.$outside_work_label.' / '.$outside_limit_label.'</div>
+                    <div class="title">'.($attendance_mode === 'hybrid' ? 'Jam Kantor Minggu Ini' : 'Jam Minimal Minggu Ini').'</div>
+                    <div class="value">'.$office_work_label.' / '.$office_target_label.'</div>
+                </div>
+                <div class="weekly-work-percent">'.$office_percent.'%</div>
+            </div>
+            <div class="progress weekly-progress-bar">
+                <div class="progress-bar bg-success" role="progressbar" style="width: '.$office_percent.'%" aria-valuenow="'.$office_percent.'" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="weekly-work-foot">Sisa minimal kantor: '.$office_remaining_label.' | Periode '.tgl_ind($week_start).' - '.tgl_ind($week_end).'</div>
+        </div>
+    </div>
+';
+    }
+    if(($attendance_mode === 'remote' || $attendance_mode === 'hybrid') && ($outside_weekly_min_minutes > 0 || $outside_weekly_limit_minutes > 0)){
+      $outside_title = $attendance_mode === 'remote' ? 'Jam Minimal Minggu Ini' : 'Jam Luar Kantor Minggu Ini';
+      echo'
+    <div class="section mt-2">
+        <div class="stat-box weekly-work-progress">
+            <div class="weekly-work-head">
+                <div>
+                    <div class="title">'.$outside_title.'</div>
+                    <div class="value">'.$outside_work_label.' / '.$outside_min_label.'</div>
                 </div>
                 <div class="weekly-work-percent">'.$outside_percent.'%</div>
             </div>
             <div class="progress weekly-progress-bar">
                 <div class="progress-bar '.$outside_progress_class.'" role="progressbar" style="width: '.$outside_percent.'%" aria-valuenow="'.$outside_percent.'" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-            <div class="weekly-work-foot">Sisa kuota termasuk toleransi: '.$outside_remaining_label.' | Toleransi akhir kuota: '.$outside_grace_minutes.' menit</div>
+            <div class="weekly-work-foot">Sisa minimal luar kantor: '.$outside_min_remaining_label.' | '.$outside_quota_label.'</div>
         </div>
     </div>';
     }

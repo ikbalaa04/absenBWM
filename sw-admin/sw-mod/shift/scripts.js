@@ -54,8 +54,16 @@ $('.add-shift').submit(function (e) {
         swal({title:'Oops!', text: 'Jam luar kantor wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
         return false;
     }
+    if($('#add_use_outside_rule').is(':checked') && parseInt($('.add-shift input[name=outside_min_work_minutes]').val() || '0', 10) <= 0){
+        swal({title:'Oops!', text: 'Minimal jam luar kantor mingguan wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
+        return false;
+    }
     if($('#add_use_outside_rule').is(':checked') && parseInt($('.add-shift input[name=outside_weekly_limit_minutes]').val() || '0', 10) <= 0){
         swal({title:'Oops!', text: 'Maksimal jam luar kantor mingguan wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
+        return false;
+    }
+    if($('#add_use_outside_rule').is(':checked') && parseInt($('.add-shift input[name=outside_min_work_minutes]').val() || '0', 10) > parseInt($('.add-shift input[name=outside_weekly_limit_minutes]').val() || '0', 10)){
+        swal({title:'Oops!', text: 'Minimal jam luar kantor tidak boleh lebih besar dari maksimal jam luar kantor.!', icon: 'error', timer: 1500,});
         return false;
     }
     else{
@@ -102,8 +110,18 @@ $('.update-shift').submit(function (e) {
          loading();
         return false;
     }
+    if($('#edit_use_outside_rule').is(':checked') && parseInt($('#txtoutsidemin').val() || '0', 10) <= 0){
+         swal({title: 'Oops!', text: 'Minimal jam luar kantor mingguan wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
+         loading();
+        return false;
+    }
     if($('#edit_use_outside_rule').is(':checked') && parseInt($('#txtoutsidelimit').val() || '0', 10) <= 0){
          swal({title: 'Oops!', text: 'Maksimal jam luar kantor mingguan wajib diisi jika aturan luar kantor digunakan.!', icon: 'error', timer: 1500,});
+         loading();
+        return false;
+    }
+    if($('#edit_use_outside_rule').is(':checked') && parseInt($('#txtoutsidemin').val() || '0', 10) > parseInt($('#txtoutsidelimit').val() || '0', 10)){
+         swal({title: 'Oops!', text: 'Minimal jam luar kantor tidak boleh lebih besar dari maksimal jam luar kantor.!', icon: 'error', timer: 1500,});
          loading();
         return false;
     }

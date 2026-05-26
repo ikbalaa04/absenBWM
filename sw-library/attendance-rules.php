@@ -74,6 +74,7 @@ if (!function_exists('attendance_ensure_schema')) {
 	      time_in time NOT NULL,
 	      time_out time NOT NULL,
 	      min_work_minutes int(5) NOT NULL DEFAULT 0,
+	      weekly_min_minutes int(5) NOT NULL DEFAULT 0,
 	      weekly_limit_minutes int(5) NOT NULL DEFAULT 0,
 	      weekly_tolerance_minutes int(5) NOT NULL DEFAULT 30,
 	      PRIMARY KEY (rule_id),
@@ -90,11 +91,16 @@ if (!function_exists('attendance_ensure_schema')) {
 	    if (empty($rule_columns['weekly_limit_minutes'])) {
 	      $connection->query("ALTER TABLE shift_attendance_rules ADD weekly_limit_minutes int(5) NOT NULL DEFAULT 0 AFTER min_work_minutes");
 	    }
+	    if (empty($rule_columns['weekly_min_minutes'])) {
+	      $connection->query("ALTER TABLE shift_attendance_rules ADD weekly_min_minutes int(5) NOT NULL DEFAULT 0 AFTER min_work_minutes");
+	      $connection->query("UPDATE shift_attendance_rules SET weekly_min_minutes=min_work_minutes WHERE location_type='outside' AND weekly_min_minutes=0 AND min_work_minutes>0");
+	    }
 	    if (empty($rule_columns['weekly_tolerance_minutes'])) {
 	      $connection->query("ALTER TABLE shift_attendance_rules ADD weekly_tolerance_minutes int(5) NOT NULL DEFAULT 30 AFTER weekly_limit_minutes");
 	    }
-	    $connection->query("INSERT IGNORE INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes) SELECT shift_id,'office',time_in,time_out,min_work_minutes FROM shift");
-	    $connection->query("INSERT IGNORE INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes) SELECT shift_id,'outside',time_in,time_out,min_work_minutes FROM shift");
+	    $connection->query("INSERT IGNORE INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes) SELECT shift_id,'office',time_in,time_out,0 FROM shift");
+	    $connection->query("INSERT IGNORE INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes,weekly_min_minutes) SELECT shift_id,'outside',time_in,time_out,0,min_work_minutes FROM shift");
+	    $connection->query("UPDATE shift_attendance_rules SET weekly_min_minutes=min_work_minutes WHERE location_type='outside' AND weekly_min_minutes=0 AND min_work_minutes>0");
 
     $building_columns = array();
     $result = $connection->query("SHOW COLUMNS FROM building");
@@ -183,19 +189,19 @@ if (!function_exists('attendance_get_shift_rule')) {
       $location_type = 'office';
     }
 
-    $query = "SELECT time_in,time_out,min_work_minutes,weekly_limit_minutes,weekly_tolerance_minutes FROM shift_attendance_rules WHERE shift_id='$shift_id' AND location_type='$location_type' LIMIT 1";
+    $query = "SELECT time_in,time_out,min_work_minutes,weekly_min_minutes,weekly_limit_minutes,weekly_tolerance_minutes FROM shift_attendance_rules WHERE shift_id='$shift_id' AND location_type='$location_type' LIMIT 1";
     $result = $connection->query($query);
     if ($result && $result->num_rows > 0) {
       return $result->fetch_assoc();
     }
 
-    $query = "SELECT time_in,time_out,min_work_minutes,0 AS weekly_limit_minutes,30 AS weekly_tolerance_minutes FROM shift WHERE shift_id='$shift_id' LIMIT 1";
+    $query = "SELECT time_in,time_out,min_work_minutes,0 AS weekly_min_minutes,0 AS weekly_limit_minutes,30 AS weekly_tolerance_minutes FROM shift WHERE shift_id='$shift_id' LIMIT 1";
     $result = $connection->query($query);
     if ($result && $result->num_rows > 0) {
       return $result->fetch_assoc();
     }
 
-    return array('time_in' => '00:00:00', 'time_out' => '00:00:00', 'min_work_minutes' => 0, 'weekly_limit_minutes' => 0, 'weekly_tolerance_minutes' => 30);
+    return array('time_in' => '00:00:00', 'time_out' => '00:00:00', 'min_work_minutes' => 0, 'weekly_min_minutes' => 0, 'weekly_limit_minutes' => 0, 'weekly_tolerance_minutes' => 30);
   }
 }
 
@@ -224,7 +230,8 @@ if (!function_exists('attendance_weekly_minutes_by_location')) {
           $minutes += max(0, ($end_time - $start_time) / 60);
         } elseif ($include_running_today && $row['presence_date'] == $today) {
           $start_time = strtotime($row['presence_date'].' '.$row['time_in']);
-          $minutes += max(0, (time() - $start_time) / 60);
+          $running_minutes = max(0, (time() - $start_time) / 60);
+          $minutes += max(1, ceil($running_minutes));
         }
       }
     }

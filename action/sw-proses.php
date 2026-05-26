@@ -28,6 +28,28 @@ function create_auth_cookie_token($email) {
   return hash('sha256', uniqid('', true).$email.microtime(true));
 }
 
+function attendance_deadline_message($presence_date, $current_time, $target_time, $grace_minutes, $label, $start_time = '') {
+  if (empty($target_time) || $target_time == '00:00:00') {
+    return '';
+  }
+
+  $target_timestamp = strtotime($presence_date.' '.$target_time);
+  $current_timestamp = strtotime($presence_date.' '.$current_time);
+  if (!empty($start_time) && $target_time < $start_time) {
+    $target_timestamp += 86400;
+    if ($current_time < $start_time) {
+      $current_timestamp += 86400;
+    }
+  }
+
+  $deadline_timestamp = strtotime('+'.$grace_minutes.' minutes', $target_timestamp);
+  if ($current_timestamp > $deadline_timestamp) {
+    return 'Batas waktu '.$label.' sudah lewat. Maksimal '.$grace_minutes.' menit setelah jam yang ditentukan, yaitu '.date('H:i:s', $deadline_timestamp).'.';
+  }
+
+  return '';
+}
+
 switch (@$_GET['action']){
 case 'login':
   $error = array();
@@ -338,6 +360,11 @@ if (empty($error)){
 	          }
 	          // Update Absensi Pulang
               if($row['time_out']=='00:00:00'){
+                $checkout_deadline_error = attendance_deadline_message($date, $time, $rule_time_out, 120, 'absen pulang', $rule_time_in);
+                if ($checkout_deadline_error !== '') {
+                  echo $checkout_deadline_error;
+                  break;
+                }
                 if ($location_type === 'outside' && $outside_weekly_limit_minutes > 0) {
                   $outside_used_before_checkout = attendance_weekly_minutes_by_location($connection, $row_u['id'], $week_start, $week_end, 'outside', false);
                   $current_outside_minutes = max(0, (strtotime($date.' '.$time) - strtotime($date.' '.$row['time_in'])) / 60);
@@ -367,6 +394,11 @@ if (empty($error)){
               }
         // Else Absen Mmasuk
         }else{
+            $checkin_deadline_error = attendance_deadline_message($date, $time, $rule_time_in, 120, 'absen masuk');
+            if ($checkin_deadline_error !== '') {
+              echo $checkin_deadline_error;
+              break;
+            }
             if ($location_type === 'outside' && $outside_weekly_limit_minutes > 0) {
               $outside_used_minutes = attendance_weekly_minutes_by_location($connection, $row_u['id'], $week_start, $week_end, 'outside', true);
               if ($outside_used_minutes >= ($outside_weekly_limit_minutes + $outside_grace_minutes)) {

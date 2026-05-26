@@ -77,8 +77,10 @@ echo'
              while ($row= $result->fetch_assoc()) {
               $office_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'office');
               $outside_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'outside');
-              $has_outside_rule = ($outside_rule['time_in'] != $office_rule['time_in'] || $outside_rule['time_out'] != $office_rule['time_out'] || (int)$outside_rule['min_work_minutes'] > 0 || (int)$outside_rule['weekly_limit_minutes'] > 0);
-              $outside_rule_label = $has_outside_rule ? 'Masuk '.$outside_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $outside_rule['time_out'] : '-').'<br>Minimal '.format_shift_minutes($outside_rule['min_work_minutes']).'/hari<br>Maksimal '.format_shift_minutes($outside_rule['weekly_limit_minutes']).'/minggu<br><small>Toleransi '.format_shift_minutes($outside_rule['weekly_tolerance_minutes']).'</small>' : '<span class="text-muted">Tidak diatur</span>';
+              $has_outside_rule = ($outside_rule['time_in'] != $office_rule['time_in'] || $outside_rule['time_out'] != $office_rule['time_out'] || (int)$outside_rule['weekly_min_minutes'] > 0 || (int)$outside_rule['weekly_limit_minutes'] > 0);
+              $outside_rule_label = $has_outside_rule ? 'Masuk '.$outside_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $outside_rule['time_out'] : '-').'<br>Minimal '.format_shift_minutes($outside_rule['weekly_min_minutes']).'/minggu<br>Maksimal '.format_shift_minutes($outside_rule['weekly_limit_minutes']).'/minggu<br><small>Toleransi '.format_shift_minutes($outside_rule['weekly_tolerance_minutes']).'</small>' : '<span class="text-muted">Tidak diatur</span>';
+              $total_weekly_minimum = (int)$row['min_work_minutes'] + ($has_outside_rule ? (int)$outside_rule['weekly_min_minutes'] : 0);
+              $weekly_minimum_label = $has_outside_rule ? 'Kantor '.format_shift_minutes($row['min_work_minutes']).'<br>Luar kantor '.format_shift_minutes($outside_rule['weekly_min_minutes']).'<br><small>Total '.format_shift_minutes($total_weekly_minimum).'</small>' : format_shift_minutes($row['min_work_minutes']);
               $employees_count ="SELECT id FROM employees WHERE shift_id='$row[shift_id]'";
               $result_count = $connection->query($employees_count);
                 $no++;
@@ -89,14 +91,14 @@ echo'
 	                  <td>'.$row['shift_name'].'</td>
 	                  <td>Masuk '.$office_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $office_rule['time_out'] : '-').'</td>
 	                  <td>'.$outside_rule_label.'</td>
-	                  <td>'.format_shift_minutes($row['min_work_minutes']).'</td>
+	                  <td>'.$weekly_minimum_label.'</td>
 	                  <td>'.($row['checkout_required'] == 1 ? 'Wajib' : 'Tidak wajib').'</td>
                   <td class="text-center"><span class="badge bg-yellow">'.$result_count->num_rows.'</span></td>
                   <td>
                     <div class="btn-group">';
                     if($level_user==1){
                     echo'
-		                      <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['shift_id'];?>';getElementById('txtname').value='<?PHP echo $row['shift_name'];?>';getElementById('txtin').value='<?PHP echo $office_rule['time_in'];?>';getElementById('txtout').value='<?PHP echo $office_rule['time_out'];?>';getElementById('txtmin').value='<?PHP echo $row['min_work_minutes'];?>';getElementById('txtoutsidein').value='<?PHP echo $outside_rule['time_in'];?>';getElementById('txtoutsideout').value='<?PHP echo $outside_rule['time_out'];?>';getElementById('txtoutsidemin').value='<?PHP echo $outside_rule['min_work_minutes'];?>';getElementById('txtoutsidelimit').value='<?PHP echo $outside_rule['weekly_limit_minutes'];?>';getElementById('txtoutsidetolerance').value='<?PHP echo $outside_rule['weekly_tolerance_minutes'];?>';getElementById('txtcheckout').checked=<?PHP echo $row['checkout_required'] == 1 ? 'true' : 'false';?>;setEditOutsideRule(<?PHP echo $has_outside_rule ? 'true' : 'false';?>);"><i class="fa fa-pencil-square-o"></i> Ubah</a>
+		                      <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['shift_id'];?>';getElementById('txtname').value='<?PHP echo $row['shift_name'];?>';getElementById('txtin').value='<?PHP echo $office_rule['time_in'];?>';getElementById('txtout').value='<?PHP echo $office_rule['time_out'];?>';getElementById('txtmin').value='<?PHP echo $row['min_work_minutes'];?>';getElementById('txtoutsidein').value='<?PHP echo $outside_rule['time_in'];?>';getElementById('txtoutsideout').value='<?PHP echo $outside_rule['time_out'];?>';getElementById('txtoutsidemin').value='<?PHP echo $outside_rule['weekly_min_minutes'];?>';getElementById('txtoutsidelimit').value='<?PHP echo $outside_rule['weekly_limit_minutes'];?>';getElementById('txtoutsidetolerance').value='<?PHP echo $outside_rule['weekly_tolerance_minutes'];?>';getElementById('txtcheckout').checked=<?PHP echo $row['checkout_required'] == 1 ? 'true' : 'false';?>;setEditOutsideRule(<?PHP echo $has_outside_rule ? 'true' : 'false';?>);"><i class="fa fa-pencil-square-o"></i> Ubah</a>
                     <?php echo'
                     <buton data-id="'.epm_encode($row['shift_id']).'" class="btn btn-xs btn-danger delete" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
                   else{
@@ -155,9 +157,9 @@ echo'
 	        </div>
 
 	        <div class="form-group">
-	            <label>Minimal Jam Kerja Mingguan (menit)</label>
+	            <label>Minimal Jam Kantor Mingguan (menit)</label>
 	            <input type="number" name="min_work_minutes" class="form-control" min="0" value="0">
-	            <p class="help-block">Contoh: 40 jam per minggu = 2400 menit.</p>
+	            <p class="help-block">Target minimal jam kerja di kantor per minggu. Contoh: 24 jam = 1440 menit.</p>
 	        </div>
 
 	        <div class="checkbox">
@@ -189,9 +191,9 @@ echo'
 	        </div>
 
 	        <div class="form-group add-outside-rule" style="display:none">
-	            <label>Minimal Durasi Kerja Luar Kantor (menit)</label>
+	            <label>Minimal Jam Luar Kantor Mingguan (menit)</label>
 	            <input type="number" name="outside_min_work_minutes" class="form-control" min="0" value="0">
-	            <p class="help-block">Isi jika durasi minimal saat luar kantor berbeda. Jika kosong/0, sistem mengikuti minimal mingguan shift.</p>
+	            <p class="help-block">Target minimal absen luar kantor per minggu. Ini bukan batas maksimal.</p>
 	        </div>
 
 	        <div class="form-group add-outside-rule" style="display:none">
@@ -261,9 +263,9 @@ echo'
 	          </div>
 
 	          <div class="form-group">
-	              <label>Minimal Jam Kerja Mingguan (menit)</label>
+	              <label>Minimal Jam Kantor Mingguan (menit)</label>
 	              <input type="number" name="min_work_minutes" id="txtmin" class="form-control" min="0" value="0">
-	              <p class="help-block">Contoh: 40 jam per minggu = 2400 menit.</p>
+	              <p class="help-block">Target minimal jam kerja di kantor per minggu. Contoh: 24 jam = 1440 menit.</p>
 	          </div>
 
 	          <div class="checkbox">
@@ -295,9 +297,9 @@ echo'
 	          </div>
 
 	          <div class="form-group edit-outside-rule" style="display:none">
-	              <label>Minimal Durasi Kerja Luar Kantor (menit)</label>
+	              <label>Minimal Jam Luar Kantor Mingguan (menit)</label>
 	              <input type="number" name="outside_min_work_minutes" id="txtoutsidemin" class="form-control" min="0" value="0">
-	              <p class="help-block">Isi jika durasi minimal saat luar kantor berbeda. Jika kosong/0, sistem mengikuti minimal mingguan shift.</p>
+	              <p class="help-block">Target minimal absen luar kantor per minggu. Ini bukan batas maksimal.</p>
 	          </div>
 
 	          <div class="form-group edit-outside-rule" style="display:none">

@@ -8,17 +8,18 @@ require_once'../../../sw-library/sw-config.php';
 require_once'../../login/login_session.php';
 include('../../../sw-library/sw-function.php');
 
-function save_shift_attendance_rule($connection, $shift_id, $location_type, $time_in, $time_out, $min_work_minutes, $weekly_limit_minutes = 0, $weekly_tolerance_minutes = 30) {
+function save_shift_attendance_rule($connection, $shift_id, $location_type, $time_in, $time_out, $min_work_minutes, $weekly_min_minutes = 0, $weekly_limit_minutes = 0, $weekly_tolerance_minutes = 30) {
   $shift_id = mysqli_real_escape_string($connection, $shift_id);
   $location_type = mysqli_real_escape_string($connection, $location_type);
   $time_in = mysqli_real_escape_string($connection, $time_in);
   $time_out = mysqli_real_escape_string($connection, $time_out);
   $min_work_minutes = (int)$min_work_minutes;
+  $weekly_min_minutes = (int)$weekly_min_minutes;
   $weekly_limit_minutes = (int)$weekly_limit_minutes;
   $weekly_tolerance_minutes = max(0, (int)$weekly_tolerance_minutes);
-  $connection->query("INSERT INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes,weekly_limit_minutes,weekly_tolerance_minutes)
-    VALUES ('$shift_id','$location_type','$time_in','$time_out','$min_work_minutes','$weekly_limit_minutes','$weekly_tolerance_minutes')
-    ON DUPLICATE KEY UPDATE time_in=VALUES(time_in), time_out=VALUES(time_out), min_work_minutes=VALUES(min_work_minutes), weekly_limit_minutes=VALUES(weekly_limit_minutes), weekly_tolerance_minutes=VALUES(weekly_tolerance_minutes)");
+  $connection->query("INSERT INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes,weekly_min_minutes,weekly_limit_minutes,weekly_tolerance_minutes)
+    VALUES ('$shift_id','$location_type','$time_in','$time_out','$min_work_minutes','$weekly_min_minutes','$weekly_limit_minutes','$weekly_tolerance_minutes')
+    ON DUPLICATE KEY UPDATE time_in=VALUES(time_in), time_out=VALUES(time_out), min_work_minutes=VALUES(min_work_minutes), weekly_min_minutes=VALUES(weekly_min_minutes), weekly_limit_minutes=VALUES(weekly_limit_minutes), weekly_tolerance_minutes=VALUES(weekly_tolerance_minutes)");
 }
 
 function shift_format_minutes($minutes) {
@@ -41,7 +42,8 @@ function shift_export_rows($connection) {
       $no++;
       $office_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'office');
       $outside_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'outside');
-      $has_outside_rule = ($outside_rule['time_in'] != $office_rule['time_in'] || $outside_rule['time_out'] != $office_rule['time_out'] || (int)$outside_rule['min_work_minutes'] > 0 || (int)$outside_rule['weekly_limit_minutes'] > 0);
+      $has_outside_rule = ($outside_rule['time_in'] != $office_rule['time_in'] || $outside_rule['time_out'] != $office_rule['time_out'] || (int)$outside_rule['weekly_min_minutes'] > 0 || (int)$outside_rule['weekly_limit_minutes'] > 0);
+      $total_weekly_minimum = (int)$row['min_work_minutes'] + ($has_outside_rule ? (int)$outside_rule['weekly_min_minutes'] : 0);
       $employees_count = $connection->query("SELECT id FROM employees WHERE shift_id='".$row['shift_id']."'");
       $rows[] = array(
         'no' => $no,
@@ -49,11 +51,11 @@ function shift_export_rows($connection) {
         'shift_name' => $row['shift_name'],
         'office_time_in' => $office_rule['time_in'],
         'office_time_out' => ((int)$row['checkout_required'] === 1 ? $office_rule['time_out'] : '-'),
-        'weekly_minimum' => shift_format_minutes($row['min_work_minutes']),
+        'weekly_minimum' => shift_format_minutes($total_weekly_minimum).($has_outside_rule ? ' (kantor '.shift_format_minutes($row['min_work_minutes']).' + luar kantor '.shift_format_minutes($outside_rule['weekly_min_minutes']).')' : ''),
         'outside_rule' => $has_outside_rule ? 'Ya' : 'Tidak',
         'outside_time_in' => $has_outside_rule ? $outside_rule['time_in'] : '-',
         'outside_time_out' => $has_outside_rule ? (((int)$row['checkout_required'] === 1) ? $outside_rule['time_out'] : '-') : '-',
-        'outside_daily_minimum' => $has_outside_rule ? shift_format_minutes($outside_rule['min_work_minutes']) : '-',
+        'outside_weekly_minimum' => $has_outside_rule ? shift_format_minutes($outside_rule['weekly_min_minutes']) : '-',
         'outside_weekly_limit' => $has_outside_rule ? shift_format_minutes($outside_rule['weekly_limit_minutes']) : '-',
         'outside_tolerance' => $has_outside_rule ? shift_format_minutes($outside_rule['weekly_tolerance_minutes']) : '-',
         'checkout_required' => ((int)$row['checkout_required'] === 1 ? 'Wajib' : 'Tidak wajib'),
@@ -81,7 +83,7 @@ case 'export':
     <th>Aturan Luar Kantor</th>
     <th>Masuk Luar Kantor</th>
     <th>Pulang Luar Kantor</th>
-    <th>Minimal Luar Kantor / Hari</th>
+    <th>Minimal Luar Kantor / Minggu</th>
     <th>Maksimal Luar Kantor / Minggu</th>
     <th>Toleransi Luar Kantor</th>
     <th>Absen Pulang</th>
@@ -111,7 +113,7 @@ case 'export':
         <td>'.$row['outside_rule'].'</td>
         <td>'.$row['outside_time_in'].'</td>
         <td>'.$row['outside_time_out'].'</td>
-        <td>'.$row['outside_daily_minimum'].'</td>
+        <td>'.$row['outside_weekly_minimum'].'</td>
         <td>'.$row['outside_weekly_limit'].'</td>
         <td>'.$row['outside_tolerance'].'</td>
         <td>'.$row['checkout_required'].'</td>
@@ -139,7 +141,7 @@ case 'export':
       <td>'.$row['outside_rule'].'</td>
       <td>'.$row['outside_time_in'].'</td>
       <td>'.$row['outside_time_out'].'</td>
-      <td>'.$row['outside_daily_minimum'].'</td>
+      <td>'.$row['outside_weekly_minimum'].'</td>
       <td>'.$row['outside_weekly_limit'].'</td>
       <td>'.$row['outside_tolerance'].'</td>
       <td>'.$row['checkout_required'].'</td>
@@ -176,9 +178,18 @@ case 'add':
 	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : '00:00:00';
 	  }
 	  $outside_time_out = ($use_outside_rule && !empty($_POST['outside_time_out'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
-	  $outside_min_work_minutes = ($use_outside_rule && !empty($_POST['outside_min_work_minutes'])) ? (int)$_POST['outside_min_work_minutes'] : 0;
+	  $outside_weekly_min_minutes = ($use_outside_rule && !empty($_POST['outside_min_work_minutes'])) ? (int)$_POST['outside_min_work_minutes'] : 0;
 	  $outside_weekly_limit_minutes = ($use_outside_rule && !empty($_POST['outside_weekly_limit_minutes'])) ? (int)$_POST['outside_weekly_limit_minutes'] : 0;
 	  $outside_weekly_tolerance_minutes = ($use_outside_rule && isset($_POST['outside_weekly_tolerance_minutes'])) ? (int)$_POST['outside_weekly_tolerance_minutes'] : 30;
+	  if ($use_outside_rule && $outside_weekly_min_minutes <= 0) {
+	      $error[] = 'Minimal jam luar kantor mingguan wajib diisi';
+	  }
+	  if ($use_outside_rule && $outside_weekly_limit_minutes <= 0) {
+	      $error[] = 'Maksimal jam luar kantor mingguan wajib diisi';
+	  }
+	  if ($use_outside_rule && $outside_weekly_min_minutes > $outside_weekly_limit_minutes) {
+	      $error[] = 'Minimal jam luar kantor tidak boleh lebih besar dari maksimal jam luar kantor';
+	  }
 
 	  if (empty($error)) { 
 	    $add ="INSERT INTO  shift (shift_name,time_in,time_out,min_work_minutes,checkout_required) values('$shift_name','$time_in','$time_out','$min_work_minutes','$checkout_required')"; 
@@ -187,12 +198,12 @@ case 'add':
         echo'Data tidak berhasil disimpan!';
     } else{
         $shift_id = $connection->insert_id;
-        save_shift_attendance_rule($connection, $shift_id, 'office', $time_in, $time_out, 0, 0, 0);
-        save_shift_attendance_rule($connection, $shift_id, 'outside', $outside_time_in, $outside_time_out, $outside_min_work_minutes, $outside_weekly_limit_minutes, $outside_weekly_tolerance_minutes);
+        save_shift_attendance_rule($connection, $shift_id, 'office', $time_in, $time_out, 0, 0, 0, 0);
+        save_shift_attendance_rule($connection, $shift_id, 'outside', $outside_time_in, $outside_time_out, 0, $outside_weekly_min_minutes, $outside_weekly_limit_minutes, $outside_weekly_tolerance_minutes);
         echo'success';
     }}
     else{           
-        echo'Bidang inputan masih ada yang kosong..!';
+        echo implode('<br>', $error);
     }
 break;
 
@@ -230,9 +241,18 @@ case 'update':
 	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : '00:00:00';
 	  }
 	  $outside_time_out = ($use_outside_rule && !empty($_POST['outside_time_out'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
-	  $outside_min_work_minutes = ($use_outside_rule && !empty($_POST['outside_min_work_minutes'])) ? (int)$_POST['outside_min_work_minutes'] : 0;
+	  $outside_weekly_min_minutes = ($use_outside_rule && !empty($_POST['outside_min_work_minutes'])) ? (int)$_POST['outside_min_work_minutes'] : 0;
 	  $outside_weekly_limit_minutes = ($use_outside_rule && !empty($_POST['outside_weekly_limit_minutes'])) ? (int)$_POST['outside_weekly_limit_minutes'] : 0;
 	  $outside_weekly_tolerance_minutes = ($use_outside_rule && isset($_POST['outside_weekly_tolerance_minutes'])) ? (int)$_POST['outside_weekly_tolerance_minutes'] : 30;
+	  if ($use_outside_rule && $outside_weekly_min_minutes <= 0) {
+	      $error[] = 'Minimal jam luar kantor mingguan wajib diisi';
+	  }
+	  if ($use_outside_rule && $outside_weekly_limit_minutes <= 0) {
+	      $error[] = 'Maksimal jam luar kantor mingguan wajib diisi';
+	  }
+	  if ($use_outside_rule && $outside_weekly_min_minutes > $outside_weekly_limit_minutes) {
+	      $error[] = 'Minimal jam luar kantor tidak boleh lebih besar dari maksimal jam luar kantor';
+	  }
 
 	  if (empty($error)) { 
 	    $update="UPDATE shift SET shift_name='$shift_name',
@@ -244,12 +264,12 @@ case 'update':
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
     } else{
-        save_shift_attendance_rule($connection, $id, 'office', $time_in, $time_out, 0, 0, 0);
-        save_shift_attendance_rule($connection, $id, 'outside', $outside_time_in, $outside_time_out, $outside_min_work_minutes, $outside_weekly_limit_minutes, $outside_weekly_tolerance_minutes);
+        save_shift_attendance_rule($connection, $id, 'office', $time_in, $time_out, 0, 0, 0, 0);
+        save_shift_attendance_rule($connection, $id, 'outside', $outside_time_in, $outside_time_out, 0, $outside_weekly_min_minutes, $outside_weekly_limit_minutes, $outside_weekly_tolerance_minutes);
         echo'success';
     }}
     else{           
-        echo'Bidang inputan tidak boleh ada yang kosong..!';
+        echo implode('<br>', $error);
     }
 
 break;
