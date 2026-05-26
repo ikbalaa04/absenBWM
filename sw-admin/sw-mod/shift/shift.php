@@ -79,6 +79,7 @@ echo'
               $outside_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'outside');
               $has_outside_rule = ($outside_rule['time_in'] != $office_rule['time_in'] || $outside_rule['time_out'] != $office_rule['time_out'] || (int)$outside_rule['weekly_min_minutes'] > 0 || (int)$outside_rule['weekly_limit_minutes'] > 0);
               $outside_rule_label = $has_outside_rule ? 'Masuk '.$outside_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $outside_rule['time_out'] : '-').'<br>Minimal '.format_shift_minutes($outside_rule['weekly_min_minutes']).'/minggu<br>Maksimal '.format_shift_minutes($outside_rule['weekly_limit_minutes']).'/minggu<br><small>Toleransi '.format_shift_minutes($outside_rule['weekly_tolerance_minutes']).'</small>' : '<span class="text-muted">Tidak diatur</span>';
+              $office_rule_label = 'Masuk '.$office_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $office_rule['time_out'] : '-').'<br>Minimal '.format_shift_minutes($row['min_work_minutes']).'/minggu';
               $total_weekly_minimum = (int)$row['min_work_minutes'] + ($has_outside_rule ? (int)$outside_rule['weekly_min_minutes'] : 0);
               $weekly_minimum_label = $has_outside_rule ? 'Kantor '.format_shift_minutes($row['min_work_minutes']).'<br>Luar kantor '.format_shift_minutes($outside_rule['weekly_min_minutes']).'<br><small>Total '.format_shift_minutes($total_weekly_minimum).'</small>' : format_shift_minutes($row['min_work_minutes']);
               $employees_count ="SELECT id FROM employees WHERE shift_id='$row[shift_id]'";
@@ -89,7 +90,7 @@ echo'
                   <td class="text-center">'.$no.'</td>
                   <td class="text-center">'.$row['shift_id'].'</td>
 	                  <td>'.$row['shift_name'].'</td>
-	                  <td>Masuk '.$office_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $office_rule['time_out'] : '-').'</td>
+	                  <td>'.$office_rule_label.'</td>
 	                  <td>'.$outside_rule_label.'</td>
 	                  <td>'.$weekly_minimum_label.'</td>
 	                  <td>'.($row['checkout_required'] == 1 ? 'Wajib' : 'Tidak wajib').'</td>

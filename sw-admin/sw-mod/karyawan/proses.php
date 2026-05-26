@@ -19,6 +19,7 @@ function karyawan_export_rows($connection) {
     while ($row = $result->fetch_assoc()) {
       $no++;
       $last_login = ($row['created_login'] != '0000-00-00 00:00:00' && !empty($row['created_login'])) ? tgl_indo($row['created_login']).' - '.jam_indo($row['created_login']) : 'Belum login';
+      $work_minutes = attendance_shift_weekly_work_minutes($connection, $row['shift_id'], isset($row['attendance_mode']) ? $row['attendance_mode'] : 'office');
       $rows[] = array(
         'no' => $no,
         'employees_code' => $row['employees_code'],
@@ -26,6 +27,7 @@ function karyawan_export_rows($connection) {
         'employees_email' => $row['employees_email'],
         'position_name' => $row['position_name'],
         'shift_name' => $row['shift_name'],
+        'work_hours' => attendance_format_minutes($work_minutes),
         'building_name' => $row['name'],
         'last_login' => $last_login
       );
@@ -62,6 +64,7 @@ case 'export':
             <th>Email</th>
             <th>Jabatan</th>
             <th>Shift</th>
+            <th>Jam Kerja</th>
             <th>Lokasi</th>
             <th>Last Login</th>
           </tr>
@@ -75,6 +78,7 @@ case 'export':
         <td>'.htmlspecialchars($row['employees_email'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['position_name'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['shift_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['work_hours'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['building_name'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['last_login'], ENT_QUOTES, 'UTF-8').'</td>
       </tr>';
@@ -97,6 +101,7 @@ case 'export':
         <th>Email</th>
         <th>Jabatan</th>
         <th>Shift</th>
+        <th>Jam Kerja</th>
         <th>Lokasi</th>
         <th>Last Login</th>
       </tr>';
@@ -108,6 +113,7 @@ case 'export':
         <td>'.htmlspecialchars($row['employees_email'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['position_name'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['shift_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['work_hours'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['building_name'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['last_login'], ENT_QUOTES, 'UTF-8').'</td>
       </tr>';
@@ -119,9 +125,9 @@ case 'export':
   header('Content-Type: text/csv; charset=utf-8');
   header('Content-Disposition: attachment; filename="Data-Karyawan-'.$export_date.'.csv"');
   $output = fopen('php://output', 'w');
-  fputcsv($output, array('No', 'Staff ID', 'Nama', 'Email', 'Jabatan', 'Shift', 'Lokasi', 'Last Login'));
+  fputcsv($output, array('No', 'Staff ID', 'Nama', 'Email', 'Jabatan', 'Shift', 'Jam Kerja', 'Lokasi', 'Last Login'));
   foreach ($rows as $row) {
-    fputcsv($output, array($row['no'], $row['employees_code'], $row['employees_name'], $row['employees_email'], $row['position_name'], $row['shift_name'], $row['building_name'], $row['last_login']));
+    fputcsv($output, array($row['no'], $row['employees_code'], $row['employees_name'], $row['employees_email'], $row['position_name'], $row['shift_name'], $row['work_hours'], $row['building_name'], $row['last_login']));
   }
   exit;
 break;

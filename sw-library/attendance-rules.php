@@ -205,6 +205,37 @@ if (!function_exists('attendance_get_shift_rule')) {
   }
 }
 
+if (!function_exists('attendance_shift_weekly_work_minutes')) {
+  function attendance_shift_weekly_work_minutes($connection, $shift_id, $attendance_mode) {
+    $attendance_mode = attendance_normalize_mode($attendance_mode);
+    $office_rule = attendance_get_shift_rule($connection, $shift_id, 'office');
+    $outside_rule = attendance_get_shift_rule($connection, $shift_id, 'outside');
+    $office_minutes = (int)$office_rule['min_work_minutes'];
+    $outside_minutes = (int)$outside_rule['weekly_min_minutes'];
+
+    if ($attendance_mode === 'remote') {
+      return $outside_minutes > 0 ? $outside_minutes : $office_minutes;
+    }
+    if ($attendance_mode === 'hybrid') {
+      return $office_minutes + $outside_minutes;
+    }
+
+    return $office_minutes;
+  }
+}
+
+if (!function_exists('attendance_format_minutes')) {
+  function attendance_format_minutes($minutes) {
+    $minutes = max(0, (int)$minutes);
+    $hours = floor($minutes / 60);
+    $remaining_minutes = $minutes % 60;
+    if ($remaining_minutes === 0) {
+      return $hours.' jam';
+    }
+    return $hours.' jam '.$remaining_minutes.' menit';
+  }
+}
+
 if (!function_exists('attendance_weekly_minutes_by_location')) {
   function attendance_weekly_minutes_by_location($connection, $employees_id, $week_start, $week_end, $location_type, $include_running_today = true) {
     $employees_id = mysqli_real_escape_string($connection, $employees_id);

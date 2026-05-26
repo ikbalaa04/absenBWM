@@ -51,6 +51,7 @@ function shift_export_rows($connection) {
         'shift_name' => $row['shift_name'],
         'office_time_in' => $office_rule['time_in'],
         'office_time_out' => ((int)$row['checkout_required'] === 1 ? $office_rule['time_out'] : '-'),
+        'office_weekly_minimum' => shift_format_minutes($row['min_work_minutes']),
         'weekly_minimum' => shift_format_minutes($total_weekly_minimum).($has_outside_rule ? ' (kantor '.shift_format_minutes($row['min_work_minutes']).' + luar kantor '.shift_format_minutes($outside_rule['weekly_min_minutes']).')' : ''),
         'outside_rule' => $has_outside_rule ? 'Ya' : 'Tidak',
         'outside_time_in' => $has_outside_rule ? $outside_rule['time_in'] : '-',
@@ -79,6 +80,7 @@ case 'export':
     <th>Nama Shift</th>
     <th>Masuk Kantor</th>
     <th>Pulang Kantor</th>
+    <th>Minimal Kantor / Minggu</th>
     <th>Minimal Mingguan</th>
     <th>Aturan Luar Kantor</th>
     <th>Masuk Luar Kantor</th>
@@ -109,6 +111,7 @@ case 'export':
         <td>'.htmlspecialchars($row['shift_name'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.$row['office_time_in'].'</td>
         <td>'.$row['office_time_out'].'</td>
+        <td>'.$row['office_weekly_minimum'].'</td>
         <td>'.$row['weekly_minimum'].'</td>
         <td>'.$row['outside_rule'].'</td>
         <td>'.$row['outside_time_in'].'</td>
@@ -137,6 +140,7 @@ case 'export':
       <td>'.htmlspecialchars($row['shift_name'], ENT_QUOTES, 'UTF-8').'</td>
       <td>'.$row['office_time_in'].'</td>
       <td>'.$row['office_time_out'].'</td>
+      <td>'.$row['office_weekly_minimum'].'</td>
       <td>'.$row['weekly_minimum'].'</td>
       <td>'.$row['outside_rule'].'</td>
       <td>'.$row['outside_time_in'].'</td>

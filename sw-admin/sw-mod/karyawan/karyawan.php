@@ -51,6 +51,7 @@ echo'
               <th>Email</th>
               <th>Jabatan</th>
               <th>Shift</th>
+              <th>Jam Kerja</th>
               <th>Lokasi</th>
               <th>Last Login</th>
               <th style="width:150px" class="text-right">Aksi</th>
@@ -63,6 +64,7 @@ echo'
             $no=0;
            while ($row= $result->fetch_assoc()) {
               $no++;
+              $work_minutes = attendance_shift_weekly_work_minutes($connection, $row['shift_id'], isset($row['attendance_mode']) ? $row['attendance_mode'] : 'office');
               echo'
               <tr>
                 <td class="text-center">'.$no.'</td>
@@ -71,6 +73,7 @@ echo'
                 <td>'.$row['employees_email'].'</td>
                 <td>'.$row['position_name'].'</td>
                 <td>'.$row['shift_name'].'</td>
+                <td>'.attendance_format_minutes($work_minutes).'</td>
                 <td>'.$row['name'].'</td>
                 <td>'.(($row['created_login'] != '0000-00-00 00:00:00' && !empty($row['created_login'])) ? tgl_indo($row['created_login']).' - '.jam_indo($row['created_login']) : '<span class="text-muted">Belum login</span>').'</td>
                 <td class="text-right">
