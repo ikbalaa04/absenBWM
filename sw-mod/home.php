@@ -60,13 +60,8 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   $week_start = date('Y-m-d', strtotime('monday this week'));
   $week_end = date('Y-m-d', strtotime('friday this week'));
   $shift_id = mysqli_real_escape_string($connection, $row_user['shift_id']);
-  $office_weekly_target_minutes = 0;
-  $query_weekly_shift = "SELECT min_work_minutes FROM shift WHERE shift_id='$shift_id' LIMIT 1";
-  $result_weekly_shift = $connection->query($query_weekly_shift);
-  if ($result_weekly_shift && $result_weekly_shift->num_rows > 0) {
-    $row_weekly_shift = $result_weekly_shift->fetch_assoc();
-    $office_weekly_target_minutes = (int)$row_weekly_shift['min_work_minutes'];
-  }
+  $weekly_targets = attendance_shift_weekly_targets($connection, $shift_id);
+  $office_weekly_target_minutes = (int)$weekly_targets['office'];
   $office_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'office');
   if ($office_weekly_target_minutes <= 0) {
     if ($office_rule['time_out'] != '00:00:00') {
@@ -84,7 +79,10 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   $office_target_label = floor($office_weekly_target_minutes / 60).'j '.($office_weekly_target_minutes % 60).'m';
   $office_remaining_label = floor($office_remaining_minutes / 60).'j '.($office_remaining_minutes % 60).'m';
   $outside_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'outside');
-  $outside_weekly_min_minutes = (int)$outside_rule['weekly_min_minutes'];
+  $outside_weekly_min_minutes = (int)$weekly_targets['outside'];
+  if ($attendance_mode === 'remote' && $outside_weekly_min_minutes <= 0) {
+    $outside_weekly_min_minutes = $office_weekly_target_minutes;
+  }
   $outside_weekly_limit_minutes = (int)$outside_rule['weekly_limit_minutes'];
   $outside_grace_minutes = (int)$outside_rule['weekly_tolerance_minutes'];
   $outside_work_minutes = attendance_weekly_minutes_by_location($connection, $row_user['id'], $week_start, $week_end, 'outside', true);
