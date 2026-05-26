@@ -294,21 +294,40 @@ if (empty($_GET['latitude'])) {
 
 if (empty($error)){
     // Cek User yang sudah login -----------------------------------------------
-	    $query_u="SELECT employees.id,employees.employees_code,employees.employees_name,employees.shift_id,shift.shift_id,shift.time_in,shift.time_out,shift.checkout_required,position.require_location,location_building.latitude,location_building.longitude,location_building.radius_meter FROM employees INNER JOIN shift ON employees.shift_id=shift.shift_id INNER JOIN position ON employees.position_id=position.position_id LEFT JOIN building AS location_building ON location_building.building_id=IF(position.building_id IS NOT NULL AND position.building_id > 0, position.building_id, employees.building_id) WHERE employees.id='$row_user[id]'";
+	    $query_u="SELECT employees.id,employees.employees_code,employees.employees_name,employees.shift_id,employees.attendance_mode,shift.shift_id,shift.time_in,shift.time_out,shift.checkout_required,position.require_location,location_building.latitude,location_building.longitude,location_building.radius_meter FROM employees INNER JOIN shift ON employees.shift_id=shift.shift_id INNER JOIN position ON employees.position_id=position.position_id LEFT JOIN building AS location_building ON location_building.building_id=IF(position.building_id IS NOT NULL AND position.building_id > 0, position.building_id, employees.building_id) WHERE employees.id='$row_user[id]'";
     $result_u = $connection->query($query_u);
     if($result_u->num_rows > 0){
     $row_u = $result_u->fetch_assoc();
-    $attendance_error = attendance_validate_checkin($row_u, $latitude, $date);
+
+        // Cek data Absen Berdasarkan tanggal sekarang
+        $query  ="SELECT employees_id,time_in,time_out,attendance_location_type FROM presence WHERE employees_id='$row_u[id]' AND presence_date='$date'";
+        $result = $connection->query($query);
+
+    $attendance_mode = attendance_normalize_mode(isset($row_u['attendance_mode']) ? $row_u['attendance_mode'] : 'office');
+    $requested_location_type = isset($_GET['location_type']) ? $_GET['location_type'] : '';
+    if ($result && $result->num_rows > 0) {
+      $row = $result->fetch_assoc();
+      $location_type = attendance_resolve_location_type($attendance_mode, $row['attendance_location_type']);
+    } else {
+      $location_type = attendance_resolve_location_type($attendance_mode, $requested_location_type);
+      if ($attendance_mode === 'hybrid' && $location_type === '') {
+        echo'Pilih jenis absensi terlebih dahulu: Absen di Kantor atau Absen di Luar Kantor.';
+        break;
+      }
+    }
+    $shift_rule = attendance_get_shift_rule($connection, $row_u['shift_id'], $location_type);
+    $rule_time_in = mysqli_real_escape_string($connection, $shift_rule['time_in']);
+    $rule_time_out = mysqli_real_escape_string($connection, $shift_rule['time_out']);
+    $rule_min_work_minutes = (int)$shift_rule['min_work_minutes'];
+
+    $attendance_error = attendance_validate_checkin($row_u, $latitude, $date, $location_type);
     if ($attendance_error !== '') {
       echo $attendance_error;
       break;
     }
+    $location_valid = 1;
 
-        // Cek data Absen Berdasarkan tanggal sekarang
-        $query  ="SELECT employees_id,time_in,time_out FROM presence WHERE employees_id='$row_u[id]' AND presence_date='$date'";
-        $result = $connection->query($query);
 	        if($result->num_rows > 0){
-	          $row = $result->fetch_assoc();
 	          if((int)$row_u['checkout_required'] === 0){
 	            echo'Sebelumnya "'.$row_user['employees_name'].'" sudah absen pada Tanggal '.tanggal_ind($date).'. Shift ini cukup absen satu kali per hari.';
 	            break;
@@ -346,6 +365,12 @@ if (empty($error)){
                               picture_in,
                               picture_out,
                               present_id,
+                              attendance_mode,
+                              attendance_location_type,
+                              location_valid,
+                              rule_time_in,
+                              rule_time_out,
+                              rule_min_work_minutes,
                               latitude_longtitude_in,
                               latitude_longtitude_out,
                               information) values('$row_u[id]',
@@ -355,6 +380,12 @@ if (empty($error)){
                               '$filename',
                               '', /*picture out kosong*/
                               '1', /*hadir*/
+                              '$attendance_mode',
+                              '$location_type',
+                              '$location_valid',
+                              '$rule_time_in',
+                              '$rule_time_out',
+                              '$rule_min_work_minutes',
                               '$latitude',
                               '',
                               '')";
@@ -613,7 +644,7 @@ echo'<table class="table rounded" id="swdatatable">
     $newtimestamp   = strtotime(''.$shift_time_in.' + 05 minute');
     $newtimestamp   = date('H:i:s', $newtimestamp);
 
-    $query_absen ="SELECT presence_id,presence_date,picture_in,time_in,picture_out,time_out,present_id, latitude_longtitude_in, latitude_longtitude_out,information,TIMEDIFF(TIME(time_in),'$shift_time_in') AS selisih,if (time_in>'$shift_time_in','Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status, if (time_out<'$shift_time_out','Pulang Cepat','Tepat Waktu') AS status_pulang FROM presence WHERE employees_id='$row_user[id]' AND $filter ORDER BY presence_id DESC";
+    $query_absen ="SELECT presence_id,presence_date,picture_in,time_in,picture_out,time_out,present_id,attendance_location_type,rule_time_in,rule_time_out, latitude_longtitude_in, latitude_longtitude_out,information,TIMEDIFF(TIME(time_in),COALESCE(rule_time_in,'$shift_time_in')) AS selisih,if (time_in>COALESCE(rule_time_in,'$shift_time_in'),'Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status, if (time_out<COALESCE(rule_time_out,'$shift_time_out'),'Pulang Cepat','Tepat Waktu') AS status_pulang FROM presence WHERE employees_id='$row_user[id]' AND $filter ORDER BY presence_id DESC";
     $result_absen = $connection->query($query_absen);
 	    if($result_absen->num_rows > 0){
 	        while ($row_absen = $result_absen->fetch_assoc()) {
@@ -627,6 +658,7 @@ echo'<table class="table rounded" id="swdatatable">
             }else{
               $information = '<br>'.$row_absen['information'].'';
             }
+            $location_badge = $row_absen['attendance_location_type'] == 'outside' ? ' <span class="badge badge-primary">Luar Kantor</span>' : ' <span class="badge badge-info">Kantor</span>';
 
       if($row_absen['status']=='Telat'){
           $status=' <span class="badge badge-danger">'.$row_absen['status'].'</span>';
@@ -665,7 +697,7 @@ echo'<table class="table rounded" id="swdatatable">
 	            }
 	            echo'</td>
 
-            <td class="hidden-sm">'.$row_aa['present_name'].''.$information.'</td>
+            <td class="hidden-sm">'.$row_aa['present_name'].' '.$location_badge.''.$information.'</td>
             <td class="text-center">
               <button type="button" class="btn btn-success btn-sm modal-update" data-id="'.$row_absen['presence_id'].'" data-masuk="'.$row_absen['time_in'].'" data-pulang="'.$row_absen['time_out'].'" data-date="'.tgl_indo($row_absen['presence_date']).'" data-information="'.$row_absen['information'].'" data-status="'.$row_absen['present_id'].'" data-toggle="modal" data-target="#modal-show">Ubah</button>
             </td>
@@ -702,7 +734,7 @@ echo'<table class="table rounded" id="swdatatable">
       $query_izin="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='3' ORDER BY presence_id";
       $izin = $connection->query($query_izin);
 
-	      $query_telat ="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND time_in>'$shift_time_in'";
+	      $query_telat ="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND time_in>COALESCE(rule_time_in,'$shift_time_in')";
 	      $telat = $connection->query($query_telat);
         $query_tugas ="SELECT assignment_attendance_id FROM assignment_attendance WHERE employees_id='$row_user[id]' AND ".str_replace('assignment_attendance.', '', $assignment_filter);
         $tugas = $connection->query($query_tugas);

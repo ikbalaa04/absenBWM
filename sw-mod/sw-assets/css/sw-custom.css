@@ -40,6 +40,59 @@
     overflow:hidden;
 }
 
+.weekly-work-progress {
+  background: #ffffff;
+  color: #111844;
+}
+
+.weekly-work-progress .weekly-work-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.weekly-work-progress .title {
+  color: #7288AE;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.weekly-work-progress .value {
+  color: #111844;
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.weekly-work-percent {
+  min-width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  background: #111844;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.weekly-progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #EAE0CF;
+  margin-top: 14px;
+  overflow: hidden;
+}
+
+.weekly-work-foot {
+  color: #7288AE;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
 
 div.dataTables_filter label {
     font-weight: normal;

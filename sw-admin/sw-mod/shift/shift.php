@@ -41,19 +41,21 @@ echo'
                 <th style="width:20px" class="text-center">No</th>
                 <th class="text-center">ID</th>
 	                <th>Nama Shift</th>
-	                <th>Waktu Masuk</th>
-	                <th>Waktu Pulang</th>
+	                <th>Aturan Kantor</th>
+	                <th>Aturan Luar Kantor</th>
 	                <th>Absen Pulang</th>
 	                <th class="text-center">Jumlah Pegawai</th>
                 <th style="width:100px">Aksi</th>
               </tr>
               </thead>
               <tbody>';
-	              $query="SELECT shift_id,shift_name,time_in,time_out,checkout_required FROM shift order by shift_id DESC";
+	              $query="SELECT shift_id,shift_name,time_in,time_out,min_work_minutes,checkout_required FROM shift order by shift_id DESC";
               $result = $connection->query($query);
               if($result->num_rows > 0){
               $no=0;
              while ($row= $result->fetch_assoc()) {
+              $office_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'office');
+              $outside_rule = attendance_get_shift_rule($connection, $row['shift_id'], 'outside');
               $employees_count ="SELECT id FROM employees WHERE shift_id='$row[shift_id]'";
               $result_count = $connection->query($employees_count);
                 $no++;
@@ -62,15 +64,15 @@ echo'
                   <td class="text-center">'.$no.'</td>
                   <td class="text-center">'.$row['shift_id'].'</td>
 	                  <td>'.$row['shift_name'].'</td>
-	                  <td>'.$row['time_in'].'</td>
-	                  <td>'.($row['checkout_required'] == 1 ? $row['time_out'] : '-').'</td>
+	                  <td>Masuk '.$office_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $office_rule['time_out'] : '-').'<br>Minimal '.$office_rule['min_work_minutes'].' menit</td>
+	                  <td>Masuk '.$outside_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $outside_rule['time_out'] : '-').'<br>Minimal '.$outside_rule['min_work_minutes'].' menit</td>
 	                  <td>'.($row['checkout_required'] == 1 ? 'Wajib' : 'Tidak wajib').'</td>
                   <td class="text-center"><span class="badge bg-yellow">'.$result_count->num_rows.'</span></td>
                   <td>
                     <div class="btn-group">';
                     if($level_user==1){
                     echo'
-	                      <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['shift_id'];?>';getElementById('txtname').value='<?PHP echo $row['shift_name'];?>';getElementById('txtin').value='<?PHP echo $row['time_in'];?>';getElementById('txtout').value='<?PHP echo $row['time_out'];?>';getElementById('txtcheckout').checked=<?PHP echo $row['checkout_required'] == 1 ? 'true' : 'false';?>;"><i class="fa fa-pencil-square-o"></i> Ubah</a>
+	                      <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row['shift_id'];?>';getElementById('txtname').value='<?PHP echo $row['shift_name'];?>';getElementById('txtin').value='<?PHP echo $office_rule['time_in'];?>';getElementById('txtout').value='<?PHP echo $office_rule['time_out'];?>';getElementById('txtmin').value='<?PHP echo $office_rule['min_work_minutes'];?>';getElementById('txtoutsidein').value='<?PHP echo $outside_rule['time_in'];?>';getElementById('txtoutsideout').value='<?PHP echo $outside_rule['time_out'];?>';getElementById('txtoutsidemin').value='<?PHP echo $outside_rule['min_work_minutes'];?>';getElementById('txtcheckout').checked=<?PHP echo $row['checkout_required'] == 1 ? 'true' : 'false';?>;"><i class="fa fa-pencil-square-o"></i> Ubah</a>
                     <?php echo'
                     <buton data-id="'.epm_encode($row['shift_id']).'" class="btn btn-xs btn-danger delete" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
                   else{
@@ -109,7 +111,7 @@ echo'
         </div>
 
         <div class="form-group">
-            <label>Waktu Masuk</label>
+            <label>Waktu Masuk Kantor</label>
             <div class="input-group">
               <input type="text" name="time_in" class="form-control timepicker" data-date-format="HH:mm:ss" value="07:30:00" required>
               <div class="input-group-addon">
@@ -119,13 +121,43 @@ echo'
         </div>
 
 	        <div class="form-group">
-	            <label>Waktu Pulang</label>
+	            <label>Waktu Pulang Kantor</label>
             <div class="input-group">
 	              <input type="text" name="time_out" class="form-control timepicker">
               <div class="input-group-addon">
                 <i class="fa fa-clock-o"></i>
               </div>
             </div>
+	        </div>
+
+	        <div class="form-group">
+	            <label>Minimal Durasi Kerja Kantor (menit)</label>
+	            <input type="number" name="min_work_minutes" class="form-control" min="0" value="0">
+	        </div>
+
+	        <div class="form-group">
+	            <label>Waktu Masuk Luar Kantor</label>
+            <div class="input-group">
+	              <input type="text" name="outside_time_in" class="form-control timepicker" value="07:30:00">
+              <div class="input-group-addon">
+                <i class="fa fa-clock-o"></i>
+              </div>
+            </div>
+	        </div>
+
+	        <div class="form-group">
+	            <label>Waktu Pulang Luar Kantor</label>
+            <div class="input-group">
+	              <input type="text" name="outside_time_out" class="form-control timepicker">
+              <div class="input-group-addon">
+                <i class="fa fa-clock-o"></i>
+              </div>
+            </div>
+	        </div>
+
+	        <div class="form-group">
+	            <label>Minimal Durasi Kerja Luar Kantor (menit)</label>
+	            <input type="number" name="outside_min_work_minutes" class="form-control" min="0" value="0">
 	        </div>
 	
 	        <div class="checkbox">
@@ -163,7 +195,7 @@ echo'
           </div>
 
 	          <div class="form-group">
-	              <label>Waktu Masuk</label>
+	              <label>Waktu Masuk Kantor</label>
 	              <div class="input-group">
 	                <input type="text" name="time_in" id="txtin" class="form-control timepicker" data-date-format="HH:mm:ss" value="" required>
 	                <div class="input-group-addon">
@@ -173,13 +205,43 @@ echo'
 	          </div>
 
 	          <div class="form-group">
-	              <label>Waktu Pulang</label>
+	              <label>Waktu Pulang Kantor</label>
 	              <div class="input-group">
 	                <input type="text" name="time_out" id="txtout" class="form-control timepicker">
 	                <div class="input-group-addon">
 	                  <i class="fa fa-clock-o"></i>
 	                </div>
 	              </div>
+	          </div>
+
+	          <div class="form-group">
+	              <label>Minimal Durasi Kerja Kantor (menit)</label>
+	              <input type="number" name="min_work_minutes" id="txtmin" class="form-control" min="0" value="0">
+	          </div>
+
+	          <div class="form-group">
+	              <label>Waktu Masuk Luar Kantor</label>
+	              <div class="input-group">
+	                <input type="text" name="outside_time_in" id="txtoutsidein" class="form-control timepicker" value="">
+	                <div class="input-group-addon">
+	                  <i class="fa fa-clock-o"></i>
+	                </div>
+	              </div>
+	          </div>
+
+	          <div class="form-group">
+	              <label>Waktu Pulang Luar Kantor</label>
+	              <div class="input-group">
+	                <input type="text" name="outside_time_out" id="txtoutsideout" class="form-control timepicker">
+	                <div class="input-group-addon">
+	                  <i class="fa fa-clock-o"></i>
+	                </div>
+	              </div>
+	          </div>
+
+	          <div class="form-group">
+	              <label>Minimal Durasi Kerja Luar Kantor (menit)</label>
+	              <input type="number" name="outside_min_work_minutes" id="txtoutsidemin" class="form-control" min="0" value="0">
 	          </div>
 	
 	          <div class="checkbox">

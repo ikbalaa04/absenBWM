@@ -56,6 +56,47 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   else{
   $active_assignment = assignment_get_active_for_employee($connection, $row_user['id'], $date);
   $off_day_message = attendance_off_day_message($date);
+  $week_start = date('Y-m-d', strtotime('monday this week'));
+  $week_end = date('Y-m-d', strtotime('friday this week'));
+  $office_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'office');
+  $outside_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'outside');
+  $office_min_minutes = (int)$office_rule['min_work_minutes'];
+  $outside_min_minutes = (int)$outside_rule['min_work_minutes'];
+  if ($office_min_minutes <= 0 && $office_rule['time_out'] != '00:00:00') {
+    $office_min_minutes = max(0, (strtotime($office_rule['time_out']) - strtotime($office_rule['time_in'])) / 60);
+  }
+  if ($outside_min_minutes <= 0 && $outside_rule['time_out'] != '00:00:00') {
+    $outside_min_minutes = max(0, (strtotime($outside_rule['time_out']) - strtotime($outside_rule['time_in'])) / 60);
+  }
+  $daily_min_minutes = max($office_min_minutes, $outside_min_minutes);
+  $weekly_target_minutes = $daily_min_minutes * 5;
+  $weekly_work_minutes = 0;
+  $employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+  $query_weekly_presence = "SELECT presence_date,time_in,time_out,rule_min_work_minutes FROM presence WHERE employees_id='$employee_id' AND presence_date BETWEEN '$week_start' AND '$week_end' AND present_id='1'";
+  $result_weekly_presence = $connection->query($query_weekly_presence);
+  if ($result_weekly_presence) {
+    while ($row_weekly = $result_weekly_presence->fetch_assoc()) {
+      if ($row_weekly['time_out'] != '00:00:00') {
+        $start_time = strtotime($row_weekly['presence_date'].' '.$row_weekly['time_in']);
+        $end_time = strtotime($row_weekly['presence_date'].' '.$row_weekly['time_out']);
+        if ($end_time < $start_time) {
+          $end_time += 86400;
+        }
+        $weekly_work_minutes += max(0, ($end_time - $start_time) / 60);
+      } elseif ($row_weekly['presence_date'] == $date) {
+        $start_time = strtotime($row_weekly['presence_date'].' '.$row_weekly['time_in']);
+        $weekly_work_minutes += max(0, (time() - $start_time) / 60);
+      } elseif ((int)$row_weekly['rule_min_work_minutes'] > 0) {
+        $weekly_work_minutes += (int)$row_weekly['rule_min_work_minutes'];
+      }
+    }
+  }
+  $weekly_work_minutes = (int)floor($weekly_work_minutes);
+  $weekly_percent = $weekly_target_minutes > 0 ? min(100, round(($weekly_work_minutes / $weekly_target_minutes) * 100)) : 0;
+  $weekly_remaining_minutes = max(0, $weekly_target_minutes - $weekly_work_minutes);
+  $weekly_work_label = floor($weekly_work_minutes / 60).'j '.($weekly_work_minutes % 60).'m';
+  $weekly_target_label = floor($weekly_target_minutes / 60).'j '.($weekly_target_minutes % 60).'m';
+  $weekly_remaining_label = floor($weekly_remaining_minutes / 60).'j '.($weekly_remaining_minutes % 60).'m';
 
   echo'<!-- App Capsule -->
     <div id="appCapsule">
@@ -193,6 +234,22 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                 ';
             }   
         echo' 
+        </div>
+    </div>
+
+    <div class="section mt-2">
+        <div class="stat-box weekly-work-progress">
+            <div class="weekly-work-head">
+                <div>
+                    <div class="title">Jam Minimal Minggu Ini</div>
+                    <div class="value">'.$weekly_work_label.' / '.$weekly_target_label.'</div>
+                </div>
+                <div class="weekly-work-percent">'.$weekly_percent.'%</div>
+            </div>
+            <div class="progress weekly-progress-bar">
+                <div class="progress-bar bg-success" role="progressbar" style="width: '.$weekly_percent.'%" aria-valuenow="'.$weekly_percent.'" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="weekly-work-foot">Sisa minimal: '.$weekly_remaining_label.' | Periode '.tgl_ind($week_start).' - '.tgl_ind($week_end).'</div>
         </div>
     </div>
 

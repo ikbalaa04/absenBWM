@@ -83,7 +83,7 @@ echo'
       $newtimestamp = strtotime(''.$shift_time_in.' + 05 minute');
       $newtimestamp = date('H:i:s', $newtimestamp);
 
-      $query_absen ="SELECT presence_id,presence_date,time_in,time_out,picture_in,picture_out,present_id, latitude_longtitude_in,latitude_longtitude_out,information,TIMEDIFF(TIME(time_in),'$shift_time_in') AS selisih,if (time_in>'$shift_time_in','Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status, TIMEDIFF(TIME(time_out),'$shift_time_out') AS selisih_out FROM presence WHERE $filter ORDER BY presence_id DESC";
+      $query_absen ="SELECT presence_id,presence_date,time_in,time_out,picture_in,picture_out,present_id,attendance_location_type,rule_time_in,rule_time_out, latitude_longtitude_in,latitude_longtitude_out,information,TIMEDIFF(TIME(time_in),COALESCE(rule_time_in,'$shift_time_in')) AS selisih,if (time_in>COALESCE(rule_time_in,'$shift_time_in'),'Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status, TIMEDIFF(TIME(time_out),COALESCE(rule_time_out,'$shift_time_out')) AS selisih_out FROM presence WHERE $filter ORDER BY presence_id DESC";
       $result_absen = $connection->query($query_absen);
       $row_absen = $result_absen->fetch_assoc();
       $query_assignment_absen ="SELECT assignment_attendance.*,assignments.assignment_number,assignments.assignment_location FROM assignment_attendance INNER JOIN assignments ON assignments.assignment_id=assignment_attendance.assignment_id WHERE assignment_attendance.employees_id='$id' AND assignment_attendance.attendance_date='$date_month_year' ORDER BY assignment_attendance.assignment_attendance_id DESC LIMIT 1";

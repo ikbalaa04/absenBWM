@@ -168,6 +168,8 @@ case 'add':
       $building_id = mysqli_real_escape_string($connection, $_POST['building_id']);
   }
 
+  $attendance_mode = isset($_POST['attendance_mode']) ? attendance_normalize_mode($_POST['attendance_mode']) : 'office';
+
 
   if (empty($_FILES['photo'])) { 
           $error[] = 'tidak boleh kosong';
@@ -214,6 +216,7 @@ case 'add':
               position_id,
               shift_id,
               building_id,
+              attendance_mode,
               photo,
               created_login,
               created_cookies) values('$employees_code',
@@ -223,6 +226,7 @@ case 'add':
               '$position_id',
               '$shift_id',
               '$building_id',
+              '$attendance_mode',
               '$photo',
               '$date $time',
               '-')";
@@ -285,6 +289,8 @@ case 'update':
       $building_id = mysqli_real_escape_string($connection, $_POST['building_id']);
   }
 
+  $attendance_mode = isset($_POST['attendance_mode']) ? attendance_normalize_mode($_POST['attendance_mode']) : 'office';
+
 
   $photo = $_FILES["photo"]["name"];
   $lokasi_file = $_FILES['photo']['tmp_name'];  
@@ -295,7 +301,8 @@ case 'update':
             employees_name='$employees_name',
             position_id='$position_id',
             shift_id='$shift_id',
-            building_id='$building_id' WHERE id='$id'"; 
+            building_id='$building_id',
+            attendance_mode='$attendance_mode' WHERE id='$id'"; 
     if($connection->query($update) === false) { 
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
@@ -348,6 +355,7 @@ case 'update':
             position_id='$position_id',
             shift_id='$shift_id',
             building_id='$building_id',
+            attendance_mode='$attendance_mode',
             photo='$photo' WHERE id='$id'"; 
     if($connection->query($update) === false) { 
         die($connection->error.__LINE__); 

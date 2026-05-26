@@ -18,6 +18,8 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
     exit();
   }
   $off_day_message = attendance_off_day_message($date);
+  $attendance_mode = attendance_normalize_mode(isset($row_user['attendance_mode']) ? $row_user['attendance_mode'] : 'office');
+  $default_location_type = $attendance_mode === 'remote' ? 'outside' : 'office';
 
   echo'<!-- App Capsule -->
     <div id="appCapsule">
@@ -54,11 +56,26 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
 	                                  <button class="btn btn-secondary btn-lg btn-block" type="button" disabled><ion-icon name="checkmark-circle-outline"></ion-icon>Sudah Absen Hari Ini</button>';
 	                                }else{
 	                                  echo'
-	                                  <button class="btn btn-success btn-lg btn-block" onClick="captureimage(0)"><ion-icon name="camera-outline"></ion-icon>Absen Pulang</button>';
+	                                  <input type="hidden" id="attendance_location_type" value="'.$row_absent_page['attendance_location_type'].'">
+	                                  <button class="btn btn-success btn-lg btn-block" onClick="captureimage()"><ion-icon name="camera-outline"></ion-icon>Absen Pulang</button>';
 	                                }}
 	                                else{
-	                                echo'
-	                                <button class="btn btn-success btn-lg btn-block" onClick="captureimage(0)"><ion-icon name="camera-outline"></ion-icon>Absen Masuk</button>';}
+	                                  if($attendance_mode === 'hybrid'){
+	                                    echo'
+	                                    <div class="row">
+	                                      <div class="col-6">
+	                                        <button class="btn btn-success btn-lg btn-block" onClick="captureimage(\'office\')"><ion-icon name="business-outline"></ion-icon>Kantor</button>
+	                                      </div>
+	                                      <div class="col-6">
+	                                        <button class="btn btn-primary btn-lg btn-block" onClick="captureimage(\'outside\')"><ion-icon name="navigate-outline"></ion-icon>Luar Kantor</button>
+	                                      </div>
+	                                    </div>';
+	                                  }else{
+	                                    echo'
+	                                    <input type="hidden" id="attendance_location_type" value="'.$default_location_type.'">
+	                                    <button class="btn btn-success btn-lg btn-block" onClick="captureimage()"><ion-icon name="camera-outline"></ion-icon>Absen Masuk</button>';
+	                                  }
+	                                }
                         echo'
                         </div>';
                 echo'

@@ -8,12 +8,42 @@ if (!function_exists('attendance_ensure_schema')) {
 
     $columns = array();
     $result = $connection->query("SHOW COLUMNS FROM employees");
-    if ($result) {
-      while ($row = $result->fetch_assoc()) {
-        $columns[$row['Field']] = true;
-      }
-    }
-    $position_columns = array();
+	    if ($result) {
+	      while ($row = $result->fetch_assoc()) {
+	        $columns[$row['Field']] = true;
+	      }
+	    }
+	    if (empty($columns['attendance_mode'])) {
+	      $connection->query("ALTER TABLE employees ADD attendance_mode enum('office','remote','hybrid') NOT NULL DEFAULT 'office' AFTER building_id");
+	    }
+
+	    $presence_columns = array();
+	    $result = $connection->query("SHOW COLUMNS FROM presence");
+	    if ($result) {
+	      while ($row = $result->fetch_assoc()) {
+	        $presence_columns[$row['Field']] = true;
+	      }
+	    }
+	    if (empty($presence_columns['attendance_mode'])) {
+	      $connection->query("ALTER TABLE presence ADD attendance_mode enum('office','remote','hybrid') NOT NULL DEFAULT 'office' AFTER present_id");
+	    }
+	    if (empty($presence_columns['attendance_location_type'])) {
+	      $connection->query("ALTER TABLE presence ADD attendance_location_type enum('office','outside') NOT NULL DEFAULT 'office' AFTER attendance_mode");
+	    }
+	    if (empty($presence_columns['location_valid'])) {
+	      $connection->query("ALTER TABLE presence ADD location_valid tinyint(1) NOT NULL DEFAULT 0 AFTER attendance_location_type");
+	    }
+	    if (empty($presence_columns['rule_time_in'])) {
+	      $connection->query("ALTER TABLE presence ADD rule_time_in time DEFAULT NULL AFTER location_valid");
+	    }
+	    if (empty($presence_columns['rule_time_out'])) {
+	      $connection->query("ALTER TABLE presence ADD rule_time_out time DEFAULT NULL AFTER rule_time_in");
+	    }
+	    if (empty($presence_columns['rule_min_work_minutes'])) {
+	      $connection->query("ALTER TABLE presence ADD rule_min_work_minutes int(5) NOT NULL DEFAULT 0 AFTER rule_time_out");
+	    }
+
+	    $position_columns = array();
     $result = $connection->query("SHOW COLUMNS FROM position");
     if ($result) {
       while ($row = $result->fetch_assoc()) {
@@ -23,9 +53,33 @@ if (!function_exists('attendance_ensure_schema')) {
     if (empty($position_columns['require_location'])) {
       $connection->query("ALTER TABLE position ADD require_location tinyint(1) NOT NULL DEFAULT 1 AFTER position_name");
     }
-    if (empty($position_columns['building_id'])) {
-      $connection->query("ALTER TABLE position ADD building_id int(5) NULL AFTER require_location");
-    }
+	    if (empty($position_columns['building_id'])) {
+	      $connection->query("ALTER TABLE position ADD building_id int(5) NULL AFTER require_location");
+	    }
+
+	    $shift_columns = array();
+	    $result = $connection->query("SHOW COLUMNS FROM shift");
+	    if ($result) {
+	      while ($row = $result->fetch_assoc()) {
+	        $shift_columns[$row['Field']] = true;
+	      }
+	    }
+	    if (empty($shift_columns['min_work_minutes'])) {
+	      $connection->query("ALTER TABLE shift ADD min_work_minutes int(5) NOT NULL DEFAULT 0 AFTER time_out");
+	    }
+	    $connection->query("CREATE TABLE IF NOT EXISTS shift_attendance_rules (
+	      rule_id int(11) NOT NULL AUTO_INCREMENT,
+	      shift_id int(11) NOT NULL,
+	      location_type enum('office','outside') NOT NULL,
+	      time_in time NOT NULL,
+	      time_out time NOT NULL,
+	      min_work_minutes int(5) NOT NULL DEFAULT 0,
+	      PRIMARY KEY (rule_id),
+	      UNIQUE KEY shift_location (shift_id,location_type),
+	      KEY shift_id (shift_id)
+	    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+	    $connection->query("INSERT IGNORE INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes) SELECT shift_id,'office',time_in,time_out,min_work_minutes FROM shift");
+	    $connection->query("INSERT IGNORE INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes) SELECT shift_id,'outside',time_in,time_out,min_work_minutes FROM shift");
 
     $building_columns = array();
     $result = $connection->query("SHOW COLUMNS FROM building");
@@ -77,23 +131,81 @@ if (!function_exists('attendance_off_day_message')) {
   }
 }
 
-if (!function_exists('attendance_validate_checkin')) {
-  function attendance_validate_checkin($employee, $latitude_longitude, $presence_date) {
-    $off_day_message = attendance_off_day_message($presence_date);
-    if ($off_day_message !== '') {
-      return $off_day_message;
+if (!function_exists('attendance_normalize_mode')) {
+  function attendance_normalize_mode($mode) {
+    $mode = strtolower((string)$mode);
+    return in_array($mode, array('office', 'remote', 'hybrid'), true) ? $mode : 'office';
+  }
+}
+
+if (!function_exists('attendance_normalize_location_type')) {
+  function attendance_normalize_location_type($location_type) {
+    $location_type = strtolower((string)$location_type);
+    return in_array($location_type, array('office', 'outside'), true) ? $location_type : '';
+  }
+}
+
+if (!function_exists('attendance_resolve_location_type')) {
+  function attendance_resolve_location_type($attendance_mode, $requested_location_type) {
+    $attendance_mode = attendance_normalize_mode($attendance_mode);
+    $requested_location_type = attendance_normalize_location_type($requested_location_type);
+
+    if ($attendance_mode === 'office') {
+      return 'office';
+    }
+    if ($attendance_mode === 'remote') {
+      return 'outside';
+    }
+    return $requested_location_type !== '' ? $requested_location_type : '';
+  }
+}
+
+if (!function_exists('attendance_get_shift_rule')) {
+  function attendance_get_shift_rule($connection, $shift_id, $location_type) {
+    $shift_id = mysqli_real_escape_string($connection, $shift_id);
+    $location_type = mysqli_real_escape_string($connection, attendance_normalize_location_type($location_type));
+    if ($location_type === '') {
+      $location_type = 'office';
     }
 
-    $require_location = isset($employee['require_location']) ? (int)$employee['require_location'] : 1;
+    $query = "SELECT time_in,time_out,min_work_minutes FROM shift_attendance_rules WHERE shift_id='$shift_id' AND location_type='$location_type' LIMIT 1";
+    $result = $connection->query($query);
+    if ($result && $result->num_rows > 0) {
+      return $result->fetch_assoc();
+    }
+
+    $query = "SELECT time_in,time_out,min_work_minutes FROM shift WHERE shift_id='$shift_id' LIMIT 1";
+    $result = $connection->query($query);
+    if ($result && $result->num_rows > 0) {
+      return $result->fetch_assoc();
+    }
+
+    return array('time_in' => '00:00:00', 'time_out' => '00:00:00', 'min_work_minutes' => 0);
+  }
+}
+
+if (!function_exists('attendance_validate_checkin')) {
+  function attendance_validate_checkin($employee, $latitude_longitude, $presence_date, $location_type = 'office') {
+	    $off_day_message = attendance_off_day_message($presence_date);
+	    if ($off_day_message !== '') {
+	      return $off_day_message;
+	    }
+
+	    $location_type = attendance_normalize_location_type($location_type);
+	    $parts = explode(',', $latitude_longitude);
+	    if (count($parts) < 2) {
+	      return 'Koordinat absen tidak valid.';
+	    }
+	    if ($location_type === 'outside') {
+	      return '';
+	    }
+
+	    $require_location = isset($employee['require_location']) ? (int)$employee['require_location'] : 1;
     if ($require_location === 1) {
       if (empty($employee['latitude']) || empty($employee['longitude'])) {
         return 'Koordinat lokasi penempatan belum diatur admin.';
       }
-      $parts = explode(',', $latitude_longitude);
-      if (count($parts) < 2) {
-        return 'Koordinat absen tidak valid.';
-      }
-      $distance = attendance_distance_meter(
+	      $distance = attendance_distance_meter(
         (float)$parts[0],
         (float)$parts[1],
         (float)$employee['latitude'],

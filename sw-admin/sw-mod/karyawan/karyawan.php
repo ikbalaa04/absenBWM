@@ -224,6 +224,17 @@ echo'
                 </div>
 
                 <div class="form-group">
+                  <label class="col-sm-2 control-label">Mode Absensi</label>
+                  <div class="col-sm-6">
+                   <select class="form-control" name="attendance_mode" required="">
+                      <option value="office">Full Kantor</option>
+                      <option value="hybrid">Hybrid</option>
+                      <option value="remote">Full Luar Kantor / Remote</option>
+                  </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
                   <label class="col-sm-2 control-label">Foto</label>
                   <div class="col-sm-6">
                     <img width="80" class="preview" src="./sw-assets/img/avatar.jpg"><br><br>
@@ -350,6 +361,17 @@ echo'
                         echo'<option value="'.$rowa['building_id'].'">'.$rowa['address'].'</option>';
                       }
                       }echo'
+                  </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">Mode Absensi</label>
+                  <div class="col-sm-6">
+                   <select class="form-control" name="attendance_mode" required="">
+                      <option value="office" '.($row['attendance_mode'] == 'office' ? 'selected' : '').'>Full Kantor</option>
+                      <option value="hybrid" '.($row['attendance_mode'] == 'hybrid' ? 'selected' : '').'>Hybrid</option>
+                      <option value="remote" '.($row['attendance_mode'] == 'remote' ? 'selected' : '').'>Full Luar Kantor / Remote</option>
                   </select>
                   </div>
                 </div>
