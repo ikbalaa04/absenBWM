@@ -25,6 +25,7 @@ echo'
             <ul class="nav nav-tabs">
               <li class="active"><a href="#tab_1" data-toggle="tab"  onclick="loadSettingUmum();">Pengaturan Web</a></li>
               <li><a href="#tab_2" data-toggle="tab"  onclick="loadSettingProfile();">Profil</a></li>
+              <li><a href="#tab_3" data-toggle="tab"  onclick="loadSettingRanking();">Ranking Absensi</a></li>
             </ul>
             <div class="tab-content">
               <div id="load">

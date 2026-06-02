@@ -3,7 +3,7 @@
 // Loader
 $(document).ready(function () {
     setTimeout(() => {
-        $("#loader").fadeToggle(250);
+        $("#loader").fadeOut(250);
     }, 500); // hide delay when page load
 });
 ///////////////////////////////////////////////////////////////////////////
@@ -53,3 +53,45 @@ $(".toggle-searchbox").click(function () {
     $("#search").fadeToggle(200);
     $("#search .form-control").focus();
 });
+
+///////////////////////////////////////////////////////////////////////////
+// Password Toggle
+function initPasswordToggle(scope) {
+    var $scope = scope ? $(scope) : $(document);
+    $scope.find('input[type="password"]').each(function () {
+        var $input = $(this);
+        if ($input.data("password-toggle-ready")) {
+            return;
+        }
+
+        var $wrap = $input.parent();
+        if (!$wrap.hasClass("input-wrapper") && !$wrap.hasClass("password-toggle-wrap")) {
+            $input.wrap('<div class="password-toggle-wrap"></div>');
+            $wrap = $input.parent();
+        } else {
+            $wrap.addClass("password-toggle-wrap");
+        }
+
+        $input.addClass("password-toggle-input");
+        $input.data("password-toggle-ready", true);
+        $input.after('<button type="button" class="password-toggle-btn" aria-label="Lihat password"><ion-icon name="eye-outline"></ion-icon></button>');
+    });
+}
+
+$(document).ready(function () {
+    initPasswordToggle(document);
+});
+
+$(document).ajaxComplete(function () {
+    initPasswordToggle(document);
+});
+
+$(document).on("click", ".password-toggle-btn", function () {
+    var $button = $(this);
+    var $input = $button.siblings("input").first();
+    var isPassword = $input.attr("type") === "password";
+    $input.attr("type", isPassword ? "text" : "password");
+    $button.attr("aria-label", isPassword ? "Sembunyikan password" : "Lihat password");
+    $button.html(isPassword ? '<ion-icon name="eye-off-outline"></ion-icon>' : '<ion-icon name="eye-outline"></ion-icon>');
+});
+///////////////////////////////////////////////////////////////////////////

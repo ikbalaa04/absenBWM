@@ -46,6 +46,31 @@
   animation:loading_animate 0.5s infinite linear;
 }
 
+.password-toggle-wrap {
+  position: relative;
+}
+
+.password-toggle-input {
+  padding-right: 44px !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #777;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+}
+
 @-webkit-keyframes loading_animate {
   100% {
     transform: rotate(360deg);

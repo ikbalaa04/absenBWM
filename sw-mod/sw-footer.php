@@ -79,57 +79,26 @@ echo'
 }
 echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/sw-script.js?v='.filemtime(__DIR__ . '/sw-assets/js/sw-script.js').'"></script>';
+echo'
+<script>
+  $(function(){ $("#loader").hide(); $(".loading").hide(); });
+  window.addEventListener("load", function(){ $("#loader").hide(); $(".loading").hide(); });
+</script>';
 if ($mod =='absent' OR $mod =='penugasan'){?>
 <script type="text/javascript">
     var result;
-    var currentLatitude = "";
-    var locationPending = false;
-    var locationCallbacks = [];
     var geoOptions = {
         enableHighAccuracy: true,
         timeout: 15000,
-        maximumAge: 30000
+        maximumAge: 0
     };
 
     $(document).ready(function() {
         result = document.getElementById("latitude");
-        setLocationStatus("Mengambil lokasi...");
         requestLocation();
     });
-
-    function setLocationStatus(text) {
-        if (result) {
-            result.innerHTML = text;
-        }
-    }
-
-    function setAttendanceButtonsLoading(isLoading) {
-        $('.webcam-capture-body button').prop('disabled', isLoading);
-    }
-
-    function getReadyLatitude() {
-        var latitude = currentLatitude || "";
-        var locationText = $('.latitude').html() || "";
-        if (!latitude && locationText.indexOf(",") > -1) {
-            latitude = locationText;
-        }
-        return latitude;
-    }
     
     function requestLocation(callback) {
-        if (currentLatitude) {
-            if (typeof callback === "function") {
-                callback();
-            }
-            return;
-        }
-        if (typeof callback === "function") {
-            locationCallbacks.push(callback);
-        }
-        if (locationPending) {
-            setLocationStatus("Mengambil lokasi...");
-            return;
-        }
         if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
             swal({title: 'Oops!', text:'Geolokasi hanya aktif di HTTPS. Pastikan domain dibuka dengan https://', icon: 'error', timer: 3500,});
             return;
@@ -138,31 +107,19 @@ if ($mod =='absent' OR $mod =='penugasan'){?>
             swal({title: 'Oops!', text:'Maaf, browser Anda tidak mendukung geolokasi HTML5.', icon: 'error', timer: 3000,});
             return;
         }
-        locationPending = true;
-        setLocationStatus("Mengambil lokasi...");
         navigator.geolocation.getCurrentPosition(function(position) {
             successCallback(position);
-            locationPending = false;
-            var callbacks = locationCallbacks.slice();
-            locationCallbacks = [];
-            callbacks.forEach(function(fn) {
-                if (typeof fn === "function") {
-                    fn();
-                }
-            });
+            if (typeof callback === "function") {
+                callback();
+            }
         }, errorCallback, geoOptions);
     }
 
     function successCallback(position) {
-       currentLatitude = position.coords.latitude + "," + position.coords.longitude;
-       setLocationStatus(currentLatitude);
+       result.innerHTML = position.coords.latitude + "," + position.coords.longitude;
     }
 
     function errorCallback(error) {
-        locationPending = false;
-        locationCallbacks = [];
-        setAttendanceButtonsLoading(false);
-        setLocationStatus("Lokasi belum tersedia");
         if(error.code == 1) {
             swal({title: 'Oops!', text:'Izin lokasi ditolak. Aktifkan izin lokasi browser untuk melakukan absensi.', icon: 'error', timer: 3500,});
         } else if(error.code == 2) {
@@ -209,7 +166,7 @@ if ($mod =='absent' OR $mod =='penugasan'){?>
     //shutter.autoplay = true;
     shutter.src = navigator.userAgent.match(/Firefox/) ? './sw-mod/sw-assets/js/webcamjs/shutter.ogg' : './sw-mod/sw-assets/js/webcamjs/shutter.mp3';
     function captureimage(locationType, attendanceAction) {
-    var latitude = getReadyLatitude();
+    var latitude = $('.latitude').html();
         if (!locationType) {
             var locationInput = document.getElementById("attendance_location_type");
             locationType = locationInput ? locationInput.value : "";
@@ -222,7 +179,6 @@ if ($mod =='absent' OR $mod =='penugasan'){?>
             requestLocation(function() { captureimage(locationType, attendanceAction); });
             return;
         }
-        setAttendanceButtonsLoading(true);
         // play sound effect
         shutter.play();
         // take snapshot and get image data
@@ -238,19 +194,17 @@ if ($mod =='absent' OR $mod =='penugasan'){?>
                         swal({title: 'Berhasil!', text:$results2, icon: 'success', timer: 3500,});
                         setTimeout("location.href = './?mod=home';",3600);
                     }else{
-                        setAttendanceButtonsLoading(false);
                         swal({title: 'Oops!', text:text, icon: 'error', timer: 3500,});
                     }
             });    
         } );
     }
     function captureassignment() {
-    var latitude = getReadyLatitude();
+    var latitude = $('.latitude').html();
         if (!latitude) {
             requestLocation(captureassignment);
             return;
         }
-        setAttendanceButtonsLoading(true);
         shutter.play();
         Webcam.snap( function(data_uri) {
             Webcam.upload(data_uri, window.swBaseUrl+'action/sw-proses.php?action=assignment-attendance&latitude='+encodeURIComponent(latitude)+'',
@@ -263,7 +217,6 @@ if ($mod =='absent' OR $mod =='penugasan'){?>
                         swal({title: 'Berhasil!', text:$results2, icon: 'success', timer: 3500,});
                         setTimeout("location.href = './?mod=home';",3600);
                     }else{
-                        setAttendanceButtonsLoading(false);
                         swal({title: 'Oops!', text:text, icon: 'error', timer: 3500,});
                     }
             });

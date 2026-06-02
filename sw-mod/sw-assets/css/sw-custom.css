@@ -25,6 +25,35 @@
   z-index:999999;
 }
 
+.password-toggle-wrap {
+  position: relative;
+}
+
+.password-toggle-input {
+  padding-right: 44px !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #6c757d;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+}
+
+.password-toggle-btn ion-icon {
+  font-size: 20px;
+}
+
 .wallet-card .wallet-footer .webcame{
   display:inline-block;
   text-align: center;

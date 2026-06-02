@@ -9,6 +9,11 @@ function loadSettingProfile(){
     $("#load").load("sw-mod/setting/form.php?action=profile");
 }
 
+function loadSettingRanking(){
+    $("#load").html('<div class="text-center"><div class="spinner-border" role="status"></div><p>Loading data...</p></div>');
+    $("#load").load("sw-mod/setting/form.php?action=ranking");
+}
+
 $(document).ready(function() {
   function loading(){
       $(".loading").show();
@@ -94,6 +99,36 @@ $("#load").on("submit", ".update-profile", function(e) {
             },
         });
     }
+  });
+
+
+/* -------------------- Ranking Absensi ------------------- */
+$("#load").on("submit", ".update-ranking", function(e) {
+    loading();
+    e.preventDefault();
+    $.ajax({
+        url:"sw-mod/setting/proses.php?action=ranking",
+        type: "POST",
+        data: new FormData(this),
+        processData: false,
+        contentType: false,
+        cache: false,
+        async: false,
+        beforeSend: function () {
+            loading();
+        },
+        success: function (data) {
+            if (data == 'success') {
+                swal({title: 'Berhasil!', text: 'Pengaturan ranking absensi berhasil disimpan.!', icon: 'success', timer: 1500,});
+                loadSettingRanking();
+            } else {
+                swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
+            }
+        },
+        complete: function () {
+            $(".loading").hide();
+        },
+    });
   });
 
 

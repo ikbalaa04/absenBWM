@@ -71,6 +71,37 @@ echo'
     $(document).on("click", ".access-failed", function(){ 
       swal({title:"Error!", text: "Anda tidak memiliki hak akses!", icon:"error",timer:2000,});  
     });
+
+    function initAdminPasswordToggle(scope) {
+      var $scope = scope ? $(scope) : $(document);
+      $scope.find("input[type=password]").each(function () {
+        var $input = $(this);
+        if ($input.data("password-toggle-ready")) {
+          return;
+        }
+        var $wrap = $input.parent();
+        if (!$wrap.hasClass("password-toggle-wrap")) {
+          $input.wrap("<div class=\"password-toggle-wrap\"></div>");
+          $wrap = $input.parent();
+        }
+        $input.addClass("password-toggle-input");
+        $input.data("password-toggle-ready", true);
+        $input.after("<button type=\"button\" class=\"password-toggle-btn\" aria-label=\"Lihat password\"><i class=\"fa fa-eye\"></i></button>");
+      });
+    }
+
+    initAdminPasswordToggle(document);
+    $(document).ajaxComplete(function () {
+      initAdminPasswordToggle(document);
+    });
+    $(document).on("click", ".password-toggle-btn", function () {
+      var $button = $(this);
+      var $input = $button.siblings("input").first();
+      var isPassword = $input.attr("type") === "password";
+      $input.attr("type", isPassword ? "text" : "password");
+      $button.attr("aria-label", isPassword ? "Sembunyikan password" : "Lihat password");
+      $button.html(isPassword ? "<i class=\"fa fa-eye-slash\"></i>" : "<i class=\"fa fa-eye\"></i>");
+    });
   </script>';?>
   <!-- </body></html> -->
   </body>

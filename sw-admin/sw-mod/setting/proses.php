@@ -7,6 +7,7 @@ else {
 require_once'../../../sw-library/sw-config.php';
 require_once'../../login/login_session.php';
 include('../../../sw-library/sw-function.php'); 
+require_once'../../../sw-library/attendance-ranking.php';
 $extensionList = array("jpg", "png", "ico");
 $letterHeaderExtensionList = array("jpg", "jpeg", "png");
 switch (@$_GET['action']){
@@ -179,6 +180,88 @@ if($ukuran_file < 1044070){
 // =========================
 // Update Profile
 // =========================
+break;
+case 'ranking':
+if($level_user ==1){
+  attendance_ranking_ensure_schema($connection);
+  $defaults = attendance_ranking_defaults();
+  $data = array();
+  $error = array();
+
+  foreach ($defaults as $field => $default) {
+    if ($field === 'ranking_enabled') {
+      $data[$field] = (!empty($_POST[$field]) && $_POST[$field] == '1') ? 1 : 0;
+      continue;
+    }
+
+    if (!isset($_POST[$field]) || $_POST[$field] === '') {
+      $error[] = 'Semua nilai poin wajib diisi.';
+      continue;
+    }
+
+    if (!preg_match('/^-?[0-9]+$/', (string)$_POST[$field])) {
+      $error[] = 'Nilai poin harus berupa angka.';
+      continue;
+    }
+
+    $data[$field] = (int)$_POST[$field];
+  }
+
+  if (isset($data['late_major_threshold_minutes']) && $data['late_major_threshold_minutes'] < 0) {
+    $error[] = 'Batas telat berat tidak boleh negatif.';
+  }
+
+  if (!empty($error)) {
+    echo implode('<br>', array_unique($error));
+    break;
+  }
+
+  $stmt = $connection->prepare("UPDATE attendance_ranking_settings SET
+    ranking_enabled=?,
+    point_present_ontime=?,
+    point_checkout_complete=?,
+    point_late_minor=?,
+    point_late_major=?,
+    point_leave_early=?,
+    point_missing_checkout=?,
+    point_absent_without_note=?,
+    point_assignment=?,
+    point_permission=?,
+    point_sick=?,
+    point_leave=?,
+    late_major_threshold_minutes=?,
+    updated_at=NOW()
+    WHERE setting_id=1");
+  if (!$stmt) {
+    echo'Data tidak berhasil disimpan!';
+    break;
+  }
+  $stmt->bind_param(
+    'iiiiiiiiiiiii',
+    $data['ranking_enabled'],
+    $data['point_present_ontime'],
+    $data['point_checkout_complete'],
+    $data['point_late_minor'],
+    $data['point_late_major'],
+    $data['point_leave_early'],
+    $data['point_missing_checkout'],
+    $data['point_absent_without_note'],
+    $data['point_assignment'],
+    $data['point_permission'],
+    $data['point_sick'],
+    $data['point_leave'],
+    $data['late_major_threshold_minutes']
+  );
+  if($stmt->execute() === false) {
+    echo'Data tidak berhasil disimpan!';
+  } else {
+    echo'success';
+  }
+  $stmt->close();
+}else{
+  echo'Anda tidak memiliki hak akses!';
+}
+
 break;
 case 'profile':
 if($level_user ==1){

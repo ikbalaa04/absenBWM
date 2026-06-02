@@ -1,0 +1,52 @@
+CREATE TABLE IF NOT EXISTS attendance_ranking_settings (
+  setting_id tinyint(1) NOT NULL DEFAULT 1,
+  ranking_enabled tinyint(1) NOT NULL DEFAULT 0,
+  point_present_ontime int(6) NOT NULL DEFAULT 10,
+  point_checkout_complete int(6) NOT NULL DEFAULT 2,
+  point_late_minor int(6) NOT NULL DEFAULT 7,
+  point_late_major int(6) NOT NULL DEFAULT 4,
+  point_leave_early int(6) NOT NULL DEFAULT -3,
+  point_missing_checkout int(6) NOT NULL DEFAULT -2,
+  point_absent_without_note int(6) NOT NULL DEFAULT -10,
+  point_assignment int(6) NOT NULL DEFAULT 10,
+  point_permission int(6) NOT NULL DEFAULT 0,
+  point_sick int(6) NOT NULL DEFAULT 0,
+  point_leave int(6) NOT NULL DEFAULT 0,
+  late_major_threshold_minutes int(6) NOT NULL DEFAULT 15,
+  updated_at datetime DEFAULT NULL,
+  PRIMARY KEY (setting_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO attendance_ranking_settings (
+  setting_id,
+  ranking_enabled,
+  point_present_ontime,
+  point_checkout_complete,
+  point_late_minor,
+  point_late_major,
+  point_leave_early,
+  point_missing_checkout,
+  point_absent_without_note,
+  point_assignment,
+  point_permission,
+  point_sick,
+  point_leave,
+  late_major_threshold_minutes,
+  updated_at
+) VALUES (
+  1,
+  0,
+  10,
+  2,
+  7,
+  4,
+  -3,
+  -2,
+  -10,
+  10,
+  0,
+  0,
+  0,
+  15,
+  NOW()
+);

@@ -7,6 +7,12 @@ if(empty($_SESSION['SESSION_USER']) || empty($_SESSION['SESSION_ID'])){
 }
 else{
   require_once'../../login/login_session.php';
+  require_once'../../../sw-library/attendance-ranking.php';
+  if (!function_exists('setting_h')) {
+    function setting_h($value) {
+      return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    }
+  }
 switch (htmlentities(@$_GET['action'])){
 case 'setting':
     echo'
@@ -105,6 +111,103 @@ case 'setting':
       <!-- /.box-footer -->
   </form>';
 
+
+break;
+case 'ranking':
+    $ranking = attendance_ranking_get_settings($connection);
+    $ranking_enabled = (int)$ranking['ranking_enabled'];
+    echo'
+    <form id="validate" class="form-horizontal update-ranking" autocomplete="off">
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Ranking Absensi</label>
+          <div class="col-sm-6">
+            <select name="ranking_enabled" class="form-control">
+              <option value="1" '.($ranking_enabled === 1 ? 'selected' : '').'>Aktif</option>
+              <option value="0" '.($ranking_enabled === 0 ? 'selected' : '').'>Non Aktif</option>
+            </select>
+            <p class="text-muted">Jika non aktif, fitur ranking tidak ditampilkan dan tidak dihitung pada tampilan.</p>
+          </div>
+        </div>
+
+        <hr>
+        <h4>Pengaturan Poin</h4>
+        <p class="text-muted">Nilai dapat berupa positif, nol, atau negatif sesuai kebijakan perusahaan.</p>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Hadir Tepat Waktu</label>
+          <div class="col-sm-3"><input type="number" name="point_present_ontime" class="form-control" value="'.setting_h($ranking['point_present_ontime']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Absen Pulang Lengkap</label>
+          <div class="col-sm-3"><input type="number" name="point_checkout_complete" class="form-control" value="'.setting_h($ranking['point_checkout_complete']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Terlambat Ringan</label>
+          <div class="col-sm-3"><input type="number" name="point_late_minor" class="form-control" value="'.setting_h($ranking['point_late_minor']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Terlambat Berat</label>
+          <div class="col-sm-3"><input type="number" name="point_late_major" class="form-control" value="'.setting_h($ranking['point_late_major']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Batas Telat Berat</label>
+          <div class="col-sm-3"><input type="number" min="0" name="late_major_threshold_minutes" class="form-control" value="'.setting_h($ranking['late_major_threshold_minutes']).'" required></div>
+          <div class="col-sm-4"><p class="text-muted">Dalam menit. Contoh: lebih dari 15 menit masuk kategori telat berat.</p></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Pulang Cepat</label>
+          <div class="col-sm-3"><input type="number" name="point_leave_early" class="form-control" value="'.setting_h($ranking['point_leave_early']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Lupa Absen Pulang</label>
+          <div class="col-sm-3"><input type="number" name="point_missing_checkout" class="form-control" value="'.setting_h($ranking['point_missing_checkout']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Tidak Hadir Tanpa Keterangan</label>
+          <div class="col-sm-3"><input type="number" name="point_absent_without_note" class="form-control" value="'.setting_h($ranking['point_absent_without_note']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Penugasan Resmi</label>
+          <div class="col-sm-3"><input type="number" name="point_assignment" class="form-control" value="'.setting_h($ranking['point_assignment']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Izin Disetujui</label>
+          <div class="col-sm-3"><input type="number" name="point_permission" class="form-control" value="'.setting_h($ranking['point_permission']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Sakit Disetujui</label>
+          <div class="col-sm-3"><input type="number" name="point_sick" class="form-control" value="'.setting_h($ranking['point_sick']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Cuti Disetujui</label>
+          <div class="col-sm-3"><input type="number" name="point_leave" class="form-control" value="'.setting_h($ranking['point_leave']).'" required></div>
+        </div>
+
+      <div class="box-footer">
+        <label class="col-sm-2 control-label"></label>
+        <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">';
+        if($level_user ==1){
+          echo'
+          <button type="submit" class="btn bg-blue"><i class="fa fa fa-check"></i> Simpan</button>';}
+        else{
+          echo'<button type="button" class="btn bg-blue access-failed"><i class="fa fa fa-check"></i> Simpan</button>';
+        }
+        echo'
+          <button type="reset" class="btn btn-danger">Reset</button>
+        </div>
+      </div>
+  </form>';
 
 break;
 case 'profile':
