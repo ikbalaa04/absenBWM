@@ -47,9 +47,60 @@ if(empty($connection)){
 
   $ranking_settings = attendance_ranking_get_settings($connection);
   $ranking_enabled = !empty($ranking_settings['ranking_enabled']);
-  $ranking_from = date('Y-m-01');
-  $ranking_to = date('Y-m-d');
-  $ranking_rows = $ranking_enabled ? attendance_ranking_calculate($connection, $ranking_from, $ranking_to, 10) : array();
+  $ranking_selected_month = isset($_GET['ranking_month']) ? (int)$_GET['ranking_month'] : (int)date('m');
+  $ranking_selected_year = isset($_GET['ranking_year']) ? (int)$_GET['ranking_year'] : (int)date('Y');
+  if ($ranking_selected_month < 1 || $ranking_selected_month > 12) {
+    $ranking_selected_month = (int)date('m');
+  }
+  if ($ranking_selected_year < 2000 || $ranking_selected_year > ((int)date('Y') + 1)) {
+    $ranking_selected_year = (int)date('Y');
+  }
+  $ranking_month_from = sprintf('%04d-%02d-01', $ranking_selected_year, $ranking_selected_month);
+  $ranking_month_to = date('Y-m-t', strtotime($ranking_month_from));
+  if ($ranking_selected_year === (int)date('Y') && $ranking_selected_month === (int)date('m')) {
+    $ranking_month_to = date('Y-m-d');
+  }
+  $ranking_start_date = !empty($ranking_settings['ranking_start_date']) ? $ranking_settings['ranking_start_date'] : $ranking_month_from;
+  $ranking_from = strtotime($ranking_start_date) > strtotime($ranking_month_from) ? $ranking_start_date : $ranking_month_from;
+  $ranking_to = $ranking_month_to;
+  $ranking_period_available = strtotime($ranking_from) <= strtotime($ranking_to);
+  $ranking_label_from = $ranking_period_available ? $ranking_from : $ranking_month_from;
+  $ranking_rows = ($ranking_enabled && $ranking_period_available) ? attendance_ranking_calculate($connection, $ranking_from, $ranking_to, 10) : array();
+  $ranking_month_names = array(
+    1 => 'Januari',
+    2 => 'Februari',
+    3 => 'Maret',
+    4 => 'April',
+    5 => 'Mei',
+    6 => 'Juni',
+    7 => 'Juli',
+    8 => 'Agustus',
+    9 => 'September',
+    10 => 'Oktober',
+    11 => 'November',
+    12 => 'Desember'
+  );
+  $ranking_min_year = (int)date('Y');
+  $ranking_min_result = $connection->query("SELECT MIN(YEAR(presence_date)) AS min_year FROM presence");
+  if ($ranking_min_result) {
+    $ranking_min_row = $ranking_min_result->fetch_assoc();
+    if (!empty($ranking_min_row['min_year'])) {
+      $ranking_min_year = (int)$ranking_min_row['min_year'];
+    }
+  }
+  if (!empty($ranking_settings['ranking_start_date'])) {
+    $ranking_min_year = min($ranking_min_year, (int)date('Y', strtotime($ranking_settings['ranking_start_date'])));
+  }
+  $ranking_month_options = '';
+  foreach ($ranking_month_names as $month_number => $month_name) {
+    $selected = $month_number === $ranking_selected_month ? ' selected' : '';
+    $ranking_month_options .= '<option value="'.$month_number.'"'.$selected.'>'.$month_name.'</option>';
+  }
+  $ranking_year_options = '';
+  for ($year_option = (int)date('Y'); $year_option >= $ranking_min_year; $year_option--) {
+    $selected = $year_option === $ranking_selected_year ? ' selected' : '';
+    $ranking_year_options .= '<option value="'.$year_option.'"'.$selected.'>'.$year_option.'</option>';
+  }
 
 
 echo'
@@ -135,11 +186,25 @@ echo'
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="box box-solid">
         <div class="box-header with-border">
-          <h3 class="box-title">Top Ranking Absensi Bulan Ini</h3>
+          <h3 class="box-title">Top Ranking Absensi</h3>
           <div class="box-tools pull-right">
-            <span class="label label-primary">'.tgl_ind($ranking_from).' - '.tgl_ind($ranking_to).'</span>
+            <span class="label label-primary">'.tgl_ind($ranking_label_from).' - '.tgl_ind($ranking_to).'</span>
           </div>
         </div>
+          <div class="box-body">
+            <form method="get" action="./" class="form-inline">
+              <input type="hidden" name="mod" value="home">
+              <div class="form-group">
+                <label>Bulan</label>
+                <select name="ranking_month" class="form-control input-sm">'.$ranking_month_options.'</select>
+              </div>
+              <div class="form-group">
+                <label>Tahun</label>
+                <select name="ranking_year" class="form-control input-sm">'.$ranking_year_options.'</select>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm">Tampilkan</button>
+            </form>
+          </div>
           <div class="box-body no-padding">
             <div class="table-responsive">
             <table class="table table-striped">

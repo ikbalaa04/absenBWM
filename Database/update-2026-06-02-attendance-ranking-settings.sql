@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS attendance_ranking_settings (
   setting_id tinyint(1) NOT NULL DEFAULT 1,
   ranking_enabled tinyint(1) NOT NULL DEFAULT 0,
+  ranking_start_date date DEFAULT NULL,
   point_present_ontime int(6) NOT NULL DEFAULT 10,
   point_checkout_complete int(6) NOT NULL DEFAULT 2,
   point_late_minor int(6) NOT NULL DEFAULT 7,
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS attendance_ranking_settings (
 INSERT IGNORE INTO attendance_ranking_settings (
   setting_id,
   ranking_enabled,
+  ranking_start_date,
   point_present_ontime,
   point_checkout_complete,
   point_late_minor,
@@ -36,6 +38,7 @@ INSERT IGNORE INTO attendance_ranking_settings (
 ) VALUES (
   1,
   0,
+  CURDATE(),
   10,
   2,
   7,

@@ -129,6 +129,14 @@ case 'ranking':
           </div>
         </div>
 
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Mulai Hitung Ranking</label>
+          <div class="col-sm-3">
+            <input type="date" name="ranking_start_date" class="form-control" value="'.setting_h($ranking['ranking_start_date']).'" required>
+          </div>
+          <div class="col-sm-4"><p class="text-muted">Tanggal sebelum ini tidak dihitung dalam ranking.</p></div>
+        </div>
+
         <hr>
         <h4>Pengaturan Waktu</h4>
         <p class="text-muted">Bagian ini hanya mengatur batas waktu kategori keterlambatan, bukan nilai poin.</p>

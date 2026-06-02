@@ -29,6 +29,7 @@ if (!function_exists('attendance_ranking_ensure_schema')) {
     $connection->query("CREATE TABLE IF NOT EXISTS attendance_ranking_settings (
       setting_id tinyint(1) NOT NULL DEFAULT 1,
       ranking_enabled tinyint(1) NOT NULL DEFAULT 0,
+      ranking_start_date date DEFAULT NULL,
       point_present_ontime int(6) NOT NULL DEFAULT 10,
       point_checkout_complete int(6) NOT NULL DEFAULT 2,
       point_late_minor int(6) NOT NULL DEFAULT 7,
@@ -60,18 +61,23 @@ if (!function_exists('attendance_ranking_ensure_schema')) {
         $connection->query("ALTER TABLE attendance_ranking_settings ADD $field $type NOT NULL DEFAULT $default");
       }
     }
+    if (empty($columns['ranking_start_date'])) {
+      $connection->query("ALTER TABLE attendance_ranking_settings ADD ranking_start_date date DEFAULT NULL AFTER ranking_enabled");
+    }
     if (empty($columns['updated_at'])) {
       $connection->query("ALTER TABLE attendance_ranking_settings ADD updated_at datetime DEFAULT NULL");
     }
 
     $field_names = array_keys($defaults);
-    $insert_fields = array_merge(array('setting_id'), $field_names, array('updated_at'));
+    $insert_fields = array_merge(array('setting_id'), $field_names, array('ranking_start_date','updated_at'));
     $insert_values = array('1');
     foreach ($field_names as $field) {
       $insert_values[] = (string)(int)$defaults[$field];
     }
+    $insert_values[] = 'CURDATE()';
     $insert_values[] = 'NOW()';
     $connection->query("INSERT IGNORE INTO attendance_ranking_settings (".implode(',', $insert_fields).") VALUES (".implode(',', $insert_values).")");
+    $connection->query("UPDATE attendance_ranking_settings SET ranking_start_date=CURDATE() WHERE setting_id=1 AND (ranking_start_date IS NULL OR ranking_start_date='0000-00-00')");
 
     $done = true;
   }
@@ -81,6 +87,7 @@ if (!function_exists('attendance_ranking_get_settings')) {
   function attendance_ranking_get_settings($connection) {
     attendance_ranking_ensure_schema($connection);
     $settings = attendance_ranking_defaults();
+    $settings['ranking_start_date'] = date('Y-m-d');
     $result = $connection->query("SELECT * FROM attendance_ranking_settings WHERE setting_id=1 LIMIT 1");
     if ($result && $result->num_rows > 0) {
       $row = $result->fetch_assoc();
@@ -88,6 +95,9 @@ if (!function_exists('attendance_ranking_get_settings')) {
         if (isset($row[$field])) {
           $settings[$field] = (int)$row[$field];
         }
+      }
+      if (!empty($row['ranking_start_date']) && $row['ranking_start_date'] != '0000-00-00') {
+        $settings['ranking_start_date'] = $row['ranking_start_date'];
       }
     }
     return $settings;

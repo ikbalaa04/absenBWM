@@ -210,6 +210,13 @@ if($level_user ==1){
   if (isset($data['late_major_threshold_minutes']) && $data['late_major_threshold_minutes'] < 0) {
     $error[] = 'Batas telat berat tidak boleh negatif.';
   }
+  $ranking_start_date = isset($_POST['ranking_start_date']) ? trim($_POST['ranking_start_date']) : '';
+  $ranking_start_timestamp = strtotime($ranking_start_date);
+  if (empty($ranking_start_date) || !$ranking_start_timestamp) {
+    $error[] = 'Tanggal mulai ranking wajib diisi.';
+  } else {
+    $ranking_start_date = date('Y-m-d', $ranking_start_timestamp);
+  }
 
   if (!empty($error)) {
     echo implode('<br>', array_unique($error));
@@ -218,6 +225,7 @@ if($level_user ==1){
 
   $stmt = $connection->prepare("UPDATE attendance_ranking_settings SET
     ranking_enabled=?,
+    ranking_start_date=?,
     point_present_ontime=?,
     point_checkout_complete=?,
     point_late_minor=?,
@@ -237,8 +245,9 @@ if($level_user ==1){
     break;
   }
   $stmt->bind_param(
-    'iiiiiiiiiiiii',
+    'isiiiiiiiiiiii',
     $data['ranking_enabled'],
+    $ranking_start_date,
     $data['point_present_ontime'],
     $data['point_checkout_complete'],
     $data['point_late_minor'],
