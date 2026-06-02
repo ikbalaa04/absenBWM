@@ -20,6 +20,8 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
   $off_day_message = attendance_off_day_message($date);
   $attendance_mode = attendance_normalize_mode(isset($row_user['attendance_mode']) ? $row_user['attendance_mode'] : 'office');
   $default_location_type = $attendance_mode === 'remote' ? 'outside' : 'office';
+  $attendance_page_action = (!empty($_GET['type']) && $_GET['type'] === 'pulang') ? 'out' : 'in';
+  $attendance_page_title = $attendance_page_action === 'out' ? 'Absen Pulang' : 'Absen Masuk';
   $holiday_card_style = '<style>
     .holiday-info-card{position:relative;overflow:hidden;border-radius:8px;padding:22px 16px;background:linear-gradient(135deg,#ff9f43,#20c997);color:#fff;box-shadow:0 10px 24px rgba(32,201,151,.24)}
     .holiday-info-card .holiday-icon{font-size:44px;display:inline-flex;animation:holidayFloat 2.4s ease-in-out infinite}
@@ -38,6 +40,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                     <div class="left">
                         <span class="title"> Selamat '.$salam.'</span>
                         <h4>'.ucfirst($row_user['employees_name']).'</h4>
+                        <small>'.$attendance_page_title.'</small>
                     </div>
                     <div class="right">
                         <span class="title">'.tgl_ind($date).' </span>
@@ -67,14 +70,29 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
 	                                if((int)$row_absent_page['checkout_required'] === 0){
 	                                  echo'
 	                                  <button class="btn btn-secondary btn-lg btn-block" type="button" disabled><ion-icon name="checkmark-circle-outline"></ion-icon>Sudah Absen Hari Ini</button>';
+	                                }elseif($row_absent_page['time_out']!='00:00:00'){
+	                                  echo'
+	                                  <button class="btn btn-secondary btn-lg btn-block" type="button" disabled><ion-icon name="checkmark-circle-outline"></ion-icon>Sudah Absen Pulang</button>';
+	                                }elseif($attendance_page_action !== 'out'){
+	                                  echo'
+	                                  <button class="btn btn-secondary btn-lg btn-block" type="button" disabled><ion-icon name="checkmark-circle-outline"></ion-icon>Sudah Absen Masuk</button>
+	                                  <a class="btn btn-success btn-lg btn-block mt-1" href="./?mod=absent&type=pulang"><ion-icon name="camera-outline"></ion-icon>Ke Menu Absen Pulang</a>';
 	                                }else{
 	                                  echo'
 	                                  <input type="hidden" id="attendance_location_type" value="'.$row_absent_page['attendance_location_type'].'">
+	                                  <input type="hidden" id="attendance_action" value="out">
 	                                  <button class="btn btn-success btn-lg btn-block" onClick="captureimage()"><ion-icon name="camera-outline"></ion-icon>Absen Pulang</button>';
 	                                }}
 	                                else{
+	                                  if($attendance_page_action === 'out'){
+	                                    echo'
+	                                    <button class="btn btn-secondary btn-lg btn-block" type="button" disabled><ion-icon name="alert-circle-outline"></ion-icon>Belum Absen Masuk</button>
+	                                    <a class="btn btn-primary btn-lg btn-block mt-1" href="./?mod=absent&type=masuk"><ion-icon name="camera-outline"></ion-icon>Ke Menu Absen Masuk</a>';
+	                                  }
+	                                  else
 	                                  if($attendance_mode === 'hybrid'){
 	                                    echo'
+	                                    <input type="hidden" id="attendance_action" value="in">
 	                                    <div class="row">
 	                                      <div class="col-6">
 	                                        <button class="btn btn-success btn-lg btn-block" onClick="captureimage(\'office\')"><ion-icon name="business-outline"></ion-icon>Kantor</button>
@@ -86,6 +104,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
 	                                  }else{
 	                                    echo'
 	                                    <input type="hidden" id="attendance_location_type" value="'.$default_location_type.'">
+	                                    <input type="hidden" id="attendance_action" value="in">
 	                                    <button class="btn btn-success btn-lg btn-block" onClick="captureimage()"><ion-icon name="camera-outline"></ion-icon>Absen Masuk</button>';
 	                                  }
 	                                }

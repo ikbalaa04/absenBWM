@@ -160,14 +160,18 @@ if ($mod =='absent' OR $mod =='penugasan'){?>
     var shutter = new Audio();
     //shutter.autoplay = true;
     shutter.src = navigator.userAgent.match(/Firefox/) ? './sw-mod/sw-assets/js/webcamjs/shutter.ogg' : './sw-mod/sw-assets/js/webcamjs/shutter.mp3';
-    function captureimage(locationType) {
+    function captureimage(locationType, attendanceAction) {
     var latitude = $('.latitude').html();
         if (!locationType) {
             var locationInput = document.getElementById("attendance_location_type");
             locationType = locationInput ? locationInput.value : "";
         }
+        if (!attendanceAction) {
+            var actionInput = document.getElementById("attendance_action");
+            attendanceAction = actionInput ? actionInput.value : "in";
+        }
         if (!latitude) {
-            requestLocation(function() { captureimage(locationType); });
+            requestLocation(function() { captureimage(locationType, attendanceAction); });
             return;
         }
         // play sound effect
@@ -175,7 +179,7 @@ if ($mod =='absent' OR $mod =='penugasan'){?>
         // take snapshot and get image data
         Webcam.snap( function(data_uri) {
             // display results in page
-            Webcam.upload(data_uri, window.swBaseUrl+'action/sw-proses.php?action=absent&latitude='+encodeURIComponent(latitude)+'&location_type='+encodeURIComponent(locationType)+'',
+            Webcam.upload(data_uri, window.swBaseUrl+'action/sw-proses.php?action=absent&latitude='+encodeURIComponent(latitude)+'&location_type='+encodeURIComponent(locationType)+'&attendance_action='+encodeURIComponent(attendanceAction)+'',
                 function(code,text) {
                     $data       =''+text+'';
                     var results = $data.split("/");

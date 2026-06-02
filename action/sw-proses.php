@@ -267,6 +267,7 @@ break;
 // ------------- Absen -------------*/
 case 'absent':
 $error = array();
+$attendance_action = (!empty($_GET['attendance_action']) && $_GET['attendance_action'] === 'out') ? 'out' : 'in';
 if (assignment_user_has_active($connection, $row_user['id'], $date)) {
   echo'Staff sedang dalam penugasan aktif. Silakan absen melalui menu Penugasan.';
   break;
@@ -354,6 +355,10 @@ if (empty($error)){
     $location_valid = 1;
 
 	        if($result->num_rows > 0){
+	          if($attendance_action !== 'out'){
+	            echo'Sebelumnya "'.$row_user['employees_name'].'" sudah Absen Masuk pada Tanggal '.tanggal_ind($date).'. Absen Pulang hanya bisa dilakukan melalui menu Absen Pulang.';
+	            break;
+	          }
 	          if((int)$row_u['checkout_required'] === 0){
 	            echo'Sebelumnya "'.$row_user['employees_name'].'" sudah absen pada Tanggal '.tanggal_ind($date).'. Shift ini cukup absen satu kali per hari.';
 	            break;
@@ -394,6 +399,10 @@ if (empty($error)){
               }
         // Else Absen Mmasuk
         }else{
+            if($attendance_action !== 'in'){
+              echo'Anda belum Absen Masuk pada Tanggal '.tanggal_ind($date).'. Silakan Absen Masuk terlebih dahulu.';
+              break;
+            }
             $checkin_deadline_error = attendance_deadline_message($date, $time, $rule_time_in, 120, 'absen masuk');
             if ($checkin_deadline_error !== '') {
               echo $checkin_deadline_error;

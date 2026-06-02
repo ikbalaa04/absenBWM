@@ -124,11 +124,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                 <!-- Wallet Footer -->
                 <div class="wallet-footer">
                     <div class="item">
-                        <a href="'.($off_day_message === '' ? './?mod=absent' : 'javascript:void(0)').'">
+                        <a href="'.($off_day_message === '' ? './?mod=absent&type=masuk' : 'javascript:void(0)').'">
                             <div class="icon-wrapper bg-danger">
                                 <ion-icon name="camera-outline"></ion-icon>
                             </div>
-                            <strong>Absen</strong>
+                            <strong>Masuk</strong>
                         </a>
                     </div>
 
@@ -213,7 +213,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
 	                elseif($row_absent['time_out']=='00:00:00'){
                 echo'
                 <div class="col-6">
-                    <a href="./?mod=absent"><div class="stat-box bg-success">
+                    <a href="./?mod=absent&type=pulang"><div class="stat-box bg-success">
                         <div class="title text-white">Absen Pulang</div>
                         <div class="value text-white">Belum absen</div>
                     </div></a>
@@ -230,7 +230,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
             else{
                 echo'
                 <div class="col-6">
-	                    <a href="./?mod=absent"><div class="stat-box bg-success">
+	                    <a href="./?mod=absent&type=masuk"><div class="stat-box bg-success">
                         <div class="title text-white">Absen Masuk</div>
                         <div class="value text-white">Belum absen</div>
                     </div></a>

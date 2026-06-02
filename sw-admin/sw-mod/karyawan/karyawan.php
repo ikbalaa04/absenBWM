@@ -2,6 +2,11 @@
 if(empty($connection)){
   header('location:../../');
 } else {
+  if (!function_exists('admin_karyawan_h')) {
+    function admin_karyawan_h($value) {
+      return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    }
+  }
   include_once 'sw-mod/sw-panel.php';
 echo'
   <div class="content-wrapper">';
@@ -68,13 +73,13 @@ echo'
               echo'
               <tr>
                 <td class="text-center">'.$no.'</td>
-                <td>'.$row['employees_code'].'</td>
-                <td>'.$row['employees_name'].'</td>
-                <td>'.$row['employees_email'].'</td>
-                <td>'.$row['position_name'].'</td>
-                <td>'.$row['shift_name'].'</td>
+                <td>'.admin_karyawan_h($row['employees_code']).'</td>
+                <td>'.admin_karyawan_h($row['employees_name']).'</td>
+                <td>'.admin_karyawan_h($row['employees_email']).'</td>
+                <td>'.admin_karyawan_h($row['position_name']).'</td>
+                <td>'.admin_karyawan_h($row['shift_name']).'</td>
                 <td>'.attendance_format_minutes($work_minutes).'</td>
-                <td>'.$row['name'].'</td>
+                <td>'.admin_karyawan_h($row['name']).'</td>
                 <td>'.(($row['created_login'] != '0000-00-00 00:00:00' && !empty($row['created_login'])) ? tgl_indo($row['created_login']).' - '.jam_indo($row['created_login']) : '<span class="text-muted">Belum login</span>').'</td>
                 <td class="text-right">
                   <div class="btn-group">';
@@ -191,7 +196,7 @@ echo'
                       $query="SELECT * from position order by position_name ASC";
                       $result = $connection->query($query);
                       while($row = $result->fetch_assoc()) { 
-                      echo'<option value="'.$row['position_id'].'">'.$row['position_name'].'</option>';
+                      echo'<option value="'.admin_karyawan_h($row['position_id']).'">'.admin_karyawan_h($row['position_name']).'</option>';
                       }echo'
                   </select>
                   </div>
@@ -205,7 +210,7 @@ echo'
                       $query="SELECT shift_id,shift_name from shift order by shift_name ASC";
                       $result = $connection->query($query);
                       while($row = $result->fetch_assoc()) { 
-                      echo'<option value="'.$row['shift_id'].'">'.$row['shift_name'].'</option>';
+                      echo'<option value="'.admin_karyawan_h($row['shift_id']).'">'.admin_karyawan_h($row['shift_name']).'</option>';
                       }echo'
                   </select>
                   </div>
@@ -220,7 +225,7 @@ echo'
                       $query="SELECT building_id,name,address from building order by name ASC";
                       $result = $connection->query($query);
                       while($row = $result->fetch_assoc()) { 
-                      echo'<option value="'.$row['building_id'].'">'.$row['address'].'</option>';
+                      echo'<option value="'.admin_karyawan_h($row['building_id']).'">'.admin_karyawan_h($row['address']).'</option>';
                       }echo'
                   </select>
                   </div>
@@ -241,7 +246,8 @@ echo'
                   <label class="col-sm-2 control-label">Foto</label>
                   <div class="col-sm-6">
                     <img width="80" class="preview" src="./sw-assets/img/avatar.jpg"><br><br>
-                    <input type="file" id="imgInp" class="btn btn-default" id="file" name="photo" required="" accept="image/jpeg, image/jpg, image/gif" capture>
+                    <input type="file" id="imgInp" class="btn btn-default" name="photo" accept="image/jpeg, image/jpg, image/png, image/gif" capture>
+                    <small>Kosongkan jika belum ada foto</small>
                   </div>
                 </div>
 
@@ -285,11 +291,19 @@ echo'
 
       <div class="box-body">';
       if(!empty($_GET['id'])){
-      $id     =  mysqli_real_escape_string($connection,epm_decode($_GET['id'])); 
-      $query  ="SELECT * from employees WHERE id='$id'";
-      $result = $connection->query($query);
+      $id     =  (int)epm_decode($_GET['id']);
+      $stmt = $connection->prepare("SELECT * FROM employees WHERE id=? LIMIT 1");
+      if (!$stmt) {
+        echo'<div class="alert alert-danger">Data tidak dapat dibuka.</div>';
+        echo'</div></div></div></section>';
+        break;
+      }
+      $stmt->bind_param('i', $id);
+      $stmt->execute();
+      $result = $stmt->get_result();
       if($result->num_rows > 0){
       $row  = $result->fetch_assoc();
+      $stmt->close();
       echo'
       <div class="nav-tabs-custom">
         <div class="tab-content">
@@ -300,15 +314,15 @@ echo'
                 <div class="form-group">
                   <label class="col-sm-2 control-label">Staff ID</label>
                   <div class="col-sm-6">
-                    <input type="text" class="form-control" name="employees_code" value="'.$row['employees_code'].'" required>
-                    <input type="hidden"  name="id" value="'.$row['id'].'" readonly required>
+                    <input type="text" class="form-control" name="employees_code" value="'.admin_karyawan_h($row['employees_code']).'" required>
+                    <input type="hidden"  name="id" value="'.admin_karyawan_h($row['id']).'" readonly required>
                   </div>
                 </div>
 
                 <div class="form-group">
                   <label class="col-sm-2 control-label">Nama</label>
                   <div class="col-sm-6">
-                    <input type="text" class="form-control" name="employees_name" value="'.$row['employees_name'].'" required>
+                    <input type="text" class="form-control" name="employees_name" value="'.admin_karyawan_h($row['employees_name']).'" required>
                   </div>
                 </div>
 
@@ -322,9 +336,9 @@ echo'
                       $result = $connection->query($query);
                       while($rowa = $result->fetch_assoc()) { 
                       if($rowa['position_id'] == $row['position_id']){
-                        echo'<option value="'.$rowa['position_id'].'" selected>'.$rowa['position_name'].'</option>';
+                        echo'<option value="'.admin_karyawan_h($rowa['position_id']).'" selected>'.admin_karyawan_h($rowa['position_name']).'</option>';
                       }else{
-                        echo'<option value="'.$rowa['position_id'].'">'.$rowa['position_name'].'</option>';
+                        echo'<option value="'.admin_karyawan_h($rowa['position_id']).'">'.admin_karyawan_h($rowa['position_name']).'</option>';
                       }
                       }echo'
                   </select>
@@ -340,9 +354,9 @@ echo'
                       $result = $connection->query($query);
                       while($rowa = $result->fetch_assoc()) {
                       if($rowa['shift_id'] == $row['shift_id']){ 
-                        echo'<option value="'.$rowa['shift_id'].'" selected>'.$rowa['shift_name'].'</option>';
+                        echo'<option value="'.admin_karyawan_h($rowa['shift_id']).'" selected>'.admin_karyawan_h($rowa['shift_name']).'</option>';
                       }else{
-                        echo'<option value="'.$rowa['shift_id'].'">'.$rowa['shift_name'].'</option>';
+                        echo'<option value="'.admin_karyawan_h($rowa['shift_id']).'">'.admin_karyawan_h($rowa['shift_name']).'</option>';
                       }
                       }echo'
                   </select>
@@ -359,9 +373,9 @@ echo'
                       $result = $connection->query($query);
                       while($rowa = $result->fetch_assoc()) { 
                       if($rowa['building_id'] == $row['building_id']){ 
-                        echo'<option value="'.$rowa['building_id'].'" selected>'.$rowa['address'].'</option>';
+                        echo'<option value="'.admin_karyawan_h($rowa['building_id']).'" selected>'.admin_karyawan_h($rowa['address']).'</option>';
                       }else{
-                        echo'<option value="'.$rowa['building_id'].'">'.$rowa['address'].'</option>';
+                        echo'<option value="'.admin_karyawan_h($rowa['building_id']).'">'.admin_karyawan_h($rowa['address']).'</option>';
                       }
                       }echo'
                   </select>
@@ -386,10 +400,10 @@ echo'
                      if($row['photo'] == NULL){
                       echo'<img width="80" class="preview" width="80" src="../sw-assets/img/avatar.jpg">';}
                     else{
-                      echo'<img width="80" class="preview" width="80" src="../sw-content/karyawan/'.$row['photo'].'">';
+                      echo'<img width="80" class="preview" width="80" src="../sw-content/karyawan/'.admin_karyawan_h(basename($row['photo'])).'">';
                     }echo'
                     </div>
-                    <input type="file" id="imgInp" class="btn btn-default" id="file" name="photo" accept="image/jpeg, image/jpg, image/gif" capture>
+                    <input type="file" id="imgInp" class="btn btn-default" name="photo" accept="image/jpeg, image/jpg, image/png, image/gif" capture>
                     <small>Kosongan jika tidak ingin mengubah</small>
                   </div>
                 </div>
@@ -412,8 +426,8 @@ echo'
                 <div class="form-group">
                   <label class="col-sm-2 control-label">Email</label>
                   <div class="col-sm-6">
-                    <input type="text" class="form-control" name="employees_email" value="'.$row['employees_email'].'" readonly required>
-                    <input type="hidden"  name="id" value="'.$row['id'].'" readonly required>
+                    <input type="text" class="form-control" name="employees_email" value="'.admin_karyawan_h($row['employees_email']).'" readonly required>
+                    <input type="hidden"  name="id" value="'.admin_karyawan_h($row['id']).'" readonly required>
                   </div>
                 </div>
 
@@ -439,6 +453,7 @@ echo'
       </div>
       <!-- nav-tabs-custom -->';
       }else{
+         $stmt->close();
          echo'<section class="content">
             <div class="error-page">
               <h2 class="headline text-yellow"> 404</h2>

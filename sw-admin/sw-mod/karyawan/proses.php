@@ -37,6 +37,92 @@ function karyawan_export_rows($connection) {
   return $rows;
 }
 
+function karyawan_uploaded_photo($max_size, $upload_dir, $required = false) {
+  if (empty($_FILES['photo']) || empty($_FILES['photo']['name'])) {
+    return $required ? array('error' => 'Foto wajib diupload.') : array('error' => '', 'filename' => '', 'source' => null);
+  }
+
+  if ($_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+    return array('error' => 'Foto gagal diupload, coba ulangi.');
+  }
+
+  $file_name = $_FILES['photo']['name'];
+  $tmp_name = $_FILES['photo']['tmp_name'];
+  $size = (int)$_FILES['photo']['size'];
+  $extension = strtolower(getExtension($file_name));
+  $valid_extensions = array('jpg', 'jpeg', 'png', 'gif');
+
+  if (!in_array($extension, $valid_extensions, true)) {
+    return array('error' => 'Gambar/Foto yang di unggah tidak sesuai dengan format, Berkas harus berformat JPG,JPEG,PNG,GIF..!');
+  }
+
+  if ($size > $max_size) {
+    return array('error' => 'Gambar yang di unggah terlalu besar Maksimal Size 2MB..!');
+  }
+
+  $image_size = getimagesize($tmp_name);
+  if ($image_size === false) {
+    return array('error' => 'File yang diunggah bukan gambar valid.');
+  }
+
+  if ($extension === 'jpg' || $extension === 'jpeg') {
+    $source = imagecreatefromjpeg($tmp_name);
+  } elseif ($extension === 'png') {
+    $source = imagecreatefrompng($tmp_name);
+  } else {
+    $source = imagecreatefromgif($tmp_name);
+  }
+
+  if (!$source) {
+    return array('error' => 'Foto tidak dapat diproses.');
+  }
+
+  if (!is_dir($upload_dir) || !is_writable($upload_dir)) {
+    imagedestroy($source);
+    return array('error' => 'Folder upload foto tidak dapat ditulis.');
+  }
+
+  $random = function_exists('random_bytes') ? bin2hex(random_bytes(8)) : md5(uniqid('', true));
+  return array(
+    'error' => '',
+    'filename' => date('Y-m-d').'-'.$random.'.jpg',
+    'source' => $source,
+    'width' => (int)$image_size[0],
+    'height' => (int)$image_size[1]
+  );
+}
+
+function karyawan_save_photo($photo_data, $upload_dir) {
+  if (empty($photo_data['filename']) || empty($photo_data['source'])) {
+    return true;
+  }
+
+  $width_size = 400;
+  $width = max(1, (int)$photo_data['width']);
+  $height = max(1, (int)$photo_data['height']);
+  $newwidth = min($width_size, $width);
+  $newheight = (int)round(($height / $width) * $newwidth);
+  $tmp = imagecreatetruecolor($newwidth, $newheight);
+  imagecopyresampled($tmp, $photo_data['source'], 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
+  $saved = imagejpeg($tmp, rtrim($upload_dir, '/').'/'.$photo_data['filename'], 90);
+  imagedestroy($tmp);
+  imagedestroy($photo_data['source']);
+
+  return $saved;
+}
+
+function karyawan_delete_photo($photo, $upload_dir) {
+  $photo = basename((string)$photo);
+  if ($photo === '') {
+    return;
+  }
+
+  $path = rtrim($upload_dir, '/').'/'.$photo;
+  if (is_file($path)) {
+    unlink($path);
+  }
+}
+
 switch (@$_GET['action']){
 
 case 'export':
@@ -135,120 +221,80 @@ break;
 case 'add':
   $error = array();
   $employees_code = mysqli_real_escape_string($connection, generate_employee_code($connection, 'IND', $year));
+  $upload_dir = '../../../sw-content/karyawan';
 
   if (empty($_POST['employees_email'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $employees_email= mysqli_real_escape_string($connection, $_POST['employees_email']);
+      $employees_email = trim($_POST['employees_email']);
+      if (!filter_var($employees_email, FILTER_VALIDATE_EMAIL)) {
+        $error[] = 'Email tidak valid';
+      }
   }
 
 
   if (empty($_POST['employees_password'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $employees_password= mysqli_real_escape_string($connection,hash('sha256',$salt.$_POST['employees_password']));
+      $employees_password = hash('sha256', $salt.$_POST['employees_password']);
   }
 
   if (empty($_POST['employees_name'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $employees_name= mysqli_real_escape_string($connection, $_POST['employees_name']);
+      $employees_name = strip_tags(trim($_POST['employees_name']));
   }
 
 
   if (empty($_POST['position_id'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $position_id = mysqli_real_escape_string($connection, $_POST['position_id']);
+      $position_id = (int)$_POST['position_id'];
   }
 
   if (empty($_POST['shift_id'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $shift_id = mysqli_real_escape_string($connection, $_POST['shift_id']);
+      $shift_id = (int)$_POST['shift_id'];
   }
 
   if (empty($_POST['building_id'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $building_id = mysqli_real_escape_string($connection, $_POST['building_id']);
+      $building_id = (int)$_POST['building_id'];
   }
 
   $attendance_mode = isset($_POST['attendance_mode']) ? attendance_normalize_mode($_POST['attendance_mode']) : 'office';
-
-
-  if (empty($_FILES['photo'])) { 
-          $error[] = 'tidak boleh kosong';
-      } else {
-        $photo = $_FILES["photo"]["name"];
-        $lokasi_file = $_FILES['photo']['tmp_name'];  
-        $ukuran_file = $_FILES['photo']['size'];
+  $photo_data = karyawan_uploaded_photo($max_size, $upload_dir, false);
+  if (!empty($photo_data['error'])) {
+    $error[] = $photo_data['error'];
   }
 
-
-    $extension = getExtension($photo);
-    $extension = strtolower($extension);
-    $photo = strip_tags(md5($photo));
-    $photo ="".$date."".$photo.".".$extension."";
-
-    if (($extension != "jpg") && ($extension != "jpeg") && ($extension != "gif")) { 
-        echo'Gambar/Foto yang di unggah tidak sesuai dengan format, Berkas harus berformat JPG,JPEG,GIF..!';
+  if (empty($error)) {
+    $photo = $photo_data['filename'];
+    $created_login = $date.' '.$time;
+    $created_cookies = '-';
+    $stmt = $connection->prepare("INSERT INTO employees (employees_code,employees_email,employees_password,employees_name,position_id,shift_id,building_id,attendance_mode,photo,created_login,created_cookies) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+    if (!$stmt) {
+      echo'Data tidak berhasil disimpan!';
+      break;
     }
-
-    else{
-    if($extension=="jpg" || $extension=="jpeg" ){
-    $src = imagecreatefromjpeg($lokasi_file);}
-    else if($extension=="png"){$src = imagecreatefrompng($lokasi_file);}
-    else {$src = imagecreatefromgif($lokasi_file);}
-    list($width,$height)=getimagesize($lokasi_file);
-
-    $width_size =400;
-    $k = $width / $width_size;
-    // menentukan width yang baru
-    $newwidth = $width / $k;
-    // menentukan height yang baru
-    $newheight = $height / $k;
-    $tmp=imagecreatetruecolor($newwidth,$newheight);
-    //imagefill ( $thumb_p, 0, 0, $bg );
-    imagecopyresampled($tmp,$src,0,0,0,0,$newwidth,$newheight,$width,$height);
-
-    if (empty($error)) {
-    if ($ukuran_file <= $max_size) {
-    $directory='../../../sw-content/karyawan/'.$photo.'';
-    $add ="INSERT INTO employees (employees_code,
-              employees_email,
-              employees_password,
-              employees_name,
-              position_id,
-              shift_id,
-              building_id,
-              attendance_mode,
-              photo,
-              created_login,
-              created_cookies) values('$employees_code',
-              '$employees_email',
-              '$employees_password',
-              '$employees_name',
-              '$position_id',
-              '$shift_id',
-              '$building_id',
-              '$attendance_mode',
-              '$photo',
-              '$date $time',
-              '-')";
-    if($connection->query($add) === false) { 
-        die($connection->error.__LINE__); 
-        echo'Data tidak berhasil disimpan!';
+    $stmt->bind_param('ssssiiissss', $employees_code, $employees_email, $employees_password, $employees_name, $position_id, $shift_id, $building_id, $attendance_mode, $photo, $created_login, $created_cookies);
+    if($stmt->execute() === false) {
+      echo'Data tidak berhasil disimpan!';
     } else{
-        echo'success';
-        imagejpeg($tmp,$directory,90);
-    }}
-    else{
-        echo'Gambar yang di unggah terlalu besar Maksimal Size 2MB..!';
-    }}
-    else{           
-        echo'Bidang inputan masih ada yang kosong..!';
-    }}
+      if (!karyawan_save_photo($photo_data, $upload_dir)) {
+        echo'Foto gagal disimpan di server.';
+        $stmt->close();
+        break;
+      }
+      echo'success';
+    }
+    $stmt->close();
+  }
+  else{
+      echo implode('<br>', $error);
+  }
 
 break;
 
@@ -257,123 +303,101 @@ break;
 ---------------------------------*/
 case 'update':
  $error = array();
+ $upload_dir = '../../../sw-content/karyawan';
    if (empty($_POST['id'])) {
       $error[] = 'ID tidak boleh kosong';
     } else {
-      $id = mysqli_real_escape_string($connection, $_POST['id']);
+      $id = (int)$_POST['id'];
   }
 
   if (empty($_POST['employees_code'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $employees_code= mysqli_real_escape_string($connection, $_POST['employees_code']);
+      $employees_code = strip_tags(trim($_POST['employees_code']));
   }
 
 
   if (empty($_POST['employees_name'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $employees_name= mysqli_real_escape_string($connection, $_POST['employees_name']);
+      $employees_name = strip_tags(trim($_POST['employees_name']));
   }
 
 
   if (empty($_POST['position_id'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $position_id = mysqli_real_escape_string($connection, $_POST['position_id']);
+      $position_id = (int)$_POST['position_id'];
   }
 
   if (empty($_POST['shift_id'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $shift_id = mysqli_real_escape_string($connection, $_POST['shift_id']);
+      $shift_id = (int)$_POST['shift_id'];
   }
 
   if (empty($_POST['building_id'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $building_id = mysqli_real_escape_string($connection, $_POST['building_id']);
+      $building_id = (int)$_POST['building_id'];
   }
 
   $attendance_mode = isset($_POST['attendance_mode']) ? attendance_normalize_mode($_POST['attendance_mode']) : 'office';
-
-
-  $photo = $_FILES["photo"]["name"];
-  $lokasi_file = $_FILES['photo']['tmp_name'];  
-  $ukuran_file = $_FILES['photo']['size'];
-  if($photo ==''){
-  if (empty($error)) { 
-    $update="UPDATE employees SET employees_code='$employees_code',
-            employees_name='$employees_name',
-            position_id='$position_id',
-            shift_id='$shift_id',
-            building_id='$building_id',
-            attendance_mode='$attendance_mode' WHERE id='$id'"; 
-    if($connection->query($update) === false) { 
-        die($connection->error.__LINE__); 
-        echo'Data tidak berhasil disimpan!';
-    } else{
-        echo'success';
-    }}
-    else{           
-        echo'Bidang inputan tidak boleh ada yang kosong..!';
-    }
+  $photo_data = karyawan_uploaded_photo($max_size, $upload_dir, false);
+  if (!empty($photo_data['error'])) {
+    $error[] = $photo_data['error'];
   }
 
-  else{
-    $query= mysqli_query($connection,"SELECT photo from employees where id='$id'");
-    $data   = mysqli_fetch_assoc($query);
-    $images_delete = strip_tags($data['photo']);
-    $tmpfile = "../../../sw-content/karyawan/".$images_delete;
-   if(file_exists("../../../sw-content/karyawan/$images_delete")){
-      unlink ($tmpfile);
-    }
-
-    $extension = getExtension($photo);
-    $extension = strtolower($extension);
-    $photo = strip_tags(md5($photo));
-    $photo ="".$date."".$photo.".".$extension."";
-
-    if (($extension != "jpg") && ($extension != "jpeg") && ($extension != "gif")) { 
-        echo'Gambar/Foto yang di unggah tidak sesuai dengan format, Berkas harus berformat JPG,JPEG,GIF..!';
-    }
-
-    else{
-    if($extension=="jpg" || $extension=="jpeg" ){
-    $src = imagecreatefromjpeg($lokasi_file);}
-    else if($extension=="png"){$src = imagecreatefrompng($lokasi_file);}
-    else {$src = imagecreatefromgif($lokasi_file);}
-    list($width,$height)=getimagesize($lokasi_file);
-
-    $width_size   = 400;
-    $k            = $width / $width_size;
-    $newwidth     = $width / $k;
-    $newheight    = $height / $k;
-    $tmp          = imagecreatetruecolor($newwidth,$newheight);
-    imagecopyresampled($tmp,$src,0,0,0,0,$newwidth,$newheight,$width,$height);
-
   if (empty($error)) {
-    if ($ukuran_file <= $max_size) {
-    $directory='../../../sw-content/karyawan/'.$photo.'';
-
-    $update="UPDATE employees SET employees_code='$employees_code',
-            employees_name='$employees_name',
-            position_id='$position_id',
-            shift_id='$shift_id',
-            building_id='$building_id',
-            attendance_mode='$attendance_mode',
-            photo='$photo' WHERE id='$id'"; 
-    if($connection->query($update) === false) { 
-        die($connection->error.__LINE__); 
+    if (empty($photo_data['filename'])) {
+      $stmt = $connection->prepare("UPDATE employees SET employees_code=?, employees_name=?, position_id=?, shift_id=?, building_id=?, attendance_mode=? WHERE id=?");
+      if (!$stmt) {
         echo'Data tidak berhasil disimpan!';
-    } else{
+        break;
+      }
+      $stmt->bind_param('ssiiisi', $employees_code, $employees_name, $position_id, $shift_id, $building_id, $attendance_mode, $id);
+      if($stmt->execute() === false) {
+        echo'Data tidak berhasil disimpan!';
+      } else{
         echo'success';
-        imagejpeg($tmp,$directory,90);
-    }}
-    else{
-        echo'Gambar yang di unggah terlalu besar Maksimal Size 2MB..!';
-    }}
-  }}
+      }
+      $stmt->close();
+      break;
+    }
+
+    $old_photo = '';
+    $stmt_old = $connection->prepare("SELECT photo FROM employees WHERE id=? LIMIT 1");
+    if ($stmt_old) {
+      $stmt_old->bind_param('i', $id);
+      $stmt_old->execute();
+      $stmt_old->bind_result($old_photo);
+      $stmt_old->fetch();
+      $stmt_old->close();
+    }
+
+    $photo = $photo_data['filename'];
+    $stmt = $connection->prepare("UPDATE employees SET employees_code=?, employees_name=?, position_id=?, shift_id=?, building_id=?, attendance_mode=?, photo=? WHERE id=?");
+    if (!$stmt) {
+      echo'Data tidak berhasil disimpan!';
+      break;
+    }
+    $stmt->bind_param('ssiiissi', $employees_code, $employees_name, $position_id, $shift_id, $building_id, $attendance_mode, $photo, $id);
+    if($stmt->execute() === false) {
+      echo'Data tidak berhasil disimpan!';
+    } else{
+      if (!karyawan_save_photo($photo_data, $upload_dir)) {
+        echo'Foto gagal disimpan di server.';
+        $stmt->close();
+        break;
+      }
+      karyawan_delete_photo($old_photo, $upload_dir);
+      echo'success';
+    }
+    $stmt->close();
+  }
+  else{
+      echo implode('<br>', $error);
+  }
 
 break;
 
@@ -383,20 +407,23 @@ $error = array();
   if (empty($_POST['id'])) {
       $error[] = 'ID tidak boleh kosong';
     } else {
-      $id = mysqli_real_escape_string($connection, $_POST['id']);
+      $id = (int)$_POST['id'];
   }
 
   if (empty($_POST['employees_email'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $employees_email= mysqli_real_escape_string($connection,$_POST['employees_email']);
+      $employees_email = trim($_POST['employees_email']);
+      if (!filter_var($employees_email, FILTER_VALIDATE_EMAIL)) {
+        $error[] = 'Email tidak valid';
+      }
   }
 
   if (empty($_POST['employees_password'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $employees_password= mysqli_real_escape_string($connection,$_POST['employees_password']);
-      $password_baru =mysqli_real_escape_string($connection,hash('sha256',$salt.$employees_password));
+      $employees_password = $_POST['employees_password'];
+      $password_baru = hash('sha256', $salt.$employees_password);
   }
 
   if (empty($error)) { 
@@ -412,41 +439,54 @@ $error = array();
     $headers .= "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
 
-    $update="UPDATE employees SET employees_password='$password_baru' WHERE id='$id'"; 
-    if($connection->query($update) === false) { 
-        die($connection->error.__LINE__); 
+    $stmt = $connection->prepare("UPDATE employees SET employees_password=? WHERE id=?");
+    if (!$stmt) {
+        echo'Data tidak berhasil disimpan!';
+        break;
+    }
+    $stmt->bind_param('si', $password_baru, $id);
+    if($stmt->execute() === false) {
         echo'Data tidak berhasil disimpan!';
     } else{
         echo'success';
         mail($to, $subject, $pesan, $headers);
-    }}
+    }
+    $stmt->close();
+  }
     else{           
-        echo'Bidang inputan tidak boleh ada yang kosong..!';
+        echo implode('<br>', $error);
     }
 break;
 
 
 /* --------------- Delete ------------*/
 case 'delete':
-  $id       = mysqli_real_escape_string($connection,epm_decode($_POST['id']));
+  $id = (int)epm_decode($_POST['id']);
+  $upload_dir = '../../../sw-content/karyawan';
+  $images_delete = '';
 
-    $cari =mysqli_query($connection,"SELECT photo from employees WHERE id='$id'");
-    $data =mysqli_fetch_assoc($cari);
-    $images_delete = strip_tags($data['photo']);
-    $directory='../../../sw-content/karyawan/'.$images_delete.'';
-
-  $deleted  = "DELETE FROM employees WHERE id='$id'";
-    if($connection->query($deleted) === true) {
-        echo'success';
-        if(file_exists("../../../sw-content/karyawan/$images_delete")){
-          unlink ($directory);
-        }
-
-      } else { 
-        //tidak berhasil
-        echo'Data tidak berhasil dihapus.!';
-        die($connection->error.__LINE__);
+  $stmt = $connection->prepare("SELECT photo FROM employees WHERE id=? LIMIT 1");
+  if ($stmt) {
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $stmt->bind_result($images_delete);
+    $stmt->fetch();
+    $stmt->close();
   }
+
+  $stmt = $connection->prepare("DELETE FROM employees WHERE id=?");
+  if (!$stmt) {
+    echo'Data tidak berhasil dihapus.!';
+    break;
+  }
+  $stmt->bind_param('i', $id);
+  if($stmt->execute() === true) {
+      echo'success';
+      karyawan_delete_photo($images_delete, $upload_dir);
+    } else {
+      echo'Data tidak berhasil dihapus.!';
+  }
+  $stmt->close();
 
 
 /* ------------- IMPORT --------------*/
@@ -467,50 +507,61 @@ if(!empty($_FILES['files']['name']) && in_array($_FILES['files']['type'], $csvMi
             // Parse data from CSV file line by line
             while(($line = fgetcsv($csvFile)) !== FALSE){
                 // Get row data
-                $employees_code     = !empty($line[0]) ? $line[0] : generate_employee_code($connection, 'IND', $year);
-                $employees_email    = $line[1];
-                $employees_password = hash('sha256',$salt.$line[2]);
-                $employees_name     = $line[3];
-                $position_id        = $line[4];
-                $shift_id           = $line[5];
-                $building_id        = $line[6];
+                $employees_code     = !empty($line[0]) ? strip_tags(trim($line[0])) : generate_employee_code($connection, 'IND', $year);
+                $employees_email    = isset($line[1]) ? trim($line[1]) : '';
+                $employees_password = hash('sha256', $salt.(isset($line[2]) ? $line[2] : ''));
+                $employees_name     = isset($line[3]) ? strip_tags(trim($line[3])) : '';
+                $position_id        = isset($line[4]) ? (int)$line[4] : 0;
+                $shift_id           = isset($line[5]) ? (int)$line[5] : 0;
+                $building_id        = isset($line[6]) ? (int)$line[6] : 0;
+                $photo              = '';
+                $created_login      = $date.' '.$time;
+                $created_cookies    = '-';
                 // Check berdasa  rkan code
-                $query  = "SELECT id FROM employees WHERE employees_code='$employees_code'";
-                $result = $connection->query($query);
+                $result = false;
+                $stmt_check = $connection->prepare("SELECT id FROM employees WHERE employees_code=? LIMIT 1");
+                if ($stmt_check) {
+                  $stmt_check->bind_param('s', $employees_code);
+                  $stmt_check->execute();
+                  $stmt_check->store_result();
+                  $result = $stmt_check;
+                }
                
-                if($result->num_rows > 0){
+                if($result && $result->num_rows > 0){
                 // Update member data in the database
-                    $update="UPDATE employees SET employees_name='$employees_name',
-                      position_id='$position_id',
-                      shift_id='$shift_id',
-                      building_id='$building_id' WHERE employees_code='$employees_code'";
-                    $connection->query($update);
+                    $stmt_update = $connection->prepare("UPDATE employees SET employees_name=?, position_id=?, shift_id=?, building_id=? WHERE employees_code=?");
+                    if ($stmt_update) {
+                      $stmt_update->bind_param('siiis', $employees_name, $position_id, $shift_id, $building_id, $employees_code);
+                      $stmt_update->execute();
+                      $stmt_update->close();
+                    }
                 }else{
                     // Insert KARYAWAN data in the database
-                    $add ="INSERT INTO employees (employees_code,
-                                      employees_email,
-                                      employees_password,
-                                      employees_name,
-                                      position_id,
-                                      shift_id,
-                                      building_id,
-                                      photo,
-                                      created_login,
-                                      created_cookies) values('$employees_code',
-                                      '$employees_email',
-                                      '$employees_password',
-                                      '$employees_name',
-                                      '$position_id',
-                                      '$shift_id',
-                                      '$building_id',
-                                      '', /*Photo kosong*/
-                                      '$date $time',
-                                      '-')";
-                        if($connection->query($add) === false) {
+                    $stmt_add = $connection->prepare("INSERT INTO employees (employees_code,employees_email,employees_password,employees_name,position_id,shift_id,building_id,photo,created_login,created_cookies) VALUES (?,?,?,?,?,?,?,?,?,?)");
+                    if (!$stmt_add) {
+                        echo'Data Pegawai Tidak dapat di Import.!';
+                        if ($stmt_check) {
+                          $stmt_check->close();
+                        }
+                        fclose($csvFile);
+                        break 2;
+                    }
+                    $stmt_add->bind_param('ssssiiisss', $employees_code, $employees_email, $employees_password, $employees_name, $position_id, $shift_id, $building_id, $photo, $created_login, $created_cookies);
+                        if($stmt_add->execute() === false) {
                             echo'Data Pegawai Tidak dapat di Import.!';
+                            $stmt_add->close();
+                            if ($stmt_check) {
+                              $stmt_check->close();
+                            }
+                            fclose($csvFile);
+                            break 2;
                         }else{
                             //echo'success';
                         }
+                    $stmt_add->close();
+                }
+                if ($stmt_check) {
+                  $stmt_check->close();
                 }
             }
             
