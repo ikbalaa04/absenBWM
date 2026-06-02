@@ -177,6 +177,7 @@ if (!function_exists('attendance_ranking_calculate')) {
       $dates = attendance_ranking_date_range($date_from, $date_to);
       $used_dates = array();
       $score = 0;
+      $first_checkin_timestamp = 0;
       $summary = array(
         'present' => 0,
         'ontime' => 0,
@@ -198,6 +199,10 @@ if (!function_exists('attendance_ranking_calculate')) {
           $present_id = (int)$presence['present_id'];
           if ($present_id === 1) {
             $summary['present']++;
+            $checkin_timestamp = strtotime($presence['presence_date'].' '.$presence['time_in']);
+            if ($checkin_timestamp && ($first_checkin_timestamp === 0 || $checkin_timestamp < $first_checkin_timestamp)) {
+              $first_checkin_timestamp = $checkin_timestamp;
+            }
             $rule_time_in = !empty($presence['rule_time_in']) ? $presence['rule_time_in'] : $employee['shift_time_in'];
             $rule_time_out = !empty($presence['rule_time_out']) ? $presence['rule_time_out'] : $employee['shift_time_out'];
             $late_minutes = max(0, (strtotime($presence['presence_date'].' '.$presence['time_in']) - strtotime($presence['presence_date'].' '.$rule_time_in)) / 60);
@@ -284,15 +289,28 @@ if (!function_exists('attendance_ranking_calculate')) {
         'employees_id' => $employee['id'],
         'employees_name' => $employee['employees_name'],
         'score' => $score,
+        'first_checkin_timestamp' => $first_checkin_timestamp,
         'summary' => $summary
       );
     }
 
     usort($rankings, function($a, $b) {
-      if ($a['score'] == $b['score']) {
-        return strcmp($a['employees_name'], $b['employees_name']);
+      if ($a['score'] != $b['score']) {
+        return $b['score'] - $a['score'];
       }
-      return $b['score'] - $a['score'];
+      if ($a['summary']['ontime'] != $b['summary']['ontime']) {
+        return $b['summary']['ontime'] - $a['summary']['ontime'];
+      }
+      if ($a['first_checkin_timestamp'] != $b['first_checkin_timestamp']) {
+        if ($a['first_checkin_timestamp'] === 0) {
+          return 1;
+        }
+        if ($b['first_checkin_timestamp'] === 0) {
+          return -1;
+        }
+        return $a['first_checkin_timestamp'] - $b['first_checkin_timestamp'];
+      }
+      return strcmp($a['employees_name'], $b['employees_name']);
     });
 
     return array_slice($rankings, 0, $limit);

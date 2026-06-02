@@ -203,6 +203,8 @@ echo'
                 <select name="ranking_year" class="form-control input-sm">'.$ranking_year_options.'</select>
               </div>
               <button type="submit" class="btn btn-primary btn-sm">Tampilkan</button>
+              <a href="sw-mod/home/ranking-export.php?type=pdf&ranking_month='.$ranking_selected_month.'&ranking_year='.$ranking_selected_year.'" target="_blank" class="btn btn-danger btn-sm"><i class="fa fa-file-pdf-o"></i> PDF</a>
+              <a href="sw-mod/home/ranking-export.php?type=xls&ranking_month='.$ranking_selected_month.'&ranking_year='.$ranking_selected_year.'" target="_blank" class="btn btn-success btn-sm"><i class="fa fa-file-excel-o"></i> Excel</a>
             </form>
           </div>
           <div class="box-body no-padding">
