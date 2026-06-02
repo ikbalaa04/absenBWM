@@ -129,6 +129,23 @@ if (!function_exists('attendance_ranking_approved_leave_dates')) {
   }
 }
 
+if (!function_exists('attendance_ranking_deadline_passed')) {
+  function attendance_ranking_deadline_passed($work_date, $target_time, $grace_minutes = 120, $start_time = '') {
+    if (empty($target_time) || $target_time == '00:00:00') {
+      return false;
+    }
+
+    $target_timestamp = strtotime($work_date.' '.$target_time);
+    $current_timestamp = time();
+    if (!empty($start_time) && $target_time < $start_time) {
+      $target_timestamp += 86400;
+    }
+
+    $deadline_timestamp = strtotime('+'.(int)$grace_minutes.' minutes', $target_timestamp);
+    return $deadline_timestamp && $current_timestamp > $deadline_timestamp;
+  }
+}
+
 if (!function_exists('attendance_ranking_calculate')) {
   function attendance_ranking_calculate($connection, $date_from, $date_to, $limit = 10) {
     $settings = attendance_ranking_get_settings($connection);
@@ -194,7 +211,7 @@ if (!function_exists('attendance_ranking_calculate')) {
                   $summary['leave_early']++;
                   $score += (int)$settings['point_leave_early'];
                 }
-              } else {
+              } elseif (attendance_ranking_deadline_passed($presence['presence_date'], $rule_time_out, 120, $rule_time_in)) {
                 $summary['missing_checkout']++;
                 $score += (int)$settings['point_missing_checkout'];
               }
@@ -244,6 +261,9 @@ if (!function_exists('attendance_ranking_calculate')) {
           continue;
         }
         if (attendance_off_day_label($ranking_date, $connection) !== '') {
+          continue;
+        }
+        if (!attendance_ranking_deadline_passed($ranking_date, $employee['shift_time_in'], 120)) {
           continue;
         }
         $summary['absent']++;
