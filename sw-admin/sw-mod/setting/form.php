@@ -130,8 +130,18 @@ case 'ranking':
         </div>
 
         <hr>
+        <h4>Pengaturan Waktu</h4>
+        <p class="text-muted">Bagian ini hanya mengatur batas waktu kategori keterlambatan, bukan nilai poin.</p>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Batas Telat Berat</label>
+          <div class="col-sm-3"><input type="number" min="0" name="late_major_threshold_minutes" class="form-control" value="'.setting_h($ranking['late_major_threshold_minutes']).'" required></div>
+          <div class="col-sm-4"><p class="text-muted">Dalam menit. Contoh: lebih dari 15 menit masuk kategori telat berat.</p></div>
+        </div>
+
+        <hr>
         <h4>Pengaturan Poin</h4>
-        <p class="text-muted">Nilai dapat berupa positif, nol, atau negatif sesuai kebijakan perusahaan.</p>
+        <p class="text-muted">Bagian ini hanya mengatur nilai poin. Nilai dapat berupa positif, nol, atau negatif sesuai kebijakan perusahaan.</p>
 
         <div class="form-group">
           <label class="col-sm-2 control-label">Hadir Tepat Waktu</label>
@@ -151,12 +161,6 @@ case 'ranking':
         <div class="form-group">
           <label class="col-sm-2 control-label">Terlambat Berat</label>
           <div class="col-sm-3"><input type="number" name="point_late_major" class="form-control" value="'.setting_h($ranking['point_late_major']).'" required></div>
-        </div>
-
-        <div class="form-group">
-          <label class="col-sm-2 control-label">Batas Telat Berat</label>
-          <div class="col-sm-3"><input type="number" min="0" name="late_major_threshold_minutes" class="form-control" value="'.setting_h($ranking['late_major_threshold_minutes']).'" required></div>
-          <div class="col-sm-4"><p class="text-muted">Dalam menit. Contoh: lebih dari 15 menit masuk kategori telat berat.</p></div>
         </div>
 
         <div class="form-group">

@@ -93,4 +93,179 @@ if (!function_exists('attendance_ranking_get_settings')) {
     return $settings;
   }
 }
+
+if (!function_exists('attendance_ranking_date_range')) {
+  function attendance_ranking_date_range($date_from, $date_to) {
+    $dates = array();
+    $cursor = strtotime($date_from);
+    $until = strtotime($date_to);
+    while ($cursor && $until && $cursor <= $until) {
+      $dates[] = date('Y-m-d', $cursor);
+      $cursor = strtotime('+1 day', $cursor);
+    }
+    return $dates;
+  }
+}
+
+if (!function_exists('attendance_ranking_approved_leave_dates')) {
+  function attendance_ranking_approved_leave_dates($connection, $employees_id, $date_from, $date_to) {
+    $dates = array();
+    $employees_id = mysqli_real_escape_string($connection, $employees_id);
+    $date_from = mysqli_real_escape_string($connection, $date_from);
+    $date_to = mysqli_real_escape_string($connection, $date_to);
+    $query = "SELECT cuty_start,cuty_end,cuty_type FROM cuty WHERE employees_id='$employees_id' AND cuty_status='1' AND cuty_start <= '$date_to' AND cuty_end >= '$date_from'";
+    $result = $connection->query($query);
+    if ($result) {
+      while ($row = $result->fetch_assoc()) {
+        $start = strtotime(max($date_from, $row['cuty_start']));
+        $end = strtotime(min($date_to, $row['cuty_end']));
+        while ($start && $end && $start <= $end) {
+          $dates[date('Y-m-d', $start)] = isset($row['cuty_type']) ? $row['cuty_type'] : 'cuti';
+          $start = strtotime('+1 day', $start);
+        }
+      }
+    }
+    return $dates;
+  }
+}
+
+if (!function_exists('attendance_ranking_calculate')) {
+  function attendance_ranking_calculate($connection, $date_from, $date_to, $limit = 10) {
+    $settings = attendance_ranking_get_settings($connection);
+    $date_from_sql = mysqli_real_escape_string($connection, $date_from);
+    $date_to_sql = mysqli_real_escape_string($connection, $date_to);
+    $rankings = array();
+
+    $query_employees = "SELECT employees.id,employees.employees_name,employees.shift_id,shift.time_in AS shift_time_in,shift.time_out AS shift_time_out,shift.checkout_required
+      FROM employees
+      INNER JOIN shift ON shift.shift_id=employees.shift_id
+      ORDER BY employees.employees_name ASC";
+    $result_employees = $connection->query($query_employees);
+    if (!$result_employees) {
+      return array();
+    }
+
+    while ($employee = $result_employees->fetch_assoc()) {
+      $employee_id = mysqli_real_escape_string($connection, $employee['id']);
+      $dates = attendance_ranking_date_range($date_from, $date_to);
+      $used_dates = array();
+      $score = 0;
+      $summary = array(
+        'present' => 0,
+        'ontime' => 0,
+        'late' => 0,
+        'assignment' => 0,
+        'permission' => 0,
+        'sick' => 0,
+        'leave' => 0,
+        'absent' => 0,
+        'missing_checkout' => 0,
+        'leave_early' => 0
+      );
+
+      $query_presence = "SELECT presence_date,time_in,time_out,present_id,rule_time_in,rule_time_out FROM presence WHERE employees_id='$employee_id' AND presence_date BETWEEN '$date_from_sql' AND '$date_to_sql'";
+      $result_presence = $connection->query($query_presence);
+      if ($result_presence) {
+        while ($presence = $result_presence->fetch_assoc()) {
+          $used_dates[$presence['presence_date']] = true;
+          $present_id = (int)$presence['present_id'];
+          if ($present_id === 1) {
+            $summary['present']++;
+            $rule_time_in = !empty($presence['rule_time_in']) ? $presence['rule_time_in'] : $employee['shift_time_in'];
+            $rule_time_out = !empty($presence['rule_time_out']) ? $presence['rule_time_out'] : $employee['shift_time_out'];
+            $late_minutes = max(0, (strtotime($presence['presence_date'].' '.$presence['time_in']) - strtotime($presence['presence_date'].' '.$rule_time_in)) / 60);
+            if ($late_minutes <= 0) {
+              $summary['ontime']++;
+              $score += (int)$settings['point_present_ontime'];
+            } elseif ($late_minutes <= (int)$settings['late_major_threshold_minutes']) {
+              $summary['late']++;
+              $score += (int)$settings['point_late_minor'];
+            } else {
+              $summary['late']++;
+              $score += (int)$settings['point_late_major'];
+            }
+
+            if ((int)$employee['checkout_required'] === 1) {
+              if ($presence['time_out'] != '00:00:00') {
+                $score += (int)$settings['point_checkout_complete'];
+                $out_time = strtotime($presence['presence_date'].' '.$presence['time_out']);
+                $rule_out_time = strtotime($presence['presence_date'].' '.$rule_time_out);
+                if ($out_time && $rule_out_time && $out_time < $rule_out_time) {
+                  $summary['leave_early']++;
+                  $score += (int)$settings['point_leave_early'];
+                }
+              } else {
+                $summary['missing_checkout']++;
+                $score += (int)$settings['point_missing_checkout'];
+              }
+            }
+          } elseif ($present_id === 2) {
+            $summary['sick']++;
+            $score += (int)$settings['point_sick'];
+          } elseif ($present_id === 3) {
+            $summary['permission']++;
+            $score += (int)$settings['point_permission'];
+          }
+        }
+      }
+
+      $query_assignment = "SELECT attendance_date FROM assignment_attendance WHERE employees_id='$employee_id' AND attendance_date BETWEEN '$date_from_sql' AND '$date_to_sql'";
+      $result_assignment = $connection->query($query_assignment);
+      if ($result_assignment) {
+        while ($assignment = $result_assignment->fetch_assoc()) {
+          if (empty($used_dates[$assignment['attendance_date']])) {
+            $summary['assignment']++;
+            $score += (int)$settings['point_assignment'];
+          }
+          $used_dates[$assignment['attendance_date']] = true;
+        }
+      }
+
+      $leave_dates = attendance_ranking_approved_leave_dates($connection, $employee['id'], $date_from, $date_to);
+      foreach ($leave_dates as $leave_date => $leave_type) {
+        if (!empty($used_dates[$leave_date])) {
+          continue;
+        }
+        $used_dates[$leave_date] = true;
+        if ($leave_type === 'sakit') {
+          $summary['sick']++;
+          $score += (int)$settings['point_sick'];
+        } elseif ($leave_type === 'cuti') {
+          $summary['leave']++;
+          $score += (int)$settings['point_leave'];
+        } else {
+          $summary['permission']++;
+          $score += (int)$settings['point_permission'];
+        }
+      }
+
+      foreach ($dates as $ranking_date) {
+        if (!empty($used_dates[$ranking_date])) {
+          continue;
+        }
+        if (attendance_off_day_label($ranking_date, $connection) !== '') {
+          continue;
+        }
+        $summary['absent']++;
+        $score += (int)$settings['point_absent_without_note'];
+      }
+
+      $rankings[] = array(
+        'employees_id' => $employee['id'],
+        'employees_name' => $employee['employees_name'],
+        'score' => $score,
+        'summary' => $summary
+      );
+    }
+
+    usort($rankings, function($a, $b) {
+      if ($a['score'] == $b['score']) {
+        return strcmp($a['employees_name'], $b['employees_name']);
+      }
+      return $b['score'] - $a['score'];
+    });
+
+    return array_slice($rankings, 0, $limit);
+  }
+}
 ?>

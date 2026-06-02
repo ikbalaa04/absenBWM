@@ -67,6 +67,9 @@ if (!function_exists('attendance_ensure_schema')) {
 	    if (empty($shift_columns['min_work_minutes'])) {
 	      $connection->query("ALTER TABLE shift ADD min_work_minutes int(5) NOT NULL DEFAULT 0 AFTER time_out");
 	    }
+	    if (empty($shift_columns['checkout_required'])) {
+	      $connection->query("ALTER TABLE shift ADD checkout_required tinyint(1) NOT NULL DEFAULT 1 AFTER min_work_minutes");
+	    }
 	    $connection->query("CREATE TABLE IF NOT EXISTS attendance_holidays (
 	      holiday_id int(11) NOT NULL AUTO_INCREMENT,
 	      holiday_date date NOT NULL,

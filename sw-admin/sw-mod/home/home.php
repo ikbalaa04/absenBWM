@@ -45,6 +45,12 @@ if(empty($connection)){
     }
   }
 
+  $ranking_settings = attendance_ranking_get_settings($connection);
+  $ranking_enabled = !empty($ranking_settings['ranking_enabled']);
+  $ranking_from = date('Y-m-01');
+  $ranking_to = date('Y-m-d');
+  $ranking_rows = $ranking_enabled ? attendance_ranking_calculate($connection, $ranking_from, $ranking_to, 10) : array();
+
 
 echo'
 <div class="content-wrapper">
@@ -122,6 +128,70 @@ echo'
           </div>
         </div>
       </div>
+
+      ';
+      if($ranking_enabled){
+        echo'
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="box box-solid">
+        <div class="box-header with-border">
+          <h3 class="box-title">Top Ranking Absensi Bulan Ini</h3>
+          <div class="box-tools pull-right">
+            <span class="label label-primary">'.tgl_ind($ranking_from).' - '.tgl_ind($ranking_to).'</span>
+          </div>
+        </div>
+          <div class="box-body no-padding">
+            <div class="table-responsive">
+            <table class="table table-striped">
+              <tbody>
+                <tr>
+                  <th style="width: 10px" class="text-center">Rank</th>
+                  <th>Nama</th>
+                  <th class="text-center">Poin</th>
+                  <th class="text-center">Hadir</th>
+                  <th class="text-center">Tepat Waktu</th>
+                  <th class="text-center">Terlambat</th>
+                  <th class="text-center">Tugas</th>
+                  <th class="text-center">Izin/Sakit/Cuti</th>
+                  <th class="text-center">Alpha</th>
+                  <th class="text-right">Aksi</th>
+                </tr>';
+        if(count($ranking_rows) > 0){
+          $rank_no = 0;
+          foreach($ranking_rows as $ranking_row){
+            $rank_no++;
+            $summary = $ranking_row['summary'];
+            $rank_label = $rank_no <= 3 ? 'label-success' : 'label-default';
+            $izin_sakit_cuti = (int)$summary['permission'] + (int)$summary['sick'] + (int)$summary['leave'];
+            echo'
+                <tr>
+                  <td class="text-center"><span class="label '.$rank_label.'">'.$rank_no.'</span></td>
+                  <td>'.htmlspecialchars($ranking_row['employees_name'], ENT_QUOTES, 'UTF-8').'</td>
+                  <td class="text-center"><strong>'.(int)$ranking_row['score'].'</strong></td>
+                  <td class="text-center">'.(int)$summary['present'].'</td>
+                  <td class="text-center">'.(int)$summary['ontime'].'</td>
+                  <td class="text-center">'.(int)$summary['late'].'</td>
+                  <td class="text-center">'.(int)$summary['assignment'].'</td>
+                  <td class="text-center">'.$izin_sakit_cuti.'</td>
+                  <td class="text-center">'.(int)$summary['absent'].'</td>
+                  <td class="text-right"><a href="./?mod=absensi&op=views&id='.epm_encode($ranking_row['employees_id']).'" class="btn btn-warning btn-xs"><i class="fa fa-external-link-square" aria-hidden="true"></i></a></td>
+                </tr>';
+          }
+        } else {
+          echo'
+                <tr>
+                  <td colspan="10" class="text-center text-muted">Belum ada data ranking pada periode ini.</td>
+                </tr>';
+        }
+        echo'
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+      </div>';
+      }
+      echo'
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <div class="box box-solid">
