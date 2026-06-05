@@ -331,8 +331,17 @@ if (empty($error)){
     if ($result && $result->num_rows > 0) {
       $row = $result->fetch_assoc();
       $location_type = attendance_resolve_location_type($attendance_mode, $row['attendance_location_type']);
+      $attendance_validation_location_type = $location_type;
+      if ($attendance_mode === 'hybrid' && $attendance_action === 'out') {
+        $attendance_validation_location_type = attendance_resolve_location_type($attendance_mode, $requested_location_type);
+        if ($attendance_validation_location_type === '') {
+          echo'Pilih jenis absensi pulang terlebih dahulu: Pulang dari Kantor atau Pulang dari Luar Kantor.';
+          break;
+        }
+      }
     } else {
       $location_type = attendance_resolve_location_type($attendance_mode, $requested_location_type);
+      $attendance_validation_location_type = $location_type;
       if ($attendance_mode === 'hybrid' && $location_type === '') {
         echo'Pilih jenis absensi terlebih dahulu: Absen di Kantor atau Absen di Luar Kantor.';
         break;
@@ -347,7 +356,7 @@ if (empty($error)){
     $week_start = date('Y-m-d', strtotime('monday this week', strtotime($date)));
     $week_end = date('Y-m-d', strtotime('friday this week', strtotime($date)));
 
-    $attendance_error = attendance_validate_checkin($row_u, $latitude, $date, $location_type);
+    $attendance_error = attendance_validate_checkin($row_u, $latitude, $date, $attendance_validation_location_type);
     if ($attendance_error !== '') {
       echo $attendance_error;
       break;
@@ -403,7 +412,8 @@ if (empty($error)){
               echo'Anda belum Absen Masuk pada Tanggal '.tanggal_ind($date).'. Silakan Absen Masuk terlebih dahulu.';
               break;
             }
-            $checkin_deadline_error = attendance_deadline_message($date, $time, $rule_time_in, 120, 'absen masuk');
+            $checkin_grace_minutes = isset($attendance_checkin_grace_minutes) ? max(0, (int)$attendance_checkin_grace_minutes) : 120;
+            $checkin_deadline_error = attendance_deadline_message($date, $time, $rule_time_in, $checkin_grace_minutes, 'absen masuk');
             if ($checkin_deadline_error !== '') {
               echo $checkin_deadline_error;
               break;

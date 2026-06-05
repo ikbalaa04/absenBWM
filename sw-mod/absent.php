@@ -78,10 +78,23 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
 	                                  <button class="btn btn-secondary btn-lg btn-block" type="button" disabled><ion-icon name="checkmark-circle-outline"></ion-icon>Sudah Absen Masuk</button>
 	                                  <a class="btn btn-success btn-lg btn-block mt-1" href="./?mod=absent&type=pulang"><ion-icon name="camera-outline"></ion-icon>Ke Menu Absen Pulang</a>';
 	                                }else{
-	                                  echo'
-	                                  <input type="hidden" id="attendance_location_type" value="'.$row_absent_page['attendance_location_type'].'">
-	                                  <input type="hidden" id="attendance_action" value="out">
-	                                  <button class="btn btn-success btn-lg btn-block" onClick="captureimage()"><ion-icon name="camera-outline"></ion-icon>Absen Pulang</button>';
+	                                  if($attendance_mode === 'hybrid'){
+	                                    echo'
+	                                    <input type="hidden" id="attendance_action" value="out">
+	                                    <div class="row">
+	                                      <div class="col-6">
+	                                        <button class="btn btn-success btn-lg btn-block" onClick="captureimage(\'office\')"><ion-icon name="business-outline"></ion-icon>Kantor</button>
+	                                      </div>
+	                                      <div class="col-6">
+	                                        <button class="btn btn-primary btn-lg btn-block" onClick="captureimage(\'outside\')"><ion-icon name="navigate-outline"></ion-icon>Luar Kantor</button>
+	                                      </div>
+	                                    </div>';
+	                                  }else{
+	                                    echo'
+	                                    <input type="hidden" id="attendance_location_type" value="'.$row_absent_page['attendance_location_type'].'">
+	                                    <input type="hidden" id="attendance_action" value="out">
+	                                    <button class="btn btn-success btn-lg btn-block" onClick="captureimage()"><ion-icon name="camera-outline"></ion-icon>Absen Pulang</button>';
+	                                  }
 	                                }}
 	                                else{
 	                                  if($attendance_page_action === 'out'){

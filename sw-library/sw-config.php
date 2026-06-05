@@ -25,6 +25,9 @@ if ($connection->connect_error){
 		if (empty($site_columns['site_letter_header'])) {
 			$connection->query("ALTER TABLE sw_site ADD site_letter_header varchar(150) NOT NULL DEFAULT '' AFTER site_logo");
 		}
+		if (empty($site_columns['attendance_checkin_grace_minutes'])) {
+			$connection->query("ALTER TABLE sw_site ADD attendance_checkin_grace_minutes int(5) NOT NULL DEFAULT 120 AFTER site_email_domain");
+		}
 		$query_site  = "SELECT * FROM sw_site LIMIT 1";
 		$result_site = $connection->query($query_site);
 		$row_site    = $result_site->fetch_assoc();

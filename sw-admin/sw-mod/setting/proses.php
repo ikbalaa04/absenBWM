@@ -62,6 +62,14 @@ if (empty($_POST['site_url'])) {
   $site_url = mysqli_real_escape_string($connection,$_POST['site_url']);
 }
 
+if (!isset($_POST['attendance_checkin_grace_minutes']) || $_POST['attendance_checkin_grace_minutes'] === '') {
+  $error[] = 'Batas absen masuk wajib diisi';
+} elseif (!preg_match('/^[0-9]+$/', (string)$_POST['attendance_checkin_grace_minutes'])) {
+  $error[] = 'Batas absen masuk harus berupa angka menit.';
+} else {
+  $attendance_checkin_grace_minutes = (int)$_POST['attendance_checkin_grace_minutes'];
+}
+
 $site_logo    = $_FILES['site_logo']["name"];
 $file_tmp = $_FILES['site_logo']['tmp_name']; 
 $ukuran_file  = $_FILES['site_logo']['size'];
@@ -106,7 +114,8 @@ if($site_logo == ''){
                       site_address='$site_address',
                       site_description='$site_description',
                       site_email='$site_email',
-                      site_email_domain='$site_email_domain'
+                      site_email_domain='$site_email_domain',
+                      attendance_checkin_grace_minutes='$attendance_checkin_grace_minutes'
                       $letter_header_sql WHERE site_id='1'"; 
     if($connection->query($update) === false) { 
       die($connection->error.__LINE__); 
@@ -151,7 +160,8 @@ if($ukuran_file < 1044070){
                       site_description='$site_description',
                       site_logo='$nama_file_unik',
                       site_email='$site_email',
-                      site_email_domain='$site_email_domain'
+                      site_email_domain='$site_email_domain',
+                      attendance_checkin_grace_minutes='$attendance_checkin_grace_minutes'
                       $letter_header_sql WHERE site_id='1'" or die($connection->error.__LINE__); 
       if($connection->query($update) === false) { 
         echo'Data tidak berhasil disimpan!';
