@@ -14,6 +14,16 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
 }else{
   $active_assignment = assignment_get_active_for_employee($connection, $row_user['id'], $date);
   $employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+  $management_options = '';
+  $query_management="SELECT employees.id,employees.employees_name,position.position_name FROM employees INNER JOIN position ON position.position_id=employees.position_id WHERE position.position_name LIKE '%Manajemen%' ORDER BY employees.employees_name ASC";
+  $result_management = $connection->query($query_management);
+  if($result_management && $result_management->num_rows > 0){
+    while($manager = $result_management->fetch_assoc()) {
+      $management_options .= '<option value="'.$manager['id'].'">'.htmlspecialchars($manager['employees_name'].' - '.$manager['position_name'], ENT_QUOTES, 'UTF-8').'</option>';
+    }
+  } else {
+    $management_options = '<option value="" disabled>Tidak ada user dengan jabatan Manajemen</option>';
+  }
   echo'<!-- App Capsule -->
     <div id="appCapsule">
         <style>
@@ -93,7 +103,16 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
             gap: 12px;
             padding: 4px 0;
           }
+          .assignment-top-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+          }
         </style>';
+
+  echo'<div class="section mt-2 assignment-top-actions">
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-assignment-request"><ion-icon name="add-circle-outline"></ion-icon> Ajukan Penugasan</button>
+        </div>';
 
   if (!$active_assignment) {
     echo'<div class="section mt-2"><div class="alert alert-warning">Saat ini Anda tidak memiliki penugasan aktif.</div></div>';
@@ -170,6 +189,8 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
     while($row_history = $result_history->fetch_assoc()){
       if($row_history['assignment_status'] == 'active'){
         $status = '<span class="badge badge-success">Aktif</span>';
+      } elseif($row_history['assignment_status'] == 'pending'){
+        $status = '<span class="badge badge-warning">Menunggu Approval</span>';
       } elseif($row_history['assignment_status'] == 'completed'){
         $status = '<span class="badge badge-secondary">Selesai</span>';
       } else {
@@ -182,7 +203,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
             <div class="assignment-history-card">
               <div class="assignment-history-head">
                 <div>
-                  <div class="assignment-history-title">'.htmlspecialchars($row_history['assignment_number'], ENT_QUOTES, 'UTF-8').'</div>
+                  <div class="assignment-history-title">'.(!empty($row_history['assignment_number']) ? htmlspecialchars($row_history['assignment_number'], ENT_QUOTES, 'UTF-8') : 'Ajuan Penugasan').'</div>
                   <div class="assignment-history-subtitle">'.tgl_ind($row_history['assignment_start']).' - '.tgl_ind($row_history['assignment_end']).'</div>
                 </div>
                 <div>'.$status.'</div>
@@ -208,6 +229,62 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
     echo'<div class="alert alert-secondary">Belum ada riwayat penugasan.</div>';
   }
   echo'
+        </div>
+        <div class="modal fade modalbox" id="modal-assignment-request" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Ajukan Penugasan</h5>
+                        <a href="javascript:;" data-dismiss="modal">Close</a>
+                    </div>
+                    <div class="modal-body">
+                        <form id="form-assignment-request" autocomplete="off" novalidate>
+                            <div class="form-group basic">
+                                <div class="input-wrapper">
+                                    <label class="label">Nama Staff</label>
+                                    <input type="text" class="form-control" value="'.htmlspecialchars($row_user['employees_name'], ENT_QUOTES, 'UTF-8').'" style="background:#eee" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group basic">
+                                <div class="input-wrapper">
+                                    <label class="label">Pemberi Tugas</label>
+                                    <select class="form-control" name="assignment_signer_id" required>
+                                      <option value="">- Pilih Pemberi Tugas -</option>
+                                      '.$management_options.'
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group basic">
+                                <div class="input-wrapper">
+                                    <label class="label">Mulai Tugas</label>
+                                    <input type="date" class="form-control" name="assignment_start" value="'.$date.'" required>
+                                </div>
+                            </div>
+                            <div class="form-group basic">
+                                <div class="input-wrapper">
+                                    <label class="label">Selesai Tugas</label>
+                                    <input type="date" class="form-control" name="assignment_end" value="'.$date.'" required>
+                                </div>
+                            </div>
+                            <div class="form-group basic">
+                                <div class="input-wrapper">
+                                    <label class="label">Lokasi/Tujuan Tugas</label>
+                                    <input type="text" class="form-control" name="assignment_location" required>
+                                </div>
+                            </div>
+                            <div class="form-group basic">
+                                <div class="input-wrapper">
+                                    <label class="label">Keterangan Tugas</label>
+                                    <textarea rows="5" class="form-control" name="assignment_description" required></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group basic">
+                                <button type="submit" class="btn btn-primary btn-block btn-lg mt-2">Kirim Ajuan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>';
   }

@@ -15,12 +15,17 @@ if (!function_exists('assignment_ensure_schema')) {
       assignment_description text,
       assignment_number varchar(50) NOT NULL DEFAULT '',
       assignment_signer_id int(11) DEFAULT NULL,
-      assignment_status enum('active','completed','cancelled') NOT NULL DEFAULT 'active',
+      assignment_status enum('pending','active','completed','cancelled') NOT NULL DEFAULT 'active',
+      assignment_source enum('admin','staff') NOT NULL DEFAULT 'admin',
+      requested_at datetime DEFAULT NULL,
+      approved_at datetime DEFAULT NULL,
+      approved_by int(11) DEFAULT NULL,
       created_at datetime NOT NULL,
       updated_at datetime DEFAULT NULL,
       PRIMARY KEY (assignment_id),
       KEY employees_id (employees_id),
       KEY assignment_signer_id (assignment_signer_id),
+      KEY approved_by (approved_by),
       KEY assignment_dates (assignment_start,assignment_end),
       KEY assignment_status (assignment_status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
@@ -29,12 +34,28 @@ if (!function_exists('assignment_ensure_schema')) {
     $result = $connection->query("SHOW COLUMNS FROM assignments");
     if ($result) {
       while ($row = $result->fetch_assoc()) {
-        $assignment_columns[$row['Field']] = true;
+        $assignment_columns[$row['Field']] = $row;
       }
     }
     if (empty($assignment_columns['assignment_signer_id'])) {
       $connection->query("ALTER TABLE assignments ADD assignment_signer_id int(11) DEFAULT NULL AFTER assignment_number");
       $connection->query("ALTER TABLE assignments ADD KEY assignment_signer_id (assignment_signer_id)");
+    }
+    if (!empty($assignment_columns['assignment_status']) && strpos($assignment_columns['assignment_status']['Type'], 'pending') === false) {
+      $connection->query("ALTER TABLE assignments MODIFY assignment_status enum('pending','active','completed','cancelled') NOT NULL DEFAULT 'active'");
+    }
+    if (empty($assignment_columns['assignment_source'])) {
+      $connection->query("ALTER TABLE assignments ADD assignment_source enum('admin','staff') NOT NULL DEFAULT 'admin' AFTER assignment_status");
+    }
+    if (empty($assignment_columns['requested_at'])) {
+      $connection->query("ALTER TABLE assignments ADD requested_at datetime DEFAULT NULL AFTER assignment_source");
+    }
+    if (empty($assignment_columns['approved_at'])) {
+      $connection->query("ALTER TABLE assignments ADD approved_at datetime DEFAULT NULL AFTER requested_at");
+    }
+    if (empty($assignment_columns['approved_by'])) {
+      $connection->query("ALTER TABLE assignments ADD approved_by int(11) DEFAULT NULL AFTER approved_at");
+      $connection->query("ALTER TABLE assignments ADD KEY approved_by (approved_by)");
     }
 
     $connection->query("CREATE TABLE IF NOT EXISTS assignment_attendance (

@@ -40,6 +40,12 @@ echo'
           </div>
         </div>
         <div class="box-body">
+          <ul class="nav nav-tabs" style="margin-bottom:15px">
+            <li class="active"><a href="#tab-penugasan" data-toggle="tab">Buat Penugasan</a></li>
+            <li><a href="#tab-ajuan-penugasan" data-toggle="tab">Ajuan Penugasan</a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane active" id="tab-penugasan">
           <div class="table-responsive">
             <table id="swdatatable" class="table table-bordered">
               <thead>
@@ -56,7 +62,7 @@ echo'
               </tr>
               </thead>
               <tbody>';
-              $query="SELECT assignments.*,employees.employees_name,employees.employees_code,signer.employees_name AS signer_name FROM assignments INNER JOIN employees ON employees.id=assignments.employees_id LEFT JOIN employees AS signer ON signer.id=assignments.assignment_signer_id ORDER BY assignments.assignment_id DESC";
+              $query="SELECT assignments.*,employees.employees_name,employees.employees_code,signer.employees_name AS signer_name FROM assignments INNER JOIN employees ON employees.id=assignments.employees_id LEFT JOIN employees AS signer ON signer.id=assignments.assignment_signer_id WHERE assignments.assignment_status!='pending' AND (assignments.assignment_source='admin' OR assignments.assignment_number!='') ORDER BY assignments.assignment_id DESC";
               $result = $connection->query($query);
               if($result && $result->num_rows > 0){
                 $no=0;
@@ -103,6 +109,59 @@ echo'
               echo'
               </tbody>
             </table>
+          </div>
+            </div>
+            <div class="tab-pane" id="tab-ajuan-penugasan">
+              <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                  <thead>
+                    <tr>
+                      <th style="width:20px" class="text-center">No</th>
+                      <th>Nama Staff</th>
+                      <th>Pemberi Tugas</th>
+                      <th>Waktu Penugasan</th>
+                      <th>Lokasi/Tujuan</th>
+                      <th>Keterangan</th>
+                      <th>Tanggal Ajuan</th>
+                      <th style="width:160px" class="text-center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>';
+                  $query_request="SELECT assignments.*,employees.employees_name,employees.employees_code,signer.employees_name AS signer_name FROM assignments INNER JOIN employees ON employees.id=assignments.employees_id LEFT JOIN employees AS signer ON signer.id=assignments.assignment_signer_id WHERE assignments.assignment_status='pending' AND assignments.assignment_source='staff' ORDER BY assignments.requested_at DESC, assignments.assignment_id DESC";
+                  $result_request = $connection->query($query_request);
+                  if($result_request && $result_request->num_rows > 0){
+                    $no_request=0;
+                    while ($request= $result_request->fetch_assoc()) {
+                      $no_request++;
+                      echo'
+                      <tr>
+                        <td class="text-center">'.$no_request.'</td>
+                        <td>'.$request['employees_name'].'<br><small>'.$request['employees_code'].'</small></td>
+                        <td>'.(!empty($request['signer_name']) ? $request['signer_name'] : '<span class="text-muted">-</span>').'</td>
+                        <td>'.tgl_ind($request['assignment_start']).' - '.tgl_ind($request['assignment_end']).'</td>
+                        <td>'.htmlspecialchars($request['assignment_location'], ENT_QUOTES, 'UTF-8').'</td>
+                        <td>'.nl2br(htmlspecialchars($request['assignment_description'], ENT_QUOTES, 'UTF-8')).'</td>
+                        <td>'.(!empty($request['requested_at']) ? date('d-m-Y H:i', strtotime($request['requested_at'])) : '-').'</td>
+                        <td class="text-center">';
+                        if($level_user == 1){
+                          echo'
+                          <button type="button" data-id="'.$request['assignment_id'].'" data-status="active" class="btn btn-success btn-xs update-status"><i class="fa fa-check"></i> Approve</button>
+                          <button type="button" data-id="'.$request['assignment_id'].'" data-status="cancelled" class="btn btn-danger btn-xs update-status"><i class="fa fa-ban"></i> Tolak</button>';
+                        } else {
+                          echo'<button type="button" class="btn btn-warning btn-xs access-failed">Aksi</button>';
+                        }
+                        echo'
+                        </td>
+                      </tr>';
+                    }
+                  } else {
+                    echo'<tr><td colspan="8" class="text-center text-muted">Belum ada ajuan penugasan.</td></tr>';
+                  }
+                  echo'
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>

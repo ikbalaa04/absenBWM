@@ -637,6 +637,69 @@ if (empty($error)){
 }
 break;
 
+// ------------- Ajukan Penugasan -------------*/
+case 'assignment-request':
+$error = array();
+$employees_id = mysqli_real_escape_string($connection, $row_user['id']);
+
+if (empty($_POST['assignment_signer_id'])) {
+    $error[] = 'Pemberi tugas wajib dipilih';
+  } else {
+    $assignment_signer_id = mysqli_real_escape_string($connection, $_POST['assignment_signer_id']);
+    $query_signer = "SELECT employees.id FROM employees INNER JOIN position ON position.position_id=employees.position_id WHERE employees.id='$assignment_signer_id' AND position.position_name LIKE '%Manajemen%' LIMIT 1";
+    $result_signer = $connection->query($query_signer);
+    if (!$result_signer || $result_signer->num_rows == 0) {
+      $error[] = 'Pemberi tugas harus user dengan jabatan Manajemen';
+    }
+}
+
+if (empty($_POST['assignment_start'])) {
+    $error[] = 'Tanggal mulai wajib diisi';
+  } else {
+    $assignment_start = date('Y-m-d', strtotime($_POST['assignment_start']));
+}
+
+if (empty($_POST['assignment_end'])) {
+    $error[] = 'Tanggal selesai wajib diisi';
+  } else {
+    $assignment_end = date('Y-m-d', strtotime($_POST['assignment_end']));
+}
+
+if (!empty($assignment_start) && !empty($assignment_end) && strtotime($assignment_start) > strtotime($assignment_end)) {
+    $error[] = 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai';
+}
+
+if (empty($_POST['assignment_location'])) {
+    $error[] = 'Lokasi/tujuan tugas wajib diisi';
+  } else {
+    $assignment_location = mysqli_real_escape_string($connection, strip_tags($_POST['assignment_location']));
+}
+
+if (empty($_POST['assignment_description'])) {
+    $error[] = 'Keterangan tugas wajib diisi';
+  } else {
+    $assignment_description = mysqli_real_escape_string($connection, strip_tags($_POST['assignment_description']));
+}
+
+if (empty($error)) {
+  $check = $connection->query("SELECT assignment_id FROM assignments WHERE employees_id='$employees_id' AND assignment_status IN ('pending','active') AND assignment_start <= '$assignment_end' AND assignment_end >= '$assignment_start' LIMIT 1");
+  if ($check && $check->num_rows > 0) {
+    echo'Anda sudah memiliki ajuan atau penugasan aktif pada rentang tanggal tersebut.';
+    break;
+  }
+
+  $add ="INSERT INTO assignments (employees_id,assignment_start,assignment_end,assignment_location,assignment_description,assignment_number,assignment_signer_id,assignment_status,assignment_source,requested_at,created_at,updated_at)
+        VALUES('$employees_id','$assignment_start','$assignment_end','$assignment_location','$assignment_description','','$assignment_signer_id','pending','staff','$timeNow','$timeNow','$timeNow')";
+  if($connection->query($add) === false) {
+      echo'Data tidak berhasil disimpan: '.$connection->error;
+  } else{
+      echo'success';
+  }
+} else {
+  echo implode('<br>', $error);
+}
+break;
+
 /* -------- UPDATE PHOTO ----------------*/
 case 'update-photo':
   if (empty($_FILES['file']['name']) || empty($_FILES['file']['tmp_name'])) {

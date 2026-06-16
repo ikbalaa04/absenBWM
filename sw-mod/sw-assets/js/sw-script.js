@@ -680,6 +680,39 @@ $('.btn-print').click(function (e) {
     });
 
 
+    /* ------------------ AJUKAN PENUGASAN ------------------*/
+    $(document).on('submit', '#form-assignment-request', function (e) {
+        e.preventDefault();
+        var form = this;
+        if($("select[name=assignment_signer_id]", form).val()=="" || $("input[name=assignment_start]", form).val()=="" || $("input[name=assignment_end]", form).val()=="" || $("input[name=assignment_location]", form).val()=="" || $("textarea[name=assignment_description]", form).val()==""){
+             swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
+            return false;
+        }
+        $.ajax({
+            url: swProcessUrl+"?action=assignment-request",
+            type: "POST",
+            data: new FormData(this),
+            processData: false,
+            contentType: false,
+            cache: false,
+            beforeSend: function () {
+              loading();
+            },
+            success: function (data) {
+                if (data == 'success') {
+                    swal({title: 'Berhasil!', text: 'Ajuan penugasan berhasil dikirim.', icon: 'success', timer: 1800,});
+                    $('#modal-assignment-request').modal('hide');
+                    setTimeout(function(){ location.reload(); }, 1800);
+                } else {
+                    swal({title: 'Oops!', text: data, icon: 'error', timer: 2000,});
+                }
+            },
+            complete: function () {
+                $(".loading").hide();
+            },
+        });
+    });
+
     /* ------------------ LOAD DATA COUNT ABSENSI HOME ------------------*/
     function loadDataCounter() {
         $.ajax({

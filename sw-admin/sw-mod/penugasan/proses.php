@@ -85,8 +85,8 @@ case 'add':
     }
 
     $assignment_number = mysqli_real_escape_string($connection, assignment_number($connection, $assignment_start));
-    $add ="INSERT INTO assignments (employees_id,assignment_start,assignment_end,assignment_location,assignment_description,assignment_number,assignment_signer_id,assignment_status,created_at,updated_at)
-          VALUES('$employees_id','$assignment_start','$assignment_end','$assignment_location','$assignment_description','$assignment_number','$assignment_signer_id','active','$timeNow','$timeNow')";
+    $add ="INSERT INTO assignments (employees_id,assignment_start,assignment_end,assignment_location,assignment_description,assignment_number,assignment_signer_id,assignment_status,assignment_source,approved_at,approved_by,created_at,updated_at)
+          VALUES('$employees_id','$assignment_start','$assignment_end','$assignment_location','$assignment_description','$assignment_number','$assignment_signer_id','active','admin','$timeNow','$user_id','$timeNow','$timeNow')";
     if($connection->query($add) === false) {
         echo'Data tidak berhasil disimpan: '.$connection->error;
     } else{
@@ -149,7 +149,7 @@ case 'update':
       $assignment_description = mysqli_real_escape_string($connection, strip_tags($_POST['assignment_description']));
   }
 
-  $allowed_status = array('active','completed','cancelled');
+  $allowed_status = array('pending','active','completed','cancelled');
   if (empty($_POST['assignment_status']) || !in_array($_POST['assignment_status'], $allowed_status)) {
       $error[] = 'Status tidak valid';
     } else {
@@ -235,7 +235,29 @@ case 'update-status':
   }
 
   if (empty($error)) {
-    $update="UPDATE assignments SET assignment_status='$status', updated_at='$timeNow' WHERE assignment_id='$assignment_id'";
+    if ($status == 'active') {
+      $query_assignment = $connection->query("SELECT assignment_id,employees_id,assignment_start,assignment_end,assignment_number,assignment_status FROM assignments WHERE assignment_id='$assignment_id' LIMIT 1");
+      if (!$query_assignment || $query_assignment->num_rows == 0) {
+        echo'Data penugasan tidak ditemukan.';
+        break;
+      }
+      $assignment = $query_assignment->fetch_assoc();
+      $employees_id = mysqli_real_escape_string($connection, $assignment['employees_id']);
+      $assignment_start = mysqli_real_escape_string($connection, $assignment['assignment_start']);
+      $assignment_end = mysqli_real_escape_string($connection, $assignment['assignment_end']);
+      $check = $connection->query("SELECT assignment_id FROM assignments WHERE assignment_id!='$assignment_id' AND employees_id='$employees_id' AND assignment_status='active' AND assignment_start <= '$assignment_end' AND assignment_end >= '$assignment_start' LIMIT 1");
+      if ($check && $check->num_rows > 0) {
+        echo'Staff sudah memiliki penugasan aktif pada rentang tanggal tersebut.';
+        break;
+      }
+      $assignment_number = mysqli_real_escape_string($connection, $assignment['assignment_number']);
+      if (empty($assignment_number)) {
+        $assignment_number = mysqli_real_escape_string($connection, assignment_number($connection, $assignment_start));
+      }
+      $update="UPDATE assignments SET assignment_status='active', assignment_number='$assignment_number', approved_at='$timeNow', approved_by='$user_id', updated_at='$timeNow' WHERE assignment_id='$assignment_id'";
+    } else {
+      $update="UPDATE assignments SET assignment_status='$status', updated_at='$timeNow' WHERE assignment_id='$assignment_id'";
+    }
     if($connection->query($update) === false) {
         echo'Data tidak berhasil disimpan: '.$connection->error;
     } else{
