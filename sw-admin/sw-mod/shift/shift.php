@@ -116,7 +116,11 @@ echo'
               $outside_rule_label = $has_outside_rule ? 'Masuk '.$outside_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $outside_rule['time_out'] : '-').'<br>Minimal '.format_shift_minutes($outside_rule['weekly_min_minutes']).'/minggu<br>Maksimal '.format_shift_minutes($outside_rule['weekly_limit_minutes']).'/minggu<br><small>Toleransi '.format_shift_minutes($outside_rule['weekly_tolerance_minutes']).'</small>' : '<span class="text-muted">Tidak diatur</span>';
               $daily_rules = attendance_get_shift_daily_rules($connection, $row['shift_id']);
               $daily_rules_json = htmlspecialchars(json_encode($daily_rules), ENT_QUOTES, 'UTF-8');
-              $office_rule_label = ((int)$row['custom_daily_rules'] === 1 ? '<span class="label label-info">Custom per hari</span><br>' : '').'Masuk '.$office_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $office_rule['time_out'] : '-').'<br>Minimal '.format_shift_minutes($row['min_work_minutes']).'/minggu';
+              if ((int)$row['custom_daily_rules'] === 1) {
+                $office_rule_label = '<span class="label label-info">Custom per hari</span><br><small>Menggunakan jam kerja harian</small><br>Minimal '.format_shift_minutes($row['min_work_minutes']).'/minggu';
+              } else {
+                $office_rule_label = 'Masuk '.$office_rule['time_in'].'<br>Pulang '.($row['checkout_required'] == 1 ? $office_rule['time_out'] : '-').'<br>Minimal '.format_shift_minutes($row['min_work_minutes']).'/minggu';
+              }
               $total_weekly_minimum = (int)$row['min_work_minutes'] + ($has_outside_rule ? (int)$outside_rule['weekly_min_minutes'] : 0);
               $weekly_minimum_label = $has_outside_rule ? 'Kantor '.format_shift_minutes($row['min_work_minutes']).'<br>Luar kantor '.format_shift_minutes($outside_rule['weekly_min_minutes']).'<br><small>Total '.format_shift_minutes($total_weekly_minimum).'</small>' : format_shift_minutes($row['min_work_minutes']);
               $employees_count ="SELECT id FROM employees WHERE shift_id='$row[shift_id]'";
@@ -174,7 +178,7 @@ echo'
             <input type="text" class="form-control" name="shift_name" required>
         </div>
 
-        <div class="form-group">
+        <div class="form-group add-default-office-rule">
             <label>Waktu Masuk Kantor</label>
             <div class="input-group">
               <input type="text" name="time_in" class="form-control timepicker" data-date-format="HH:mm:ss" value="07:30:00" required>
@@ -184,7 +188,7 @@ echo'
             </div>
         </div>
 
-	        <div class="form-group">
+	        <div class="form-group add-default-office-rule">
 	            <label>Waktu Pulang Kantor</label>
             <div class="input-group">
 	              <input type="text" name="time_out" class="form-control timepicker">
@@ -194,10 +198,18 @@ echo'
             </div>
 	        </div>
 
+	        <div class="checkbox">
+	            <label>
+	                <input type="checkbox" name="custom_daily_rules" id="add_custom_daily_rules" value="1" onchange="toggleCustomDailyRules(&quot;add&quot;, this.checked)"> Custom jam kerja kantor per hari
+	            </label>
+	            <p class="help-block">Khusus Full Kantor. Jika aktif, jam default di atas diganti oleh aturan harian. Hari kosong tidak wajib absen dan tidak dihitung alfa.</p>
+	        </div>
+          '.shift_daily_rule_fields('add').'
+
 	        <div class="form-group">
 	            <label>Minimal Jam Kantor Mingguan (menit)</label>
-	            <input type="number" name="min_work_minutes" class="form-control" min="0" value="0">
-	            <p class="help-block">Target minimal jam kerja di kantor per minggu. Contoh: 24 jam = 1440 menit.</p>
+	            <input type="number" name="min_work_minutes" id="addmin" class="form-control" min="0" value="0">
+	            <p class="help-block">Target minimal jam kerja di kantor per minggu. Jika custom aktif, nilai ini dihitung dari akumulasi jam harian.</p>
 	        </div>
 
 	        <div class="checkbox">
@@ -248,14 +260,6 @@ echo'
 
 	        <div class="checkbox">
 	            <label>
-	                <input type="checkbox" name="custom_daily_rules" id="add_custom_daily_rules" value="1" onchange="$(&quot;.add-daily-rule&quot;).toggle(this.checked)"> Custom jam kerja kantor per hari
-	            </label>
-	            <p class="help-block">Khusus Full Kantor. Hari kosong tidak wajib absen dan tidak dihitung alfa.</p>
-	        </div>
-          '.shift_daily_rule_fields('add').'
-
-	        <div class="checkbox">
-	            <label>
 	                <input type="checkbox" name="checkout_required" value="1" checked> Wajib absen pulang
 	            </label>
 	            <p class="help-block">Matikan untuk shift WFH atau staff lapangan yang hanya absen satu kali per hari.</p>
@@ -288,7 +292,7 @@ echo'
               <input type="text" class="form-control" id="txtname" name="shift_name" required>
           </div>
 
-	          <div class="form-group">
+	          <div class="form-group edit-default-office-rule">
 	              <label>Waktu Masuk Kantor</label>
 	              <div class="input-group">
 	                <input type="text" name="time_in" id="txtin" class="form-control timepicker" data-date-format="HH:mm:ss" value="" required>
@@ -298,7 +302,7 @@ echo'
 	              </div>
 	          </div>
 
-	          <div class="form-group">
+	          <div class="form-group edit-default-office-rule">
 	              <label>Waktu Pulang Kantor</label>
 	              <div class="input-group">
 	                <input type="text" name="time_out" id="txtout" class="form-control timepicker">
@@ -308,10 +312,18 @@ echo'
 	              </div>
 	          </div>
 
+	          <div class="checkbox">
+	              <label>
+	                  <input type="checkbox" name="custom_daily_rules" id="edit_custom_daily_rules" value="1" onchange="toggleCustomDailyRules(&quot;edit&quot;, this.checked)"> Custom jam kerja kantor per hari
+	              </label>
+	              <p class="help-block">Khusus Full Kantor. Jika aktif, jam default di atas diganti oleh aturan harian. Hari kosong tidak wajib absen dan tidak dihitung alfa.</p>
+	          </div>
+            '.shift_daily_rule_fields('edit').'
+
 	          <div class="form-group">
 	              <label>Minimal Jam Kantor Mingguan (menit)</label>
 	              <input type="number" name="min_work_minutes" id="txtmin" class="form-control" min="0" value="0">
-	              <p class="help-block">Target minimal jam kerja di kantor per minggu. Contoh: 24 jam = 1440 menit.</p>
+	              <p class="help-block">Target minimal jam kerja di kantor per minggu. Jika custom aktif, nilai ini dihitung dari akumulasi jam harian.</p>
 	          </div>
 
 	          <div class="checkbox">
@@ -320,14 +332,6 @@ echo'
 	              </label>
 	              <p class="help-block">Centang hanya jika shift ini dipakai karyawan Remote/Hybrid dengan jam luar kantor yang berbeda.</p>
 	          </div>
-
-	          <div class="checkbox">
-	              <label>
-	                  <input type="checkbox" name="custom_daily_rules" id="edit_custom_daily_rules" value="1" onchange="$(&quot;.edit-daily-rule&quot;).toggle(this.checked)"> Custom jam kerja kantor per hari
-	              </label>
-	              <p class="help-block">Khusus Full Kantor. Hari kosong tidak wajib absen dan tidak dihitung alfa.</p>
-	          </div>
-            '.shift_daily_rule_fields('edit').'
 
 	          <div class="form-group edit-outside-rule" style="display:none">
 	              <label>Waktu Masuk Luar Kantor</label>
@@ -393,7 +397,7 @@ function setEditDailyRules(enabled, rules) {
   if (custom) {
     custom.checked = !!enabled;
   }
-  $(".edit-daily-rule").toggle(!!enabled);
+  toggleCustomDailyRules("edit", !!enabled);
   for (var day = 1; day <= 7; day++) {
     var rule = rules && rules[day] ? rules[day] : {};
     var active = document.getElementById("txtdailyactive" + day);
@@ -404,7 +408,80 @@ function setEditDailyRules(enabled, rules) {
     if (timeIn) timeIn.value = rule.time_in && rule.time_in !== "00:00:00" ? rule.time_in : "";
     if (timeOut) timeOut.value = rule.time_out && rule.time_out !== "00:00:00" ? rule.time_out : "";
     if (min) min.value = rule.min_work_minutes || 0;
+    updateDailyMinutes("txtdaily", day);
+  }
+  updateDailyWeeklyTotal("edit");
+}
+function toggleCustomDailyRules(mode, enabled) {
+  $("." + mode + "-daily-rule").toggle(!!enabled);
+  $("." + mode + "-default-office-rule").toggle(!enabled);
+  var timeIn = mode === "add" ? document.querySelector("input[name='time_in']") : document.getElementById("txtin");
+  var timeOut = mode === "add" ? document.querySelector("input[name='time_out']") : document.getElementById("txtout");
+  var min = mode === "add" ? document.getElementById("addmin") : document.getElementById("txtmin");
+  if (timeIn) {
+    timeIn.disabled = !!enabled;
+    timeIn.required = !enabled;
+  }
+  if (timeOut) {
+    timeOut.disabled = !!enabled;
+  }
+  if (min) {
+    min.readOnly = !!enabled;
+    min.title = enabled ? "Otomatis dari akumulasi minimal harian" : "";
+  }
+  if (enabled) {
+    updateDailyWeeklyTotal(mode);
   }
 }
+function parseDailyTime(value) {
+  if (!value) return null;
+  var parts = value.split(":");
+  if (parts.length < 2) return null;
+  var hours = parseInt(parts[0], 10);
+  var minutes = parseInt(parts[1], 10);
+  if (isNaN(hours) || isNaN(minutes)) return null;
+  return (hours * 60) + minutes;
+}
+function updateDailyMinutes(prefix, day) {
+  var timeIn = document.getElementById(prefix + "in" + day);
+  var timeOut = document.getElementById(prefix + "out" + day);
+  var min = document.getElementById(prefix + "min" + day);
+  if (!timeIn || !timeOut || !min) return;
+  var start = parseDailyTime(timeIn.value);
+  var end = parseDailyTime(timeOut.value);
+  if (start === null || end === null) return;
+  if (end < start) {
+    end += 1440;
+  }
+  min.value = Math.max(0, end - start);
+  updateDailyWeeklyTotal(prefix === "adddaily" ? "add" : "edit");
+}
+function updateDailyWeeklyTotal(mode) {
+  var prefix = mode === "add" ? "adddaily" : "txtdaily";
+  var total = 0;
+  for (var day = 1; day <= 7; day++) {
+    var active = document.getElementById(prefix + "active" + day);
+    var min = document.getElementById(prefix + "min" + day);
+    if (active && active.checked && min) {
+      total += parseInt(min.value || "0", 10) || 0;
+    }
+  }
+  var weeklyMin = mode === "add" ? document.getElementById("addmin") : document.getElementById("txtmin");
+  if (weeklyMin) {
+    weeklyMin.value = total;
+  }
+}
+$(document).on("change keyup", "[id^=adddailyin], [id^=adddailyout], [id^=txtdailyin], [id^=txtdailyout]", function() {
+  var match = this.id.match(/^(adddaily|txtdaily)(in|out)([1-7])$/);
+  if (match) {
+    updateDailyMinutes(match[1], match[3]);
+  }
+});
+$(document).on("change", "[id^=adddailyactive], [id^=txtdailyactive], [id^=adddailymin], [id^=txtdailymin]", function() {
+  var match = this.id.match(/^(adddaily|txtdaily)(active|min)([1-7])$/);
+  if (match) {
+    updateDailyWeeklyTotal(match[1] === "adddaily" ? "add" : "edit");
+  }
+});
 </script>
 <?php }?>

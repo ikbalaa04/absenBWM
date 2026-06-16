@@ -39,6 +39,16 @@ function save_shift_daily_rules($connection, $shift_id, $enabled) {
         $is_active = 1;
         $time_in = mysqli_real_escape_string($connection, $posted_time_in);
         $time_out = $posted_time_out !== '' ? mysqli_real_escape_string($connection, $posted_time_out) : '00:00:00';
+        if ($posted_min <= 0 && $posted_time_out !== '') {
+          $start = strtotime('2000-01-01 '.$posted_time_in);
+          $end = strtotime('2000-01-01 '.$posted_time_out);
+          if ($start && $end) {
+            if ($end < $start) {
+              $end += 86400;
+            }
+            $posted_min = (int)floor(($end - $start) / 60);
+          }
+        }
         $min_work_minutes = max(0, $posted_min);
       }
     }
@@ -47,6 +57,49 @@ function save_shift_daily_rules($connection, $shift_id, $enabled) {
       VALUES ('$shift_id','$day','$is_active','$time_in','$time_out','$min_work_minutes')
       ON DUPLICATE KEY UPDATE is_active=VALUES(is_active), time_in=VALUES(time_in), time_out=VALUES(time_out), min_work_minutes=VALUES(min_work_minutes)");
   }
+}
+
+function posted_shift_daily_default_rule() {
+  for ($day = 1; $day <= 7; $day++) {
+    $posted_active = !empty($_POST['daily_active'][$day]);
+    $posted_time_in = isset($_POST['daily_time_in'][$day]) ? trim($_POST['daily_time_in'][$day]) : '';
+    if ($posted_active && $posted_time_in !== '') {
+      $posted_time_out = isset($_POST['daily_time_out'][$day]) ? trim($_POST['daily_time_out'][$day]) : '';
+      return array(
+        'time_in' => $posted_time_in,
+        'time_out' => $posted_time_out !== '' ? $posted_time_out : '00:00:00'
+      );
+    }
+  }
+
+  return array('time_in' => '00:00:00', 'time_out' => '00:00:00');
+}
+
+function posted_shift_daily_total_minutes() {
+  $total = 0;
+  for ($day = 1; $day <= 7; $day++) {
+    $posted_active = !empty($_POST['daily_active'][$day]);
+    $posted_time_in = isset($_POST['daily_time_in'][$day]) ? trim($_POST['daily_time_in'][$day]) : '';
+    if (!$posted_active || $posted_time_in === '') {
+      continue;
+    }
+
+    $posted_min = isset($_POST['daily_min_work_minutes'][$day]) ? (int)$_POST['daily_min_work_minutes'][$day] : 0;
+    $posted_time_out = isset($_POST['daily_time_out'][$day]) ? trim($_POST['daily_time_out'][$day]) : '';
+    if ($posted_min <= 0 && $posted_time_out !== '') {
+      $start = strtotime('2000-01-01 '.$posted_time_in);
+      $end = strtotime('2000-01-01 '.$posted_time_out);
+      if ($start && $end) {
+        if ($end < $start) {
+          $end += 86400;
+        }
+        $posted_min = (int)floor(($end - $start) / 60);
+      }
+    }
+    $total += max(0, $posted_min);
+  }
+
+  return $total;
 }
 
 function shift_format_minutes($minutes) {
@@ -195,22 +248,24 @@ case 'add':
       $shift_name= mysqli_real_escape_string($connection, $_POST['shift_name']);
   }
 
-  if (empty($_POST['time_in'])) {
+  $custom_daily_rules = !empty($_POST['custom_daily_rules']) ? 1 : 0;
+  $daily_default_rule = $custom_daily_rules === 1 ? posted_shift_daily_default_rule() : array('time_in' => '', 'time_out' => '');
+
+  if (empty($_POST['time_in']) && $custom_daily_rules === 0) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $time_in= mysqli_real_escape_string($connection, $_POST['time_in']);
+      $time_in= mysqli_real_escape_string($connection, $custom_daily_rules === 1 ? $daily_default_rule['time_in'] : $_POST['time_in']);
   }
-  $min_work_minutes = !empty($_POST['min_work_minutes']) ? (int)$_POST['min_work_minutes'] : 0;
-  $custom_daily_rules = !empty($_POST['custom_daily_rules']) ? 1 : 0;
+  $min_work_minutes = $custom_daily_rules === 1 ? posted_shift_daily_total_minutes() : (!empty($_POST['min_work_minutes']) ? (int)$_POST['min_work_minutes'] : 0);
   $use_outside_rule = !empty($_POST['use_outside_rule']);
   $outside_time_in = ($use_outside_rule && !empty($_POST['outside_time_in'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_in']) : $time_in;
 
 
 	  $checkout_required = isset($_POST['checkout_required']) ? 1 : 0;
-	  if ($checkout_required === 1 && empty($_POST['time_out'])) {
+	  if ($checkout_required === 1 && empty($_POST['time_out']) && $custom_daily_rules === 0) {
 	      $error[] = 'tidak boleh kosong';
 	    } else {
-	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : '00:00:00';
+	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : mysqli_real_escape_string($connection, $custom_daily_rules === 1 ? $daily_default_rule['time_out'] : '00:00:00');
 	  }
 	  $outside_time_out = ($use_outside_rule && !empty($_POST['outside_time_out'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
 	  $outside_weekly_min_minutes = ($use_outside_rule && !empty($_POST['outside_min_work_minutes'])) ? (int)$_POST['outside_min_work_minutes'] : 0;
@@ -260,22 +315,24 @@ case 'update':
       $shift_name= mysqli_real_escape_string($connection, $_POST['shift_name']);
   }
 
-  if (empty($_POST['time_in'])) {
+  $custom_daily_rules = !empty($_POST['custom_daily_rules']) ? 1 : 0;
+  $daily_default_rule = $custom_daily_rules === 1 ? posted_shift_daily_default_rule() : array('time_in' => '', 'time_out' => '');
+
+  if (empty($_POST['time_in']) && $custom_daily_rules === 0) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $time_in= mysqli_real_escape_string($connection, $_POST['time_in']);
+      $time_in= mysqli_real_escape_string($connection, $custom_daily_rules === 1 ? $daily_default_rule['time_in'] : $_POST['time_in']);
   }
-  $min_work_minutes = !empty($_POST['min_work_minutes']) ? (int)$_POST['min_work_minutes'] : 0;
-  $custom_daily_rules = !empty($_POST['custom_daily_rules']) ? 1 : 0;
+  $min_work_minutes = $custom_daily_rules === 1 ? posted_shift_daily_total_minutes() : (!empty($_POST['min_work_minutes']) ? (int)$_POST['min_work_minutes'] : 0);
   $use_outside_rule = !empty($_POST['use_outside_rule']);
   $outside_time_in = ($use_outside_rule && !empty($_POST['outside_time_in'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_in']) : $time_in;
 
 
 	  $checkout_required = isset($_POST['checkout_required']) ? 1 : 0;
-	  if ($checkout_required === 1 && empty($_POST['time_out'])) {
+	  if ($checkout_required === 1 && empty($_POST['time_out']) && $custom_daily_rules === 0) {
 	      $error[] = 'tidak boleh kosong';
 	    } else {
-	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : '00:00:00';
+	      $time_out = !empty($_POST['time_out']) ? mysqli_real_escape_string($connection, $_POST['time_out']) : mysqli_real_escape_string($connection, $custom_daily_rules === 1 ? $daily_default_rule['time_out'] : '00:00:00');
 	  }
 	  $outside_time_out = ($use_outside_rule && !empty($_POST['outside_time_out'])) ? mysqli_real_escape_string($connection, $_POST['outside_time_out']) : $time_out;
 	  $outside_weekly_min_minutes = ($use_outside_rule && !empty($_POST['outside_min_work_minutes'])) ? (int)$_POST['outside_min_work_minutes'] : 0;
