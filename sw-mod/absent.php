@@ -19,6 +19,12 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
   }
   $off_day_message = attendance_off_day_message($date);
   $attendance_mode = attendance_normalize_mode(isset($row_user['attendance_mode']) ? $row_user['attendance_mode'] : 'office');
+  if ($attendance_mode === 'office') {
+    $work_day_info = attendance_employee_work_day_rule($connection, $row_user, $date, 'office');
+    if (!empty($work_day_info['rule']['is_custom_daily'])) {
+      $off_day_message = $work_day_info['is_work_day'] ? '' : 'Tidak ada jadwal kerja kantor untuk tanggal ini. Absensi tidak wajib dan tidak dihitung alfa.';
+    }
+  }
   $default_location_type = $attendance_mode === 'remote' ? 'outside' : 'office';
   $attendance_page_action = (!empty($_GET['type']) && $_GET['type'] === 'pulang') ? 'out' : 'in';
   $attendance_page_title = $attendance_page_action === 'out' ? 'Absen Pulang' : 'Absen Masuk';

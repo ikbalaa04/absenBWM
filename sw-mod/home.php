@@ -57,12 +57,18 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   $active_assignment = assignment_get_active_for_employee($connection, $row_user['id'], $date);
   $off_day_message = attendance_off_day_message($date);
   $attendance_mode = attendance_normalize_mode(isset($row_user['attendance_mode']) ? $row_user['attendance_mode'] : 'office');
+  if ($attendance_mode === 'office') {
+    $work_day_info = attendance_employee_work_day_rule($connection, $row_user, $date, 'office');
+    if (!empty($work_day_info['rule']['is_custom_daily'])) {
+      $off_day_message = $work_day_info['is_work_day'] ? '' : 'Tidak ada jadwal kerja kantor untuk tanggal ini. Absensi tidak wajib dan tidak dihitung alfa.';
+    }
+  }
   $week_start = date('Y-m-d', strtotime('monday this week'));
   $week_end = date('Y-m-d', strtotime('friday this week'));
   $shift_id = mysqli_real_escape_string($connection, $row_user['shift_id']);
   $weekly_targets = attendance_shift_weekly_targets($connection, $shift_id);
   $office_weekly_target_minutes = (int)$weekly_targets['office'];
-  $office_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'office');
+  $office_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'office', $date);
   if ($office_weekly_target_minutes <= 0) {
     if ($office_rule['time_out'] != '00:00:00') {
       $office_weekly_target_minutes = max(0, (strtotime($office_rule['time_out']) - strtotime($office_rule['time_in'])) / 60) * 5;

@@ -275,10 +275,13 @@ if (!function_exists('attendance_ranking_calculate')) {
         if (!empty($used_dates[$ranking_date])) {
           continue;
         }
-        if (attendance_off_day_label($ranking_date, $connection) !== '') {
+        $work_day_info = attendance_employee_work_day_rule($connection, $employee, $ranking_date, 'office');
+        if (!$work_day_info['is_work_day']) {
           continue;
         }
-        if (!attendance_ranking_deadline_passed($ranking_date, $employee['shift_time_in'], 120)) {
+        $ranking_rule = $work_day_info['rule'];
+        $ranking_time_in = !empty($ranking_rule['time_in']) ? $ranking_rule['time_in'] : $employee['shift_time_in'];
+        if (!attendance_ranking_deadline_passed($ranking_date, $ranking_time_in, 120)) {
           continue;
         }
         $summary['absent']++;

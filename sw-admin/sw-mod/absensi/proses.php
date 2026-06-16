@@ -112,12 +112,14 @@ echo'
       $resulta= $connection->query($querya);
       $rowa =  $resulta->fetch_assoc();
         // Status Kehadiran
+        $off_day_label = '';
         if($is_assignment_attendance){
           $status_hadir ='<label class="label label-primary">Dalam tugas</label>';
           $time_in = $row_absen['time_in'];
         }
         elseif($row_absen['time_in'] == NULL){
-          $off_day_label = attendance_off_day_label($date_month_year, $connection);
+          $work_day_info = attendance_employee_work_day_rule($connection, $row, $date_month_year, 'office');
+          $off_day_label = $work_day_info['is_work_day'] ? '' : $work_day_info['label'];
           if ($off_day_label !== '') {
             $status_hadir = $off_day_label;
             $row_absen['information'] = '';
@@ -134,6 +136,9 @@ echo'
         // Status Absensi Jam Masuk
         if($is_assignment_attendance){
           $status_time_in ='<label class="label label-primary">Dalam tugas</label>';
+        }
+        elseif($row_absen['time_in'] == NULL && $off_day_label !== ''){
+          $status_time_in ='<label class="label label-default">Tidak wajib</label>';
         }
         elseif($row_absen['status']=='Telat'){
           $status_time_in ='<label class="label label-danger">Terlambat</label>';

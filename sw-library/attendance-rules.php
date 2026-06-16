@@ -70,6 +70,9 @@ if (!function_exists('attendance_ensure_schema')) {
 	    if (empty($shift_columns['checkout_required'])) {
 	      $connection->query("ALTER TABLE shift ADD checkout_required tinyint(1) NOT NULL DEFAULT 1 AFTER min_work_minutes");
 	    }
+	    if (empty($shift_columns['custom_daily_rules'])) {
+	      $connection->query("ALTER TABLE shift ADD custom_daily_rules tinyint(1) NOT NULL DEFAULT 0 AFTER checkout_required");
+	    }
 	    $connection->query("CREATE TABLE IF NOT EXISTS attendance_holidays (
 	      holiday_id int(11) NOT NULL AUTO_INCREMENT,
 	      holiday_date date NOT NULL,
@@ -114,6 +117,19 @@ if (!function_exists('attendance_ensure_schema')) {
 	    $connection->query("INSERT IGNORE INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes) SELECT shift_id,'office',time_in,time_out,0 FROM shift");
 	    $connection->query("INSERT IGNORE INTO shift_attendance_rules (shift_id,location_type,time_in,time_out,min_work_minutes,weekly_min_minutes) SELECT shift_id,'outside',time_in,time_out,0,min_work_minutes FROM shift");
 	    $connection->query("UPDATE shift_attendance_rules SET weekly_min_minutes=min_work_minutes WHERE location_type='outside' AND weekly_min_minutes=0 AND min_work_minutes>0");
+
+	    $connection->query("CREATE TABLE IF NOT EXISTS shift_daily_rules (
+	      daily_rule_id int(11) NOT NULL AUTO_INCREMENT,
+	      shift_id int(11) NOT NULL,
+	      day_of_week tinyint(1) NOT NULL,
+	      is_active tinyint(1) NOT NULL DEFAULT 0,
+	      time_in time NOT NULL DEFAULT '00:00:00',
+	      time_out time NOT NULL DEFAULT '00:00:00',
+	      min_work_minutes int(5) NOT NULL DEFAULT 0,
+	      PRIMARY KEY (daily_rule_id),
+	      UNIQUE KEY shift_day (shift_id,day_of_week),
+	      KEY shift_id (shift_id)
+	    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
     $building_columns = array();
     $result = $connection->query("SHOW COLUMNS FROM building");
@@ -278,26 +294,125 @@ if (!function_exists('attendance_resolve_location_type')) {
 }
 
 if (!function_exists('attendance_get_shift_rule')) {
-  function attendance_get_shift_rule($connection, $shift_id, $location_type) {
+  function attendance_get_shift_rule($connection, $shift_id, $location_type, $presence_date = '') {
     $shift_id = mysqli_real_escape_string($connection, $shift_id);
     $location_type = mysqli_real_escape_string($connection, attendance_normalize_location_type($location_type));
     if ($location_type === '') {
       $location_type = 'office';
     }
 
+    if ($location_type === 'office' && !empty($presence_date)) {
+      $shift_query = "SELECT custom_daily_rules FROM shift WHERE shift_id='$shift_id' LIMIT 1";
+      $shift_result = $connection->query($shift_query);
+      if ($shift_result && $shift_result->num_rows > 0) {
+        $shift_row = $shift_result->fetch_assoc();
+        if ((int)$shift_row['custom_daily_rules'] === 1) {
+          $day_of_week = (int)date('N', strtotime($presence_date));
+          $day_query = "SELECT is_active,time_in,time_out,min_work_minutes FROM shift_daily_rules WHERE shift_id='$shift_id' AND day_of_week='$day_of_week' LIMIT 1";
+          $day_result = $connection->query($day_query);
+          if ($day_result && $day_result->num_rows > 0) {
+            $day_rule = $day_result->fetch_assoc();
+            $day_rule['weekly_min_minutes'] = 0;
+            $day_rule['weekly_limit_minutes'] = 0;
+            $day_rule['weekly_tolerance_minutes'] = 0;
+            $day_rule['is_work_day'] = ((int)$day_rule['is_active'] === 1 && !empty($day_rule['time_in']) && $day_rule['time_in'] !== '00:00:00');
+            $day_rule['is_custom_daily'] = true;
+            return $day_rule;
+          }
+
+          return array(
+            'time_in' => '00:00:00',
+            'time_out' => '00:00:00',
+            'min_work_minutes' => 0,
+            'weekly_min_minutes' => 0,
+            'weekly_limit_minutes' => 0,
+            'weekly_tolerance_minutes' => 0,
+            'is_work_day' => false,
+            'is_custom_daily' => true
+          );
+        }
+      }
+    }
+
     $query = "SELECT time_in,time_out,min_work_minutes,weekly_min_minutes,weekly_limit_minutes,weekly_tolerance_minutes FROM shift_attendance_rules WHERE shift_id='$shift_id' AND location_type='$location_type' LIMIT 1";
     $result = $connection->query($query);
     if ($result && $result->num_rows > 0) {
-      return $result->fetch_assoc();
+      $rule = $result->fetch_assoc();
+      $rule['is_work_day'] = true;
+      $rule['is_custom_daily'] = false;
+      return $rule;
     }
 
     $query = "SELECT time_in,time_out,min_work_minutes,0 AS weekly_min_minutes,0 AS weekly_limit_minutes,30 AS weekly_tolerance_minutes FROM shift WHERE shift_id='$shift_id' LIMIT 1";
     $result = $connection->query($query);
     if ($result && $result->num_rows > 0) {
-      return $result->fetch_assoc();
+      $rule = $result->fetch_assoc();
+      $rule['is_work_day'] = true;
+      $rule['is_custom_daily'] = false;
+      return $rule;
     }
 
-    return array('time_in' => '00:00:00', 'time_out' => '00:00:00', 'min_work_minutes' => 0, 'weekly_min_minutes' => 0, 'weekly_limit_minutes' => 0, 'weekly_tolerance_minutes' => 30);
+    return array('time_in' => '00:00:00', 'time_out' => '00:00:00', 'min_work_minutes' => 0, 'weekly_min_minutes' => 0, 'weekly_limit_minutes' => 0, 'weekly_tolerance_minutes' => 30, 'is_work_day' => true, 'is_custom_daily' => false);
+  }
+}
+
+if (!function_exists('attendance_get_shift_daily_rules')) {
+  function attendance_get_shift_daily_rules($connection, $shift_id) {
+    $shift_id = mysqli_real_escape_string($connection, $shift_id);
+    $rules = array();
+    for ($day = 1; $day <= 7; $day++) {
+      $rules[$day] = array(
+        'is_active' => 0,
+        'time_in' => '',
+        'time_out' => '',
+        'min_work_minutes' => 0
+      );
+    }
+
+    $query = "SELECT day_of_week,is_active,time_in,time_out,min_work_minutes FROM shift_daily_rules WHERE shift_id='$shift_id'";
+    $result = $connection->query($query);
+    if ($result) {
+      while ($row = $result->fetch_assoc()) {
+        $day = (int)$row['day_of_week'];
+        if ($day >= 1 && $day <= 7) {
+          $rules[$day] = $row;
+        }
+      }
+    }
+
+    return $rules;
+  }
+}
+
+if (!function_exists('attendance_employee_work_day_rule')) {
+  function attendance_employee_work_day_rule($connection, $employee, $presence_date, $location_type = 'office') {
+    $location_type = attendance_normalize_location_type($location_type);
+    $shift_id = isset($employee['shift_id']) ? $employee['shift_id'] : 0;
+    $off_day_label = attendance_off_day_label($presence_date, $connection);
+    if ($off_day_label !== '') {
+      return array(
+        'is_work_day' => false,
+        'label' => $off_day_label,
+        'rule' => attendance_get_shift_rule($connection, $shift_id, $location_type, '')
+      );
+    }
+
+    $rule = attendance_get_shift_rule($connection, $shift_id, $location_type, $presence_date);
+    $has_custom_daily_state = !empty($rule['is_custom_daily']) && $location_type === 'office';
+
+    if ($has_custom_daily_state) {
+      return array(
+        'is_work_day' => $rule['is_work_day'] === true,
+        'label' => $rule['is_work_day'] === true ? '' : 'Tidak ada jadwal kerja kantor',
+        'rule' => $rule
+      );
+    }
+
+    return array(
+      'is_work_day' => true,
+      'label' => '',
+      'rule' => $rule
+    );
   }
 }
 
@@ -380,12 +495,28 @@ if (!function_exists('attendance_weekly_minutes_by_location')) {
 
 if (!function_exists('attendance_validate_checkin')) {
   function attendance_validate_checkin($employee, $latitude_longitude, $presence_date, $location_type = 'office') {
+	    $location_type = attendance_normalize_location_type($location_type);
 	    $off_day_message = attendance_off_day_message($presence_date);
 	    if ($off_day_message !== '') {
 	      return $off_day_message;
 	    }
-
-	    $location_type = attendance_normalize_location_type($location_type);
+	    $uses_daily_rule = false;
+	    if ($location_type === 'office' && !empty($employee['shift_id'])) {
+	      global $connection;
+	      if (!empty($connection)) {
+	        $shift_rule = attendance_get_shift_rule($connection, $employee['shift_id'], 'office', $presence_date);
+	        $uses_daily_rule = isset($shift_rule['is_work_day']) && $shift_rule['is_work_day'] === true;
+	        if (isset($shift_rule['is_work_day']) && $shift_rule['is_work_day'] === false) {
+	          return 'Tidak ada jadwal kerja kantor untuk tanggal ini. Absensi tidak wajib dan tidak dihitung alfa.';
+	        }
+	      }
+	    }
+	    if (!$uses_daily_rule) {
+	      $off_day_message = attendance_off_day_message($presence_date);
+	      if ($off_day_message !== '') {
+	        return $off_day_message;
+	      }
+	    }
 	    $parts = explode(',', $latitude_longitude);
 	    if (count($parts) < 2) {
 	      return 'Koordinat absen tidak valid.';

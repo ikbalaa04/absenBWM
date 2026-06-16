@@ -272,11 +272,6 @@ if (assignment_user_has_active($connection, $row_user['id'], $date)) {
   echo'Staff sedang dalam penugasan aktif. Silakan absen melalui menu Penugasan.';
   break;
 }
-$off_day_message = attendance_off_day_message($date);
-if ($off_day_message !== '') {
-  echo $off_day_message;
-  break;
-}
 if (empty($_FILES['webcam']['name']) || empty($_FILES['webcam']['tmp_name'])) {
       $error[] = 'Foto absen wajib diambil';
     } else {
@@ -347,7 +342,11 @@ if (empty($error)){
         break;
       }
     }
-    $shift_rule = attendance_get_shift_rule($connection, $row_u['shift_id'], $location_type);
+    $shift_rule = attendance_get_shift_rule($connection, $row_u['shift_id'], $location_type, $date);
+    if ($location_type === 'office' && !empty($shift_rule['is_custom_daily']) && $shift_rule['is_work_day'] !== true) {
+      echo'Tidak ada jadwal kerja kantor untuk tanggal ini. Absensi tidak wajib dan tidak dihitung alfa.';
+      break;
+    }
     $rule_time_in = mysqli_real_escape_string($connection, $shift_rule['time_in']);
     $rule_time_out = mysqli_real_escape_string($connection, $shift_rule['time_out']);
     $rule_min_work_minutes = (int)$shift_rule['min_work_minutes'];
@@ -803,7 +802,8 @@ echo'<table class="table rounded" id="swdatatable">
       $history_until = strtotime($history_end);
       while ($history_cursor && $history_cursor <= $history_until) {
         $history_date = date('Y-m-d', $history_cursor);
-        $off_day_label = attendance_off_day_label($history_date, $connection);
+        $work_day_info = attendance_employee_work_day_rule($connection, $row_user, $history_date, 'office');
+        $off_day_label = $work_day_info['is_work_day'] ? '' : $work_day_info['label'];
         if ($off_day_label !== '' && empty($history_used_dates[$history_date])) {
           $no++;
           echo'
