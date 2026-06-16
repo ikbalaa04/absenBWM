@@ -508,19 +508,33 @@ $('.btn-print').click(function (e) {
         var startLabel = startField.find('.cuty-start-label');
         var endField = $(form).find('.cuty-end-field');
         var endInput = endField.find('input');
+        var hourField = $(form).find('.cuty-hour-field');
+        var hourInputs = hourField.find('input');
 
         if (type === 'cuti') {
             startLabel.text('Mulai Cuti');
             startField.show();
             endField.show();
+            hourField.hide();
             startInput.prop('required', true);
             endInput.prop('required', true);
+            hourInputs.prop('required', false);
+        } else if (type === 'izin_jam') {
+            startLabel.text('Tanggal Izin');
+            startField.show();
+            endField.hide();
+            hourField.show();
+            startInput.prop('required', true);
+            endInput.prop('required', false);
+            hourInputs.prop('required', true);
         } else {
             startLabel.text('Tanggal Izin');
             startField.show();
             endField.hide();
+            hourField.hide();
             startInput.prop('required', true);
             endInput.prop('required', false);
+            hourInputs.prop('required', false);
         }
     }
 
@@ -546,6 +560,10 @@ $('.btn-print').click(function (e) {
         }
         if(type=="cuti" && $("#cutyend", form).val()==""){  
              swal({title:'Oops!', text: 'Tanggal mulai dan tanggal akhir wajib diisi untuk cuti.!', icon: 'error', timer: 1500,});
+            return false;
+        }
+        if(type=="izin_jam" && ($("input[name=cuty_time_start]", form).val()=="" || $("input[name=cuty_time_end]", form).val()=="")){  
+             swal({title:'Oops!', text: 'Jam mulai dan selesai wajib diisi untuk izin per jam.!', icon: 'error', timer: 1500,});
             return false;
         }
         if(isCutyDescriptionEmpty(form)){  
@@ -597,6 +615,12 @@ $('.btn-print').click(function (e) {
         var end = $(this).attr("data-end"); 
         document.getElementById('cuty-end').value = end;
 
+        var timeStart = $(this).attr("data-time-start") || ""; 
+        document.getElementById('cuty-time-start').value = timeStart;
+
+        var timeEnd = $(this).attr("data-time-end") || ""; 
+        document.getElementById('cuty-time-end').value = timeEnd;
+
         var cuty_description = $(this).attr("data-description"); 
         document.getElementById('cuty_description').value = cuty_description;
         toggleCutyDateFields($('#form-update-cuty'));
@@ -615,6 +639,10 @@ $('.btn-print').click(function (e) {
         }
         if(type=="cuti" && $("#cuty-end", form).val()==""){  
              swal({title:'Oops!', text: 'Tanggal mulai dan tanggal akhir wajib diisi untuk cuti.!', icon: 'error', timer: 1500,});
+            return false;
+        }
+        if(type=="izin_jam" && ($("input[name=cuty_time_start]", form).val()=="" || $("input[name=cuty_time_end]", form).val()=="")){  
+             swal({title:'Oops!', text: 'Jam mulai dan selesai wajib diisi untuk izin per jam.!', icon: 'error', timer: 1500,});
             return false;
         }
         if(isCutyDescriptionEmpty(form)){  

@@ -87,11 +87,12 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
 
                             <div class="form-group basic">
                                 <div class="input-wrapper">
-                                    <label class="label">Alasan</label>
+                                    <label class="label">Jenis Izin</label>
                                     <select class="form-control cuty-type" name="cuty_type" required>
                                         <option value="cuti">Cuti</option>
                                         <option value="sakit">Sakit</option>
                                         <option value="lainnya">Lainnya</option>
+                                        <option value="izin_jam">Izin Per Jam</option>
                                     </select>
                                 </div>
                             </div>
@@ -118,6 +119,20 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                                             </div>
                                         </div>
                                     </div>
+                            </div>
+
+                            <div class="form-group basic cuty-hour-field" style="display:none">
+                                <div class="input-wrapper">
+                                    <label class="label">Jam Izin</label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <input type="time" class="form-control" name="cuty_time_start">
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="time" class="form-control" name="cuty_time_end">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group basic">
@@ -159,11 +174,12 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
 
                             <div class="form-group basic">
                                 <div class="input-wrapper">
-                                    <label class="label">Alasan</label>
+                                    <label class="label">Jenis Izin</label>
                                     <select class="form-control cuty-type" id="cuty-type" name="cuty_type" required>
                                         <option value="cuti">Cuti</option>
                                         <option value="sakit">Sakit</option>
                                         <option value="lainnya">Lainnya</option>
+                                        <option value="izin_jam">Izin Per Jam</option>
                                     </select>
                                 </div>
                             </div>
@@ -190,6 +206,20 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                                             </div>
                                         </div>
                                     </div>
+                            </div>
+
+                            <div class="form-group basic cuty-hour-field" style="display:none">
+                                <div class="input-wrapper">
+                                    <label class="label">Jam Izin</label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <input type="time" class="form-control" id="cuty-time-start" name="cuty_time_start">
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="time" class="form-control" id="cuty-time-end" name="cuty_time_end">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group basic">

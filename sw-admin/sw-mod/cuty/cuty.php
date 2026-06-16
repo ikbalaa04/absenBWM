@@ -30,7 +30,7 @@ echo'
   <tr>
     <th style="width: 10px">No</th>
     <th>Nama</th>
-    <th>Alasan</th>
+    <th>Jenis Izin</th>
     <th>Cuti Dari</th>
     <th>Sampai</th>
     <th>Masuk Kerja</th>
@@ -54,15 +54,23 @@ echo'
     }
     $no++;
     $cuty_type = isset($row['cuty_type']) ? $row['cuty_type'] : 'cuti';
-    $cuty_type_label = ucfirst($cuty_type);
+    $cuty_type_label = $cuty_type == 'izin_jam' ? 'Izin Per Jam' : ucfirst($cuty_type);
+    $cuty_start_label = tgl_ind($row['cuty_start']);
+    $cuty_end_label = tgl_ind($row['cuty_end']);
+    $date_work_label = tgl_ind($row['date_work']);
+    if ($cuty_type == 'izin_jam') {
+      $cuty_start_label .= '<br><small>'.substr($row['cuty_time_start'],0,5).' - '.substr($row['cuty_time_end'],0,5).'</small>';
+      $cuty_end_label = '-';
+      $date_work_label = '-';
+    }
     echo'
     <tr>
       <td class="text-center">'.$no.'</td>
       <td>'.$row['employees_name'].'</td>
       <td><label class="label label-info">'.$cuty_type_label.'</label></td>
-      <td>'.tgl_ind($row['cuty_start']).'</td>
-      <td>'.tgl_ind($row['cuty_end']).'</td>
-      <td>'.tgl_ind($row['date_work']).'</td>
+      <td>'.$cuty_start_label.'</td>
+      <td>'.$cuty_end_label.'</td>
+      <td>'.$date_work_label.'</td>
       <td>'.strip_tags($row['cuty_description']).'</td>
       <td>'.$status.'</td>
       <td class="text-center">

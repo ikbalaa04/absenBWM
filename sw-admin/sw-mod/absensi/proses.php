@@ -107,6 +107,14 @@ echo'
           'selisih_out' => '-'
         );
       }
+      if(!$is_assignment_attendance && !empty($row_absen['time_in'])){
+        $effective_late_minutes = attendance_late_minutes_after_hourly_leave($connection, $id, $row_absen['presence_date'], $row_absen['time_in'], !empty($row_absen['rule_time_in']) ? $row_absen['rule_time_in'] : $shift_time_in);
+        if ($row_absen['status'] == 'Telat' && $effective_late_minutes <= 0) {
+          $row_absen['status'] = 'Tepat Waktu';
+          $row_absen['selisih'] = '00:00:00';
+          $row_absen['information'] .= ($row_absen['information'] !== '' ? '<br>' : '').'<span class="label label-info">Izin per jam disetujui</span>';
+        }
+      }
       // Status Kehadiran
       $querya ="SELECT present_id,present_name FROM present_status WHERE present_id='$row_absen[present_id]'";
       $resulta= $connection->query($querya);
@@ -233,8 +241,17 @@ echo'
       $izin = $connection->query($query_izin);
 
 
-      $query_telat ="SELECT presence_id FROM presence WHERE $filter AND time_in>'$shift_time_in'";
+      $late_total = 0;
+      $query_telat ="SELECT presence_date,time_in,rule_time_in FROM presence WHERE $filter AND time_in>COALESCE(rule_time_in,'$shift_time_in')";
       $telat = $connection->query($query_telat);
+      if ($telat) {
+        while ($row_telat = $telat->fetch_assoc()) {
+          $rule_time_in_late = !empty($row_telat['rule_time_in']) ? $row_telat['rule_time_in'] : $shift_time_in;
+          if (attendance_late_minutes_after_hourly_leave($connection, $id, $row_telat['presence_date'], $row_telat['time_in'], $rule_time_in_late) > 0) {
+            $late_total++;
+          }
+        }
+      }
 
       echo'<hr>
       <div class="row">
@@ -243,7 +260,7 @@ echo'
         </div>
 
         <div class="col-md-3">
-          <p>Terlambat : <span class="label label-danger">'.$telat->num_rows.'</span></p>
+          <p>Terlambat : <span class="label label-danger">'.$late_total.'</span></p>
         </div>
 
         <div class="col-md-3">

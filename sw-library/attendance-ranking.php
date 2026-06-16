@@ -123,7 +123,7 @@ if (!function_exists('attendance_ranking_approved_leave_dates')) {
     $employees_id = mysqli_real_escape_string($connection, $employees_id);
     $date_from = mysqli_real_escape_string($connection, $date_from);
     $date_to = mysqli_real_escape_string($connection, $date_to);
-    $query = "SELECT cuty_start,cuty_end,cuty_type FROM cuty WHERE employees_id='$employees_id' AND cuty_status='1' AND cuty_start <= '$date_to' AND cuty_end >= '$date_from'";
+    $query = "SELECT cuty_start,cuty_end,cuty_type FROM cuty WHERE employees_id='$employees_id' AND cuty_status='1' AND cuty_type!='izin_jam' AND cuty_start <= '$date_to' AND cuty_end >= '$date_from'";
     $result = $connection->query($query);
     if ($result) {
       while ($row = $result->fetch_assoc()) {
@@ -205,7 +205,7 @@ if (!function_exists('attendance_ranking_calculate')) {
             }
             $rule_time_in = !empty($presence['rule_time_in']) ? $presence['rule_time_in'] : $employee['shift_time_in'];
             $rule_time_out = !empty($presence['rule_time_out']) ? $presence['rule_time_out'] : $employee['shift_time_out'];
-            $late_minutes = max(0, (strtotime($presence['presence_date'].' '.$presence['time_in']) - strtotime($presence['presence_date'].' '.$rule_time_in)) / 60);
+            $late_minutes = attendance_late_minutes_after_hourly_leave($connection, $employee['id'], $presence['presence_date'], $presence['time_in'], $rule_time_in);
             if ($late_minutes <= 0) {
               $summary['ontime']++;
               $score += (int)$settings['point_present_ontime'];

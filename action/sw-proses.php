@@ -17,8 +17,30 @@ function sanitize_cuty_description($connection, $description) {
 }
 
 function get_cuty_type($value) {
-  $allowed_types = array('cuti', 'sakit', 'lainnya');
+  $allowed_types = array('cuti', 'sakit', 'lainnya', 'izin_jam');
   return in_array($value, $allowed_types) ? $value : 'cuti';
+}
+
+function cuty_type_label($type) {
+  if ($type === 'izin_jam') {
+    return 'Izin Per Jam';
+  }
+  return ucfirst($type);
+}
+
+function cuty_hour_minutes($start_time, $end_time) {
+  if (empty($start_time) || empty($end_time)) {
+    return 0;
+  }
+  $start = strtotime('2000-01-01 '.$start_time);
+  $end = strtotime('2000-01-01 '.$end_time);
+  if (!$start || !$end) {
+    return 0;
+  }
+  if ($end < $start) {
+    $end += 86400;
+  }
+  return max(0, (int)floor(($end - $start) / 60));
 }
 
 function create_auth_cookie_token($email) {
@@ -734,6 +756,12 @@ echo'<table class="table rounded" id="swdatatable">
             }else{
               $information = '<br>'.$row_absen['information'].'';
             }
+            $effective_late_minutes = attendance_late_minutes_after_hourly_leave($connection, $row_user['id'], $row_absen['presence_date'], $row_absen['time_in'], !empty($row_absen['rule_time_in']) ? $row_absen['rule_time_in'] : $shift_time_in);
+            if ($row_absen['status'] == 'Telat' && $effective_late_minutes <= 0) {
+              $row_absen['status'] = 'Tepat Waktu';
+              $row_absen['selisih'] = '00:00:00';
+              $information .= '<br><span class="badge badge-info">Izin per jam disetujui</span>';
+            }
             $location_badge = $row_absen['attendance_location_type'] == 'outside' ? ' <span class="badge badge-primary">Luar Kantor</span>' : ' <span class="badge badge-info">Kantor</span>';
 
       if($row_absen['status']=='Telat'){
@@ -831,8 +859,17 @@ echo'<table class="table rounded" id="swdatatable">
       $query_izin="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='3' ORDER BY presence_id";
       $izin = $connection->query($query_izin);
 
-	      $query_telat ="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND time_in>COALESCE(rule_time_in,'$shift_time_in')";
+	      $late_total = 0;
+	      $query_telat ="SELECT presence_date,time_in,rule_time_in FROM presence WHERE employees_id='$row_user[id]' AND $filter AND time_in>COALESCE(rule_time_in,'$shift_time_in')";
 	      $telat = $connection->query($query_telat);
+	      if ($telat) {
+	        while ($row_telat = $telat->fetch_assoc()) {
+	          $rule_time_in_late = !empty($row_telat['rule_time_in']) ? $row_telat['rule_time_in'] : $shift_time_in;
+	          if (attendance_late_minutes_after_hourly_leave($connection, $row_user['id'], $row_telat['presence_date'], $row_telat['time_in'], $rule_time_in_late) > 0) {
+	            $late_total++;
+	          }
+	        }
+	      }
         $query_tugas ="SELECT assignment_attendance_id FROM assignment_attendance WHERE employees_id='$row_user[id]' AND ".str_replace('assignment_attendance.', '', $assignment_filter);
         $tugas = $connection->query($query_tugas);
 echo'
@@ -843,7 +880,7 @@ echo'
   </div>
 
   <div class="col-md-3">
-    <p>Terlambat : <span class="label badge badge-danger">'.$telat->num_rows.'</span></p>
+    <p>Terlambat : <span class="label badge badge-danger">'.$late_total.'</span></p>
   </div>
   
 
@@ -919,12 +956,14 @@ $query_cuty ="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE e
     if($result_cuty->num_rows > 0){
       while ($row_cuty = $result_cuty->fetch_assoc()) {
         $cuty_type = isset($row_cuty['cuty_type']) ? $row_cuty['cuty_type'] : 'cuti';
-        $cuty_type_label = ucfirst($cuty_type);
+        $cuty_type_label = cuty_type_label($cuty_type);
         $cuty_description = nl2br(htmlspecialchars($row_cuty['cuty_description'], ENT_QUOTES, 'UTF-8'));
         $cuty_description_attr = htmlspecialchars($row_cuty['cuty_description'], ENT_QUOTES, 'UTF-8');
         $cuty_date_info = '<ion-icon name="calendar-outline"></ion-icon> '.tanggal_ind($row_cuty['cuty_start']).'<br>';
         if($cuty_type == 'cuti'){
           $cuty_date_info = '<ion-icon name="calendar-outline"></ion-icon> '.tanggal_ind($row_cuty['cuty_start']).' - '.tanggal_ind($row_cuty['cuty_end']).'<br>';
+        } elseif($cuty_type == 'izin_jam'){
+          $cuty_date_info = '<ion-icon name="calendar-outline"></ion-icon> '.tanggal_ind($row_cuty['cuty_start']).'<br><ion-icon name="time-outline"></ion-icon> '.substr($row_cuty['cuty_time_start'],0,5).' - '.substr($row_cuty['cuty_time_end'],0,5).'<br>';
         }
         if($row_cuty['cuty_status']=='1'){
           $status = '<span class="badge badge-success">Disetujui</span>';
@@ -943,9 +982,9 @@ $query_cuty ="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE e
               </div>
           </div>
           <div class="right">';
-            if($row_cuty['cuty_status']=='3'){
+            if($row_cuty['cuty_status']=='3' || $cuty_type == 'izin_jam'){
               echo'
-             <button type="button" class="btn btn-success btn-sm btn-update-cuty" data-id="'.$row_cuty['cuty_id'].'" data-type="'.$cuty_type.'" data-start="'.tanggal_ind($row_cuty['cuty_start']).'" data-end="'.tanggal_ind($row_cuty['cuty_end']).'" data-description="'.$cuty_description_attr.'">Edit</button>';
+             <button type="button" class="btn btn-success btn-sm btn-update-cuty" data-id="'.$row_cuty['cuty_id'].'" data-type="'.$cuty_type.'" data-start="'.tanggal_ind($row_cuty['cuty_start']).'" data-end="'.tanggal_ind($row_cuty['cuty_end']).'" data-time-start="'.substr($row_cuty['cuty_time_start'],0,5).'" data-time-end="'.substr($row_cuty['cuty_time_end'],0,5).'" data-description="'.$cuty_description_attr.'">Edit</button>';
            }
              else{
               echo'<button type="button" class="btn btn-secondary btn-sm access-failed">Terkunci</button>';
@@ -982,6 +1021,22 @@ $error = array();
       $error[] = 'tanggal cuti tidak valid';
   }
 
+  $cuty_time_start = '00:00:00';
+  $cuty_time_end = '00:00:00';
+  $cuty_minutes = 0;
+  if ($cuty_type == 'izin_jam') {
+    if (empty($_POST['cuty_time_start']) || empty($_POST['cuty_time_end'])) {
+      $error[] = 'jam izin wajib diisi';
+    } else {
+      $cuty_time_start = mysqli_real_escape_string($connection, $_POST['cuty_time_start'].(strlen($_POST['cuty_time_start']) === 5 ? ':00' : ''));
+      $cuty_time_end = mysqli_real_escape_string($connection, $_POST['cuty_time_end'].(strlen($_POST['cuty_time_end']) === 5 ? ':00' : ''));
+      $cuty_minutes = cuty_hour_minutes($cuty_time_start, $cuty_time_end);
+      if ($cuty_minutes <= 0) {
+        $error[] = 'range jam izin tidak valid';
+      }
+    }
+  }
+
   $date_work = $cuty_end;
   $cuty_total = $cuty_type == 'cuti' ? ((strtotime($cuty_end) - strtotime($cuty_start)) / 86400) + 1 : 0;
 
@@ -993,13 +1048,17 @@ $error = array();
 
 
 if (empty($error)) {
-  $query="SELECT cuty_id from cuty where MONTH(cuty_start) ='$month' AND employees_id='$row_user[id]'";
+  $query="SELECT cuty_id from cuty where MONTH(cuty_start) ='$month' AND employees_id='$row_user[id]' AND cuty_type!='izin_jam'";
   $result= $connection->query($query) or die($connection->error.__LINE__);
-  if(!$result ->num_rows >0){
+  if($cuty_type == 'izin_jam' || !$result ->num_rows >0){
+    $cuty_status = $cuty_type == 'izin_jam' ? '1' : '3';
     $add ="INSERT INTO cuty (employees_id,
               cuty_type,
               cuty_start,
               cuty_end,
+              cuty_time_start,
+              cuty_time_end,
+              cuty_minutes,
               date_work,
               cuty_total,
               cuty_description,
@@ -1007,10 +1066,13 @@ if (empty($error)) {
               '$cuty_type',
               '$cuty_start',
               '$cuty_end',
+              '$cuty_time_start',
+              '$cuty_time_end',
+              '$cuty_minutes',
               '$date_work',
               '$cuty_total',
               '$cuty_description',
-              '3')";
+              '$cuty_status')";
     if($connection->query($add) === false) { 
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
@@ -1055,6 +1117,22 @@ $error = array();
       $error[] = 'tanggal cuti tidak valid';
   }
 
+  $cuty_time_start = '00:00:00';
+  $cuty_time_end = '00:00:00';
+  $cuty_minutes = 0;
+  if ($cuty_type == 'izin_jam') {
+    if (empty($_POST['cuty_time_start']) || empty($_POST['cuty_time_end'])) {
+      $error[] = 'jam izin wajib diisi';
+    } else {
+      $cuty_time_start = mysqli_real_escape_string($connection, $_POST['cuty_time_start'].(strlen($_POST['cuty_time_start']) === 5 ? ':00' : ''));
+      $cuty_time_end = mysqli_real_escape_string($connection, $_POST['cuty_time_end'].(strlen($_POST['cuty_time_end']) === 5 ? ':00' : ''));
+      $cuty_minutes = cuty_hour_minutes($cuty_time_start, $cuty_time_end);
+      if ($cuty_minutes <= 0) {
+        $error[] = 'range jam izin tidak valid';
+      }
+    }
+  }
+
   $date_work = $cuty_end;
   $cuty_total = $cuty_type == 'cuti' ? ((strtotime($cuty_end) - strtotime($cuty_start)) / 86400) + 1 : 0;
 
@@ -1066,12 +1144,16 @@ $error = array();
 
 
 if (empty($error)) {
+    $status_update = $cuty_type == 'izin_jam' ? ", cuty_status='1'" : "";
     $update="UPDATE cuty SET cuty_type='$cuty_type',
             cuty_start='$cuty_start',
             cuty_end='$cuty_end',
+            cuty_time_start='$cuty_time_start',
+            cuty_time_end='$cuty_time_end',
+            cuty_minutes='$cuty_minutes',
             date_work='$date_work',
             cuty_total='$cuty_total',
-            cuty_description='$cuty_description' WHERE cuty_id='$cuty_id'"; 
+            cuty_description='$cuty_description'".$status_update." WHERE cuty_id='$cuty_id'"; 
     if($connection->query($update) === false) { 
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
@@ -1129,8 +1211,17 @@ case 'load-home-counter':
   $newtimestamp = strtotime(''.$shift_time_in.' + 05 minute');
   $newtimestamp = date('H:i:s', $newtimestamp);
 
-  $query_telat ="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND time_in>'$shift_time_in'";
+  $late_total = 0;
+  $query_telat ="SELECT presence_date,time_in,rule_time_in FROM presence WHERE employees_id='$row_user[id]' AND $filter AND time_in>COALESCE(rule_time_in,'$shift_time_in')";
   $telat = $connection->query($query_telat);
+  if ($telat) {
+    while ($row_telat = $telat->fetch_assoc()) {
+      $rule_time_in_late = !empty($row_telat['rule_time_in']) ? $row_telat['rule_time_in'] : $shift_time_in;
+      if (attendance_late_minutes_after_hourly_leave($connection, $row_user['id'], $row_telat['presence_date'], $row_telat['time_in'], $rule_time_in_late) > 0) {
+        $late_total++;
+      }
+    }
+  }
 
   echo'
   <!-- item -->
@@ -1188,7 +1279,7 @@ case 'load-home-counter':
               </div>
               <div>
                   <strong>Terlambat</strong>
-                  <p>'.$telat->num_rows.' hari</p>
+                  <p>'.$late_total.' hari</p>
               </div>
           </div>
       </a>

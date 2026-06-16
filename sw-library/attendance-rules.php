@@ -147,7 +147,27 @@ if (!function_exists('attendance_ensure_schema')) {
     if (empty($building_columns['radius_meter'])) {
       $connection->query("ALTER TABLE building ADD radius_meter int(6) NOT NULL DEFAULT 150 AFTER longitude");
     }
-    $connection->query("UPDATE position SET building_id=(SELECT building_id FROM building ORDER BY building_id ASC LIMIT 1) WHERE require_location=1 AND (building_id IS NULL OR building_id=0)");
+	    $connection->query("UPDATE position SET building_id=(SELECT building_id FROM building ORDER BY building_id ASC LIMIT 1) WHERE require_location=1 AND (building_id IS NULL OR building_id=0)");
+
+	    $cuty_columns = array();
+	    $result = $connection->query("SHOW COLUMNS FROM cuty");
+	    if ($result) {
+	      while ($row = $result->fetch_assoc()) {
+	        $cuty_columns[$row['Field']] = $row;
+	      }
+	    }
+	    if (!empty($cuty_columns['cuty_type']) && strpos($cuty_columns['cuty_type']['Type'], 'izin_jam') === false) {
+	      $connection->query("ALTER TABLE cuty MODIFY cuty_type enum('cuti','sakit','lainnya','izin_jam') NOT NULL DEFAULT 'cuti'");
+	    }
+	    if (empty($cuty_columns['cuty_time_start'])) {
+	      $connection->query("ALTER TABLE cuty ADD cuty_time_start time DEFAULT NULL AFTER cuty_end");
+	    }
+	    if (empty($cuty_columns['cuty_time_end'])) {
+	      $connection->query("ALTER TABLE cuty ADD cuty_time_end time DEFAULT NULL AFTER cuty_time_start");
+	    }
+	    if (empty($cuty_columns['cuty_minutes'])) {
+	      $connection->query("ALTER TABLE cuty ADD cuty_minutes int(5) NOT NULL DEFAULT 0 AFTER cuty_time_end");
+	    }
 
     $done = true;
   }
@@ -543,6 +563,75 @@ if (!function_exists('attendance_validate_checkin')) {
     }
 
     return '';
+  }
+}
+
+if (!function_exists('attendance_hourly_leave_minutes')) {
+  function attendance_hourly_leave_minutes($connection, $employees_id, $presence_date) {
+    $employees_id = mysqli_real_escape_string($connection, $employees_id);
+    $presence_date = mysqli_real_escape_string($connection, $presence_date);
+    $minutes = 0;
+    $query = "SELECT cuty_minutes,cuty_time_start,cuty_time_end FROM cuty WHERE employees_id='$employees_id' AND cuty_status='1' AND cuty_type='izin_jam' AND cuty_start <= '$presence_date' AND cuty_end >= '$presence_date'";
+    $result = $connection->query($query);
+    if ($result) {
+      while ($row = $result->fetch_assoc()) {
+        $row_minutes = (int)$row['cuty_minutes'];
+        if ($row_minutes <= 0 && !empty($row['cuty_time_start']) && !empty($row['cuty_time_end'])) {
+          $start = strtotime('2000-01-01 '.$row['cuty_time_start']);
+          $end = strtotime('2000-01-01 '.$row['cuty_time_end']);
+          if ($start && $end) {
+            if ($end < $start) {
+              $end += 86400;
+            }
+            $row_minutes = (int)floor(($end - $start) / 60);
+          }
+        }
+        $minutes += max(0, $row_minutes);
+      }
+    }
+    return $minutes;
+  }
+}
+
+if (!function_exists('attendance_late_minutes_after_hourly_leave')) {
+  function attendance_late_minutes_after_hourly_leave($connection, $employees_id, $presence_date, $time_in, $rule_time_in) {
+    if (empty($time_in) || empty($rule_time_in) || $time_in === '00:00:00' || $rule_time_in === '00:00:00') {
+      return 0;
+    }
+    $late_minutes = max(0, (strtotime($presence_date.' '.$time_in) - strtotime($presence_date.' '.$rule_time_in)) / 60);
+    if ($late_minutes <= 0) {
+      return 0;
+    }
+
+    $employees_id = mysqli_real_escape_string($connection, $employees_id);
+    $presence_date_sql = mysqli_real_escape_string($connection, $presence_date);
+    $late_start = strtotime($presence_date.' '.$rule_time_in);
+    $late_end = strtotime($presence_date.' '.$time_in);
+    $covered_minutes = 0;
+    $query = "SELECT cuty_time_start,cuty_time_end FROM cuty WHERE employees_id='$employees_id' AND cuty_status='1' AND cuty_type='izin_jam' AND cuty_start <= '$presence_date_sql' AND cuty_end >= '$presence_date_sql'";
+    $result = $connection->query($query);
+    if ($result) {
+      while ($row = $result->fetch_assoc()) {
+        if (empty($row['cuty_time_start']) || empty($row['cuty_time_end'])) {
+          continue;
+        }
+        $leave_start = strtotime($presence_date.' '.$row['cuty_time_start']);
+        $leave_end = strtotime($presence_date.' '.$row['cuty_time_end']);
+        if (!$leave_start || !$leave_end) {
+          continue;
+        }
+        if ($leave_end < $leave_start) {
+          $leave_end += 86400;
+        }
+        $overlap_start = max($late_start, $leave_start);
+        $overlap_end = min($late_end, $leave_end);
+        if ($overlap_end > $overlap_start) {
+          $covered_minutes += (int)floor(($overlap_end - $overlap_start) / 60);
+        }
+      }
+    }
+
+    return max(0, (int)ceil($late_minutes) - $covered_minutes);
   }
 }
 ?>

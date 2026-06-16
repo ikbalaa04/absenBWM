@@ -111,7 +111,7 @@ echo'<div class="wrapper">
                   <li>
                     <a href="./?mod=cuty">
                       '.$row_cuty['employees_name'].'<br>
-                      Alasan : '.$cuty_type.'<br>
+                      Jenis Izin : '.$cuty_type.'<br>
                       '.$cuty_date.'
                     </a>
                   </li>';
