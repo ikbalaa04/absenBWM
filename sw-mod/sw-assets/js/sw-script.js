@@ -510,12 +510,14 @@ $('.btn-print').click(function (e) {
         var endInput = endField.find('input');
         var hourField = $(form).find('.cuty-hour-field');
         var hourInputs = hourField.find('input');
+        var quotaInfo = $(form).find('.cuty-quota-info');
 
         if (type === 'cuti') {
             startLabel.text('Mulai Cuti');
             startField.show();
             endField.show();
             hourField.hide();
+            quotaInfo.show();
             startInput.prop('required', true);
             endInput.prop('required', true);
             hourInputs.prop('required', false);
@@ -524,6 +526,7 @@ $('.btn-print').click(function (e) {
             startField.show();
             endField.hide();
             hourField.show();
+            quotaInfo.hide();
             startInput.prop('required', true);
             endInput.prop('required', false);
             hourInputs.prop('required', true);
@@ -532,6 +535,7 @@ $('.btn-print').click(function (e) {
             startField.show();
             endField.hide();
             hourField.hide();
+            quotaInfo.hide();
             startInput.prop('required', true);
             endInput.prop('required', false);
             hourInputs.prop('required', false);

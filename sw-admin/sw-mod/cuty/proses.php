@@ -52,6 +52,15 @@ case 'update-status':
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
     } else{
+        $query_notify = $connection->query("SELECT cuty.*,employees.employees_name FROM cuty INNER JOIN employees ON employees.id=cuty.employees_id WHERE cuty.cuty_id='$cuty_id' LIMIT 1");
+        if ($query_notify && $query_notify->num_rows > 0) {
+          $notify = $query_notify->fetch_assoc();
+          $type_label = $notify['cuty_type'] == 'cuti' ? 'Cuti' : ($notify['cuty_type'] == 'sakit' ? 'Sakit' : ($notify['cuty_type'] == 'izin_jam' ? 'Izin per jam' : 'Izin'));
+          $message = '<b>'.$type_label.' '.telegram_status_label($status).'</b>'."\n".
+            'Tanggal: '.telegram_escape(tgl_ind($notify['cuty_start'])).($notify['cuty_type'] == 'cuti' ? ' - '.telegram_escape(tgl_ind($notify['cuty_end'])) : '')."\n".
+            'Status: '.telegram_escape(telegram_status_label($status));
+          telegram_send_employee($connection, $notify['employees_id'], $message, 'cuty-status-'.$cuty_id.'-'.$status);
+        }
         echo'success';
     }}
     else{           

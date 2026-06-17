@@ -34,6 +34,7 @@ echo'
     <th>Cuti Dari</th>
     <th>Sampai</th>
     <th>Masuk Kerja</th>
+    <th>Kuota Cuti</th>
     <th>Keterangan</th>
     <th>Status</th>
     <th style="width:150px" class="text-center">Aksi</th>
@@ -63,6 +64,19 @@ echo'
       $cuty_end_label = '-';
       $date_work_label = '-';
     }
+    $quota_label = '-';
+    if ($cuty_type == 'cuti') {
+      $quota_year = date('Y', strtotime($row['cuty_start']));
+      $quota = cuty_quota_summary($connection, $row['employees_id'], $quota_year, $row['cuty_id']);
+      $requested_days = cuty_days_in_year($row['cuty_start'], $row['cuty_end'], $quota_year);
+      $available_after_current = $quota['remaining'] + $requested_days;
+      $quota_label = '<small>
+        Kuota '.$quota_year.': <b>'.$quota['quota'].'</b><br>
+        Terpakai: <b>'.$quota['used'].'</b><br>
+        Ajuan ini: <b>'.$requested_days.'</b><br>
+        Sisa tersedia: <b>'.$available_after_current.'</b>
+      </small>';
+    }
     echo'
     <tr>
       <td class="text-center">'.$no.'</td>
@@ -71,6 +85,7 @@ echo'
       <td>'.$cuty_start_label.'</td>
       <td>'.$cuty_end_label.'</td>
       <td>'.$date_work_label.'</td>
+      <td>'.$quota_label.'</td>
       <td>'.strip_tags($row['cuty_description']).'</td>
       <td>'.$status.'</td>
       <td class="text-center">

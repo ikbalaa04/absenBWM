@@ -213,6 +213,15 @@ case 'extend':
     if($connection->query($update) === false) {
         echo'Data tidak berhasil disimpan: '.$connection->error;
     } else{
+        $query_notify = $connection->query("SELECT assignments.*,employees.employees_name FROM assignments INNER JOIN employees ON employees.id=assignments.employees_id WHERE assignments.assignment_id='$assignment_id' LIMIT 1");
+        if ($query_notify && $query_notify->num_rows > 0) {
+          $notify = $query_notify->fetch_assoc();
+          $message = '<b>Penugasan '.telegram_status_label($status).'</b>'."\n".
+            'No: '.telegram_escape($notify['assignment_number'])."\n".
+            'Tanggal: '.telegram_escape(tgl_ind($notify['assignment_start'])).' - '.telegram_escape(tgl_ind($notify['assignment_end']))."\n".
+            'Lokasi: '.telegram_escape($notify['assignment_location']);
+          telegram_send_employee($connection, $notify['employees_id'], $message, 'assignment-status-'.$assignment_id.'-'.$status);
+        }
         echo'success';
     }
   } else {

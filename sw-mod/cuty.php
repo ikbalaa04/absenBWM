@@ -123,6 +123,13 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                                 </div>
                             </div>
 
+                            <div class="form-group basic cuty-quota-info">
+                                <div class="alert alert-info mb-1">
+                                    Kuota cuti '.$quota_year.': <b>'.$cuty_quota['quota'].' hari</b><br>
+                                    Disetujui: <b>'.$cuty_quota['approved'].' hari</b>, Menunggu: <b>'.$cuty_quota['pending'].' hari</b>, Sisa: <b>'.$cuty_quota['remaining'].' hari</b>.
+                                </div>
+                            </div>
+
                             <div class="form-group basic cuty-start-field">
                                 <div class="input-wrapper">
                                     <label class="label cuty-start-label">Mulai Cuti</label>
@@ -207,6 +214,13 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                                         <option value="lainnya">Lainnya</option>
                                         <option value="izin_jam">Izin Per Jam</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group basic cuty-quota-info">
+                                <div class="alert alert-info mb-1">
+                                    Kuota cuti '.$quota_year.': <b>'.$cuty_quota['quota'].' hari</b><br>
+                                    Disetujui: <b>'.$cuty_quota['approved'].' hari</b>, Menunggu: <b>'.$cuty_quota['pending'].' hari</b>, Sisa: <b>'.$cuty_quota['remaining'].' hari</b>.
                                 </div>
                             </div>
 

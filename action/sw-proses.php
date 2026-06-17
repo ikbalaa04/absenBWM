@@ -700,6 +700,13 @@ if (empty($error)) {
   if($connection->query($add) === false) {
       echo'Data tidak berhasil disimpan: '.$connection->error;
   } else{
+      $assignment_id = mysqli_insert_id($connection);
+      $message = '<b>Request Penugasan</b>'."\n".
+        'Staff: '.telegram_escape($row_user['employees_name'])."\n".
+        'Tanggal: '.telegram_escape(tgl_ind($assignment_start)).' - '.telegram_escape(tgl_ind($assignment_end))."\n".
+        'Lokasi: '.telegram_escape($assignment_location)."\n".
+        'Keterangan: '.telegram_escape($assignment_description);
+      telegram_send_admin($connection, $message, 'assignment-request-'.$assignment_id);
       echo'success';
   }
 } else {
@@ -1153,6 +1160,15 @@ if (empty($error)) {
         die($connection->error.__LINE__); 
         echo'Data tidak berhasil disimpan!';
     } else{
+        if ($cuty_status == '3') {
+          $cuty_id = mysqli_insert_id($connection);
+          $request_label = $cuty_type == 'cuti' ? 'Cuti' : ($cuty_type == 'sakit' ? 'Sakit' : 'Izin');
+          $message = '<b>Request '.$request_label.'</b>'."\n".
+            'Staff: '.telegram_escape($row_user['employees_name'])."\n".
+            'Tanggal: '.telegram_escape(tgl_ind($cuty_start)).($cuty_type == 'cuti' ? ' - '.telegram_escape(tgl_ind($cuty_end)) : '')."\n".
+            'Keterangan: '.telegram_escape($cuty_description);
+          telegram_send_admin($connection, $message, 'cuty-request-'.$cuty_id);
+        }
         echo'success';
     }}
     else   {
