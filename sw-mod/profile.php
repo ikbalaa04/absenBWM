@@ -120,8 +120,8 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                   if ($telegram_connected) {
                     echo'
                     <p>Telegram terhubung'.(!empty($row_user['telegram_username']) ? ' (@'.$row_user['telegram_username'].')' : '').'.</p>
-                    <button type="button" class="btn btn-primary mr-1 telegram-test">Kirim Test Telegram</button>
-                    <button type="button" class="btn btn-danger telegram-disconnect">Putuskan Telegram</button>';
+                    <button type="button" class="btn btn-primary btn-lg btn-block telegram-test">Kirim Test Telegram</button>
+                    <button type="button" class="btn btn-danger btn-lg btn-block mt-1 telegram-disconnect">Putuskan Telegram</button>';
                   } else {
                     echo'
                     <p>Hubungkan Telegram untuk menerima reminder absensi dan update approval.</p>';
@@ -133,11 +133,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                         <small>Berlaku sampai '.date('d-m-Y H:i', strtotime($telegram_token_expires)).'</small>
                       </div>';
                       if (!empty($telegram_bot_link)) {
-                        echo'<a class="btn btn-primary mr-1" href="'.$telegram_bot_link.'" target="_blank" rel="noopener">Buka Bot Telegram</a>';
+                        echo'<a class="btn btn-primary btn-lg btn-block" href="'.$telegram_bot_link.'" target="_blank" rel="noopener">Buka Bot Telegram</a>';
                       }
-                      echo'<button type="button" class="btn btn-secondary telegram-connect">Buat Ulang Kode Telegram</button>';
+                      echo'<button type="button" class="btn btn-secondary btn-lg btn-block mt-1 telegram-connect">Buat Ulang Kode Telegram</button>';
                     } else {
-                      echo'<button type="button" class="btn btn-primary telegram-connect">Hubungkan Telegram</button>';
+                      echo'<button type="button" class="btn btn-primary btn-lg btn-block telegram-connect">Hubungkan Telegram</button>';
                     }
                   }
                 echo'
