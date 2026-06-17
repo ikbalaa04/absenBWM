@@ -76,6 +76,42 @@ case 'setting':
           <div class="col-sm-5"><p class="text-muted">Dalam menit setelah jam masuk shift. Default 120 menit.</p></div>
         </div>
         <hr>
+        <h4>Notifikasi Telegram</h4>
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Bot Token</label>
+          <div class="col-sm-6">
+            <input type="text" name="telegram_bot_token" class="form-control" value="'.setting_h(isset($telegram_bot_token) ? $telegram_bot_token : '').'" autocomplete="off">
+            <p class="text-muted">Token dari BotFather. Kosongkan jika Telegram belum digunakan.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Chat ID Admin</label>
+          <div class="col-sm-6">
+            <textarea name="telegram_admin_chat_ids" class="form-control" rows="2">'.setting_h(isset($telegram_admin_chat_ids) ? $telegram_admin_chat_ids : '').'</textarea>
+            <p class="text-muted">Bisa lebih dari satu, pisahkan dengan koma. Admin menerima request izin/cuti dan penugasan.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Reminder Absensi</label>
+          <div class="col-sm-3">
+            <select name="telegram_reminder_minutes" class="form-control">
+              <option value="10" '.((int)(isset($telegram_reminder_minutes) ? $telegram_reminder_minutes : 10) === 10 ? 'selected' : '').'>10 menit sebelumnya</option>
+              <option value="5" '.((int)(isset($telegram_reminder_minutes) ? $telegram_reminder_minutes : 10) === 5 ? 'selected' : '').'>5 menit sebelumnya</option>
+            </select>
+          </div>
+          <div class="col-sm-5"><p class="text-muted">Dipakai oleh cron reminder masuk dan pulang.</p></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Token Cron</label>
+          <div class="col-sm-6">
+            <input type="text" name="telegram_cron_token" class="form-control" value="'.setting_h(isset($telegram_cron_token) ? $telegram_cron_token : '').'" autocomplete="off">
+            <p class="text-muted">URL cron: '.setting_h($site_url).'action/sw-telegram-cron.php?token='.setting_h(isset($telegram_cron_token) ? $telegram_cron_token : '').'</p>
+          </div>
+        </div>
+        <hr>
         <div class="form-group">
           <label class="col-sm-2 control-label">Logo Website</label>
           <div class="col-sm-6">';

@@ -75,7 +75,7 @@ echo'
       <td>'.$status.'</td>
       <td class="text-center">
         <div class="btn-group">';
-        if($level_user==1){
+        if($level_user==1 || $level_user==2){
           echo'
           <div class="btn-group">
             <button type="button" class="btn btn-warning btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Proses
@@ -87,11 +87,11 @@ echo'
               <li><a href="javascript:void(0);" data-id="'.$row['cuty_id'].'" data-status="2" class="update-status">Tidak disetujui</a></li>
             </ul>
           </div>
-          <a href="sw-mod/cuty/print.php?action=print&id='.epm_encode($row['cuty_id']).'" target="_blank"  class="btn btn-xs btn-danger delete" title="Print"><i class="fa fa-print" aria-hidden="true"></i> Print</a>';}
+          <a href="sw-mod/cuty/print.php?action=print&id='.epm_encode($row['cuty_id']).'" target="_blank"  class="btn btn-xs btn-info" title="Print"><i class="fa fa-print" aria-hidden="true"></i> Print</a>
+          <button type="button" data-id="'.epm_encode($row['cuty_id']).'" class="btn btn-xs btn-danger delete-cuty" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';}
         else{
         echo'
-          <button type="button" class="btn btn-warning btn-xs access-failed enable-tooltip" title="Edit"><i class="fa fa-pencil-square-o"></i> Ubah</button>
-          <buton type="button" class="btn btn-xs btn-danger access-failed" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';
+          <button type="button" class="btn btn-warning btn-xs access-failed">Aksi</button>';
         }
         echo'
         </div>

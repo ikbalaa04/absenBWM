@@ -111,24 +111,18 @@ break;
 
 /* --------------- Delete ------------*/
 case 'delete':
-  $id       = mysqli_real_escape_string($connection,epm_decode($_POST['id']));
+  $id = mysqli_real_escape_string($connection, epm_decode($_POST['id']));
+  if (empty($id)) {
+    echo'ID tidak valid.';
+    break;
+  }
 
-    $cari =mysqli_query($connection,"SELECT photo from employees WHERE id='$id'");
-    $data =mysqli_fetch_assoc($cari);
-    $images_delete = strip_tags($data['photo']);
-    $directory='../../../sw-content/karyawan/'.$images_delete.'';
-
-  $deleted  = "DELETE FROM employees WHERE id='$id'";
-    if($connection->query($deleted) === true) {
-        echo'success';
-        if(file_exists("../../../sw-content/karyawan/$images_delete")){
-          unlink ($directory);
-        }
-
-      } else { 
-        //tidak berhasil
-        echo'Data tidak berhasil dihapus.!';
-        die($connection->error.__LINE__);
+  $deleted = "DELETE FROM cuty WHERE cuty_id='$id'";
+  if($connection->query($deleted) === true) {
+      echo'success';
+  } else {
+      echo'Data tidak berhasil dihapus.!';
+      die($connection->error.__LINE__);
   }
 break;
 

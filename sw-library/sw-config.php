@@ -28,6 +28,18 @@ if ($connection->connect_error){
 		if (empty($site_columns['attendance_checkin_grace_minutes'])) {
 			$connection->query("ALTER TABLE sw_site ADD attendance_checkin_grace_minutes int(5) NOT NULL DEFAULT 120 AFTER site_email_domain");
 		}
+		if (empty($site_columns['telegram_bot_token'])) {
+			$connection->query("ALTER TABLE sw_site ADD telegram_bot_token varchar(150) NOT NULL DEFAULT '' AFTER attendance_checkin_grace_minutes");
+		}
+		if (empty($site_columns['telegram_admin_chat_ids'])) {
+			$connection->query("ALTER TABLE sw_site ADD telegram_admin_chat_ids text NULL AFTER telegram_bot_token");
+		}
+		if (empty($site_columns['telegram_reminder_minutes'])) {
+			$connection->query("ALTER TABLE sw_site ADD telegram_reminder_minutes tinyint(2) NOT NULL DEFAULT 10 AFTER telegram_admin_chat_ids");
+		}
+		if (empty($site_columns['telegram_cron_token'])) {
+			$connection->query("ALTER TABLE sw_site ADD telegram_cron_token varchar(64) NOT NULL DEFAULT '' AFTER telegram_reminder_minutes");
+		}
 		$query_site  = "SELECT * FROM sw_site LIMIT 1";
 		$result_site = $connection->query($query_site);
 		$row_site    = $result_site->fetch_assoc();
@@ -71,3 +83,5 @@ require_once __DIR__.'/assignment-rules.php';
 assignment_ensure_schema($connection);
 require_once __DIR__.'/attendance-ranking.php';
 attendance_ranking_ensure_schema($connection);
+require_once __DIR__.'/telegram-notifications.php';
+telegram_ensure_schema($connection);

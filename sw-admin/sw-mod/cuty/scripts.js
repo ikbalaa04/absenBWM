@@ -35,4 +35,38 @@ function loading(){
         });
     });
 
+    $(document).on('click', '.delete-cuty', function(){
+        var id = $(this).attr("data-id");
+        swal({
+            title: "Hapus data ini?",
+            text: "Data permohonan izin/cuti akan dihapus permanen.",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        }).then(function(willDelete) {
+            if (!willDelete) {
+                return;
+            }
+            $.ajax({
+                url:"sw-mod/cuty/proses.php?action=delete",
+                type:'POST',
+                data:{id:id},
+                beforeSend: function () {
+                    loading();
+                },
+                success: function (data) {
+                    if (data == 'success') {
+                        swal({title: 'Berhasil!', text: 'Data berhasil dihapus.!', icon: 'success', timer: 1500,});
+                        setTimeout(function(){ location.reload(); }, 1500);
+                    } else {
+                        swal({title: 'Oops!', text: data, icon: 'error', timer: 2000,});
+                    }
+                },
+                complete: function () {
+                    $(".loading").hide();
+                },
+            });
+        });
+    });
+
 });

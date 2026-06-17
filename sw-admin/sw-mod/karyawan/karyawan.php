@@ -182,6 +182,14 @@ echo'
                 </div>
 
                 <div class="form-group">
+                  <label class="col-sm-2 control-label">Telegram Chat ID</label>
+                  <div class="col-sm-6">
+                    <input type="text" class="form-control" name="telegram_chat_id">
+                    <small>Kosongkan jika staff belum memakai notifikasi Telegram.</small>
+                  </div>
+                </div>
+
+                <div class="form-group">
                   <label class="col-sm-2 control-label">Password</label>
                   <div class="col-sm-6">
                     <input type="password" class="form-control" name="employees_password" required>
@@ -323,6 +331,14 @@ echo'
                   <label class="col-sm-2 control-label">Nama</label>
                   <div class="col-sm-6">
                     <input type="text" class="form-control" name="employees_name" value="'.admin_karyawan_h($row['employees_name']).'" required>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">Telegram Chat ID</label>
+                  <div class="col-sm-6">
+                    <input type="text" class="form-control" name="telegram_chat_id" value="'.admin_karyawan_h(isset($row['telegram_chat_id']) ? $row['telegram_chat_id'] : '').'">
+                    <small>Kosongkan jika staff belum memakai notifikasi Telegram.</small>
                   </div>
                 </div>
 

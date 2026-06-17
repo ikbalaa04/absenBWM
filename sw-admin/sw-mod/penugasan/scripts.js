@@ -124,4 +124,38 @@ $(document).on('click', '.update-status', function(){
     });
 });
 
+$(document).on('click', '.delete-assignment', function(){
+    var id = $(this).attr("data-id");
+    swal({
+        title: "Hapus penugasan ini?",
+        text: "Data penugasan dan riwayat absen tugas terkait akan dihapus permanen.",
+        icon: "warning",
+        buttons: true,
+        dangerMode: true,
+    }).then(function(willDelete) {
+        if (!willDelete) {
+            return;
+        }
+        $.ajax({
+            url:"sw-mod/penugasan/proses.php?action=delete",
+            type:'POST',
+            data:{id:id},
+            beforeSend: function () {
+                loading();
+            },
+            success: function (data) {
+                if (data == 'success') {
+                    swal({title: 'Berhasil!', text: 'Penugasan berhasil dihapus.', icon: 'success', timer: 1500,});
+                    setTimeout(function(){ location.reload(); }, 1500);
+                } else {
+                    swal({title: 'Oops!', text: data, icon: 'error', timer: 2000,});
+                }
+            },
+            complete: function () {
+                $(".loading").hide();
+            }
+        });
+    });
+});
+
 });

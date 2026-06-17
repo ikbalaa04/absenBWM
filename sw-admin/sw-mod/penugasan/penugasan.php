@@ -93,10 +93,14 @@ echo'
                       if($level_user == 1){
                         echo'
                         <button type="button" class="btn btn-primary btn-xs btn-edit" data-id="'.$row['assignment_id'].'" data-employees="'.$row['employees_id'].'" data-signer="'.$row['assignment_signer_id'].'" data-start="'.$row['assignment_start'].'" data-end="'.$row['assignment_end'].'" data-location="'.$location_attr.'" data-description="'.$description_attr.'" data-status="'.$row['assignment_status'].'" data-toggle="modal" data-target="#modalEdit"><i class="fa fa-pencil"></i> Edit</button>
-                        <button type="button" class="btn btn-warning btn-xs btn-extend" data-id="'.$row['assignment_id'].'" data-end="'.$row['assignment_end'].'" data-toggle="modal" data-target="#modalExtend"><i class="fa fa-calendar"></i> Perpanjang</button>
-                        <a href="sw-mod/penugasan/print.php?action=print&id='.epm_encode($row['assignment_id']).'" target="_blank" class="btn btn-danger btn-xs"><i class="fa fa-print"></i> Surat</a>
+                        <button type="button" class="btn btn-warning btn-xs btn-extend" data-id="'.$row['assignment_id'].'" data-end="'.$row['assignment_end'].'" data-toggle="modal" data-target="#modalExtend"><i class="fa fa-calendar"></i> Perpanjang</button>';
+                      }
+                      if($level_user == 1 || $level_user == 2){
+                        echo'
+                        <a href="sw-mod/penugasan/print.php?action=print&id='.epm_encode($row['assignment_id']).'" target="_blank" class="btn btn-info btn-xs"><i class="fa fa-print"></i> Surat</a>
                         <button type="button" data-id="'.$row['assignment_id'].'" data-status="completed" class="btn btn-default btn-xs update-status"><i class="fa fa-check"></i> Selesai</button>
-                        <button type="button" data-id="'.$row['assignment_id'].'" data-status="cancelled" class="btn btn-danger btn-xs update-status"><i class="fa fa-ban"></i></button>';
+                        <button type="button" data-id="'.$row['assignment_id'].'" data-status="cancelled" class="btn btn-danger btn-xs update-status"><i class="fa fa-ban"></i></button>
+                        <button type="button" data-id="'.epm_encode($row['assignment_id']).'" class="btn btn-danger btn-xs delete-assignment"><i class="fa fa-trash-o"></i> Hapus</button>';
                       } else {
                         echo'<button type="button" class="btn btn-warning btn-xs access-failed">Aksi</button>';
                       }
@@ -143,10 +147,11 @@ echo'
                         <td>'.nl2br(htmlspecialchars($request['assignment_description'], ENT_QUOTES, 'UTF-8')).'</td>
                         <td>'.(!empty($request['requested_at']) ? date('d-m-Y H:i', strtotime($request['requested_at'])) : '-').'</td>
                         <td class="text-center">';
-                        if($level_user == 1){
+                        if($level_user == 1 || $level_user == 2){
                           echo'
                           <button type="button" data-id="'.$request['assignment_id'].'" data-status="active" class="btn btn-success btn-xs update-status"><i class="fa fa-check"></i> Approve</button>
-                          <button type="button" data-id="'.$request['assignment_id'].'" data-status="cancelled" class="btn btn-danger btn-xs update-status"><i class="fa fa-ban"></i> Tolak</button>';
+                          <button type="button" data-id="'.$request['assignment_id'].'" data-status="cancelled" class="btn btn-danger btn-xs update-status"><i class="fa fa-ban"></i> Tolak</button>
+                          <button type="button" data-id="'.epm_encode($request['assignment_id']).'" class="btn btn-danger btn-xs delete-assignment"><i class="fa fa-trash-o"></i> Hapus</button>';
                         } else {
                           echo'<button type="button" class="btn btn-warning btn-xs access-failed">Aksi</button>';
                         }

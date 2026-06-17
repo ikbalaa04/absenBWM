@@ -267,6 +267,26 @@ case 'update-status':
     echo implode('<br>', $error);
   }
 break;
+
+case 'delete':
+  if (empty($_POST['id'])) {
+      echo'ID penugasan wajib diisi';
+      break;
+  }
+  $assignment_id = mysqli_real_escape_string($connection, epm_decode($_POST['id']));
+  if (empty($assignment_id)) {
+      echo'ID penugasan tidak valid';
+      break;
+  }
+
+  $connection->query("DELETE FROM assignment_attendance WHERE assignment_id='$assignment_id'");
+  $deleted = "DELETE FROM assignments WHERE assignment_id='$assignment_id'";
+  if($connection->query($deleted) === false) {
+      echo'Data tidak berhasil dihapus: '.$connection->error;
+  } else {
+      echo'success';
+  }
+break;
 }
 
 }

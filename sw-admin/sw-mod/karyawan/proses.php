@@ -264,6 +264,7 @@ case 'add':
       $building_id = (int)$_POST['building_id'];
   }
 
+  $telegram_chat_id = isset($_POST['telegram_chat_id']) ? strip_tags(trim($_POST['telegram_chat_id'])) : '';
   $attendance_mode = isset($_POST['attendance_mode']) ? attendance_normalize_mode($_POST['attendance_mode']) : 'office';
   $photo_data = karyawan_uploaded_photo($max_size, $upload_dir, false);
   if (!empty($photo_data['error'])) {
@@ -274,12 +275,12 @@ case 'add':
     $photo = $photo_data['filename'];
     $created_login = $date.' '.$time;
     $created_cookies = '-';
-    $stmt = $connection->prepare("INSERT INTO employees (employees_code,employees_email,employees_password,employees_name,position_id,shift_id,building_id,attendance_mode,photo,created_login,created_cookies) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+    $stmt = $connection->prepare("INSERT INTO employees (employees_code,employees_email,telegram_chat_id,employees_password,employees_name,position_id,shift_id,building_id,attendance_mode,photo,created_login,created_cookies) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
     if (!$stmt) {
       echo'Data tidak berhasil disimpan!';
       break;
     }
-    $stmt->bind_param('ssssiiissss', $employees_code, $employees_email, $employees_password, $employees_name, $position_id, $shift_id, $building_id, $attendance_mode, $photo, $created_login, $created_cookies);
+    $stmt->bind_param('sssssiiissss', $employees_code, $employees_email, $telegram_chat_id, $employees_password, $employees_name, $position_id, $shift_id, $building_id, $attendance_mode, $photo, $created_login, $created_cookies);
     if($stmt->execute() === false) {
       echo'Data tidak berhasil disimpan!';
     } else{
@@ -343,6 +344,7 @@ case 'update':
   }
 
   $attendance_mode = isset($_POST['attendance_mode']) ? attendance_normalize_mode($_POST['attendance_mode']) : 'office';
+  $telegram_chat_id = isset($_POST['telegram_chat_id']) ? strip_tags(trim($_POST['telegram_chat_id'])) : '';
   $photo_data = karyawan_uploaded_photo($max_size, $upload_dir, false);
   if (!empty($photo_data['error'])) {
     $error[] = $photo_data['error'];
@@ -350,12 +352,12 @@ case 'update':
 
   if (empty($error)) {
     if (empty($photo_data['filename'])) {
-      $stmt = $connection->prepare("UPDATE employees SET employees_code=?, employees_name=?, position_id=?, shift_id=?, building_id=?, attendance_mode=? WHERE id=?");
+      $stmt = $connection->prepare("UPDATE employees SET employees_code=?, employees_name=?, telegram_chat_id=?, position_id=?, shift_id=?, building_id=?, attendance_mode=? WHERE id=?");
       if (!$stmt) {
         echo'Data tidak berhasil disimpan!';
         break;
       }
-      $stmt->bind_param('ssiiisi', $employees_code, $employees_name, $position_id, $shift_id, $building_id, $attendance_mode, $id);
+      $stmt->bind_param('sssiiisi', $employees_code, $employees_name, $telegram_chat_id, $position_id, $shift_id, $building_id, $attendance_mode, $id);
       if($stmt->execute() === false) {
         echo'Data tidak berhasil disimpan!';
       } else{
@@ -376,12 +378,12 @@ case 'update':
     }
 
     $photo = $photo_data['filename'];
-    $stmt = $connection->prepare("UPDATE employees SET employees_code=?, employees_name=?, position_id=?, shift_id=?, building_id=?, attendance_mode=?, photo=? WHERE id=?");
+    $stmt = $connection->prepare("UPDATE employees SET employees_code=?, employees_name=?, telegram_chat_id=?, position_id=?, shift_id=?, building_id=?, attendance_mode=?, photo=? WHERE id=?");
     if (!$stmt) {
       echo'Data tidak berhasil disimpan!';
       break;
     }
-    $stmt->bind_param('ssiiissi', $employees_code, $employees_name, $position_id, $shift_id, $building_id, $attendance_mode, $photo, $id);
+    $stmt->bind_param('sssiiissi', $employees_code, $employees_name, $telegram_chat_id, $position_id, $shift_id, $building_id, $attendance_mode, $photo, $id);
     if($stmt->execute() === false) {
       echo'Data tidak berhasil disimpan!';
     } else{
