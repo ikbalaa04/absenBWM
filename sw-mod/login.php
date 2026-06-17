@@ -4,8 +4,8 @@ if ($mod ==''){
     echo'kosong';
 }else{
     include_once 'sw-mod/sw-header.php';
-if(!isset($_COOKIE['COOKIES_MEMBER'])){
 $selected_role = (isset($_GET['role']) && $_GET['role'] == 'admin') ? 'admin' : 'user';
+if(!isset($_COOKIE['COOKIES_MEMBER']) || $selected_role == 'admin'){
 
 	 echo'
  

@@ -39,6 +39,22 @@ case 'add':
         $email = mysqli_real_escape_string($connection, $_POST['email']);
   }
 
+  $employee_id_sql = 'NULL';
+  if (!empty($_POST['employee_id'])) {
+        $employee_id = mysqli_real_escape_string($connection, $_POST['employee_id']);
+        $query_employee = $connection->query("SELECT id FROM employees WHERE id='$employee_id' LIMIT 1");
+        if (!$query_employee || $query_employee->num_rows == 0) {
+          $error[] = 'Staff terkait tidak valid';
+        } else {
+          $query_employee_link = $connection->query("SELECT user_id FROM user WHERE employee_id='$employee_id' LIMIT 1");
+          if ($query_employee_link && $query_employee_link->num_rows > 0) {
+            $error[] = 'Staff tersebut sudah ditautkan ke akun admin lain';
+          } else {
+            $employee_id_sql = "'$employee_id'";
+          }
+        }
+  }
+
   if (empty($_POST['level'])) {
         $error[] = 'tidak boleh kosong';
       } else {
@@ -63,7 +79,8 @@ case 'add':
     $query="SELECT email from user where email='$email'";
     $result= $connection->query($query) or die($connection->error.__LINE__);
     if(!$result ->num_rows >0){
-    $add= "INSERT INTO user(username,
+    $add= "INSERT INTO user(employee_id,
+                          username,
                           password,
                           fullname,
                           email,
@@ -73,7 +90,8 @@ case 'add':
                           session,
                           ip,
                           browser,
-                          level) values('$username',
+                          level) values($employee_id_sql,
+                          '$username',
                           '$password',
                           '$fullname',
                           '$email',
@@ -143,6 +161,22 @@ case 'update':
         $email = mysqli_real_escape_string($connection, $_POST['email']);
   }
 
+  $employee_id_sql = 'NULL';
+  if (!empty($_POST['employee_id'])) {
+        $employee_id = mysqli_real_escape_string($connection, $_POST['employee_id']);
+        $query_employee = $connection->query("SELECT id FROM employees WHERE id='$employee_id' LIMIT 1");
+        if (!$query_employee || $query_employee->num_rows == 0) {
+          $error[] = 'Staff terkait tidak valid';
+        } else {
+          $query_employee_link = $connection->query("SELECT user_id FROM user WHERE employee_id='$employee_id' AND user_id!='$id' LIMIT 1");
+          if ($query_employee_link && $query_employee_link->num_rows > 0) {
+            $error[] = 'Staff tersebut sudah ditautkan ke akun admin lain';
+          } else {
+            $employee_id_sql = "'$employee_id'";
+          }
+        }
+  }
+
 
   if (empty($_POST['level'])) {
         $error[] = 'tidak boleh kosong';
@@ -164,7 +198,8 @@ case 'update':
 
  if($password == ''){
   if (empty($error)) { 
-    $update="UPDATE user SET username='$username',
+    $update="UPDATE user SET employee_id=$employee_id_sql,
+                    username='$username',
                     fullname='$fullname',
                     email='$email',
                     level='$level' WHERE user_id='$id'";  
@@ -179,7 +214,8 @@ case 'update':
     }
   }
   else{
-      $update="UPDATE user SET username='$username',
+      $update="UPDATE user SET employee_id=$employee_id_sql,
+                    username='$username',
                     fullname='$fullname',
                     email='$email',
                     password='$password',

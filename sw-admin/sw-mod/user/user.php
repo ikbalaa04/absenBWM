@@ -3,6 +3,14 @@ if(empty($connection)){
   header('location:../../');
 } else {
   include_once 'sw-mod/sw-panel.php';
+  $employee_options = '<option value="">Tidak ditautkan ke staff</option>';
+  $query_employees = "SELECT id,employees_code,employees_name,employees_email FROM employees ORDER BY employees_name ASC";
+  $result_employees = $connection->query($query_employees);
+  if($result_employees && $result_employees->num_rows > 0){
+    while($employee = $result_employees->fetch_assoc()) {
+      $employee_options .= '<option value="'.$employee['id'].'">'.htmlspecialchars($employee['employees_name'].' - '.$employee['employees_code'].' - '.$employee['employees_email'], ENT_QUOTES, 'UTF-8').'</option>';
+    }
+  }
 echo'
   <div class="content-wrapper">';
 switch(@$_GET['op']){ 
@@ -40,6 +48,7 @@ echo'
               <th>Nama</th>
               <th>Username</th>
               <th>Email</th>
+              <th>Staff Terkait</th>
               <th>Registrasi</th>
               <th>Last Login</th>
               <th>Level</th>
@@ -47,7 +56,7 @@ echo'
             </tr>
             </thead>
             <tbody>';
-            $query="SELECT user.user_id,user.username,user.fullname,user.email,user.registered,user.created_login,user.level,user.level,user_level.level_id,user_level.level_name FROM user,user_level WHERE user.level=user_level.level_id order by user.user_id DESC";
+            $query="SELECT user.user_id,user.employee_id,user.username,user.fullname,user.email,user.registered,user.created_login,user.level,user.level,user_level.level_id,user_level.level_name,employees.employees_name,employees.employees_code FROM user INNER JOIN user_level ON user.level=user_level.level_id LEFT JOIN employees ON employees.id=user.employee_id order by user.user_id DESC";
             $result = $connection->query($query);
             if($result->num_rows > 0){
             $no=0;
@@ -59,6 +68,7 @@ echo'
                 <td>'.$row_a['fullname'].'</td>
                 <td>'.$row_a['username'].'</td>
                 <td>'.$row_a['email'].'</td>
+                <td>'.(!empty($row_a['employee_id']) ? $row_a['employees_name'].'<br><small>'.$row_a['employees_code'].'</small>' : '<span class="text-muted">-</span>').'</td>
                 <td>'.tgl_indo($row_a['registered']).' - '.jam_indo($row_a['registered']).'</td>
                 <td>'.(($row_a['created_login'] != '0000-00-00 00:00:00' && !empty($row_a['created_login'])) ? tgl_indo($row_a['created_login']).' - '.jam_indo($row_a['created_login']) : '<span class="text-muted">Belum login</span>').'</td>
                 <td>'.$row_a['level_name'].'</td>
@@ -66,11 +76,11 @@ echo'
                   <div class="btn-group btn-group-xs">';
                   if($level_user==1){
                   echo'
-                  <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row_a['user_id'];?>';getElementById('txtnama').value='<?PHP echo $row_a['fullname'];?>';getElementById('txtuser').value='<?PHP echo $row_a['username'];?>';getElementById('txtemail').value='<?PHP echo $row_a['email'];?>';getElementById('txtlevel').value='<?PHP echo $row_a['level'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a><?PHP }
+                  <a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row_a['user_id'];?>';getElementById('txtemployee').value='<?PHP echo $row_a['employee_id'];?>';getElementById('txtnama').value='<?PHP echo $row_a['fullname'];?>';getElementById('txtuser').value='<?PHP echo $row_a['username'];?>';getElementById('txtemail').value='<?PHP echo $row_a['email'];?>';getElementById('txtlevel').value='<?PHP echo $row_a['level'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a><?PHP }
                   else{
                       // cek level 2 berdasarkan id login
                       if($user_id ==$SESSION_ID){
-                       echo'<a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row_a['user_id'];?>';getElementById('txtnama').value='<?PHP echo $row_a['fullname'];?>';getElementById('txtuser').value='<?PHP echo $row_a['username'];?>';getElementById('txtemail').value='<?PHP echo $row_a['email'];?>';getElementById('txtlevel').value='<?PHP echo $row_a['level'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a><?PHP
+                       echo'<a href="#modalEdit" class="btn btn-warning btn-xs enable-tooltip" title="Edit" data-toggle="modal"';?> onclick="getElementById('txtid').value='<?PHP echo $row_a['user_id'];?>';getElementById('txtemployee').value='<?PHP echo $row_a['employee_id'];?>';getElementById('txtnama').value='<?PHP echo $row_a['fullname'];?>';getElementById('txtuser').value='<?PHP echo $row_a['username'];?>';getElementById('txtemail').value='<?PHP echo $row_a['email'];?>';getElementById('txtlevel').value='<?PHP echo $row_a['level'];?>';"><i class="fa fa-pencil-square-o"></i> Ubah</a><?PHP
                       }else{
                          echo'<button class="btn btn-sm btn-warning access-failed" title="Ubah"><i class="fa fa-pencil-square-o"></i> Ubah</button>';
                       }
@@ -129,6 +139,14 @@ echo'
         </div>
 
         <div class="form-group">
+          <label>Staff Terkait</label>
+          <select class="form-control" name="employee_id">
+            '.$employee_options.'
+          </select>
+          <small class="text-muted">Isi jika admin ini juga punya akses sebagai staff.</small>
+        </div>
+
+        <div class="form-group">
             <label>Password</label>
             <input type="password" class="form-control" name="password" required>
         </div>
@@ -184,6 +202,14 @@ echo'
         <div class="form-group">
             <label>Email</label>
             <input type="email" class="form-control" id="txtemail" name="email" required>
+        </div>
+
+        <div class="form-group">
+          <label>Staff Terkait</label>
+          <select class="form-control" name="employee_id" id="txtemployee">
+            '.$employee_options.'
+          </select>
+          <small class="text-muted">Jika ditautkan, password staff juga bisa dipakai untuk login sebagai admin.</small>
         </div>
 
         <div class="form-group">

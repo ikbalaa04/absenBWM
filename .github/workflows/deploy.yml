@@ -1,0 +1,19 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger server deploy
+        run: |
+          curl --fail --silent --show-error --location --request POST "${{ secrets.DEPLOY_WEBHOOK_URL }}"
