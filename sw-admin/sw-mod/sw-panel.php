@@ -13,29 +13,31 @@ echo'<aside class="main-sidebar">
         <li class="header">MAIN NAVIGATION</li>';
       if($mod =='home'){echo'<li class="active">'; }else{echo'<li>';}
       echo'<a href="./?mod=home"><i class="fa fa-home"></i><span>Dashboard</span></a></li>';
-      
-      if($mod =='karyawan' OR $mod=='jabatan' OR $mod=='shift' OR $mod=='lokasi' OR $mod=='libur'){echo'<li class="active treeview">'; }else{
-      echo'<li class="treeview">';}
-      echo'
-          <a href="#">
-            <i class="fa fa-database"></i> <span>Master Data</span>
-            <span class="pull-right-container">
-              <i class="fa fa-angle-left pull-right"></i>
-            </span>
-          </a>
-          <ul class="treeview-menu">';
-             if($mod =='karyawan'){echo'<li class="active">'; }else{echo'<li>';}
-             echo'<a href="./?mod=karyawan"><i class="fa fa-circle-o"></i> Data Karyawan</a></li>';
-            if($mod =='jabatan'){echo'<li class="active">'; }else{echo'<li>';}
-             echo'<a href="./?mod=jabatan"><i class="fa fa-circle-o"></i> Data Jabatan</a></li>';
-            if($mod =='shift'){echo'<li class="active">'; }else{echo'<li>';}
-             echo'<a href="./?mod=shift"><i class="fa fa-circle-o"></i> Data Jam Kerja</a></li>';
-             if($mod =='lokasi'){echo'<li class="active">'; }else{echo'<li>';}
-             echo'<a href="./?mod=lokasi"><i class="fa fa-circle-o"></i> Data Lokasi</a></li>';
-             if($mod =='libur'){echo'<li class="active">'; }else{echo'<li>';}
-             echo'<a href="./?mod=libur"><i class="fa fa-circle-o"></i> Kalender Libur</a></li>
-          </ul>
-        </li>';
+
+      if($level_user == 1){
+        if($mod =='karyawan' OR $mod=='jabatan' OR $mod=='shift' OR $mod=='lokasi' OR $mod=='libur'){echo'<li class="active treeview">'; }else{
+        echo'<li class="treeview">';}
+        echo'
+            <a href="#">
+              <i class="fa fa-database"></i> <span>Master Data</span>
+              <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+            </a>
+            <ul class="treeview-menu">';
+               if($mod =='karyawan'){echo'<li class="active">'; }else{echo'<li>';}
+               echo'<a href="./?mod=karyawan"><i class="fa fa-circle-o"></i> Data Karyawan</a></li>';
+              if($mod =='jabatan'){echo'<li class="active">'; }else{echo'<li>';}
+               echo'<a href="./?mod=jabatan"><i class="fa fa-circle-o"></i> Data Jabatan</a></li>';
+              if($mod =='shift'){echo'<li class="active">'; }else{echo'<li>';}
+               echo'<a href="./?mod=shift"><i class="fa fa-circle-o"></i> Data Jam Kerja</a></li>';
+               if($mod =='lokasi'){echo'<li class="active">'; }else{echo'<li>';}
+               echo'<a href="./?mod=lokasi"><i class="fa fa-circle-o"></i> Data Lokasi</a></li>';
+               if($mod =='libur'){echo'<li class="active">'; }else{echo'<li>';}
+               echo'<a href="./?mod=libur"><i class="fa fa-circle-o"></i> Kalender Libur</a></li>
+            </ul>
+          </li>';
+      }
 
       if($mod =='cuty'){echo'<li class="active">'; }else{echo'<li>';}
       echo'<a href="./?mod=cuty"><i class="fa fa-calendar" aria-hidden="true"></i> <span>Data Permohonan Izin</span></a></li>';
@@ -47,11 +49,13 @@ echo'<aside class="main-sidebar">
       if($mod =='penugasan'){echo'<li class="active">'; }else{echo'<li>';}
       echo'<a href="./?mod=penugasan"><i class="fa fa-briefcase" aria-hidden="true"></i> <span>Penugasan</span></a></li>';
 
-      if($mod =='setting'){echo'<li class="active">'; }else{echo'<li>';}
-      echo'<a href="./?mod=setting"><i class="fa fa-cogs" aria-hidden="true"></i> <span>Pengaturan Web</span></a></li>';
+      if($level_user == 1){
+        if($mod =='setting'){echo'<li class="active">'; }else{echo'<li>';}
+        echo'<a href="./?mod=setting"><i class="fa fa-cogs" aria-hidden="true"></i> <span>Pengaturan Web</span></a></li>';
 
-      if($mod =='user'){echo'<li class="active">'; }else{echo'<li>';}
-      echo'<a href="./?mod=user"><i class="fa fa-user"></i> <span>Admin</span></a></li>';?>
+        if($mod =='user'){echo'<li class="active">'; }else{echo'<li>';}
+        echo'<a href="./?mod=user"><i class="fa fa-user"></i> <span>Admin</span></a></li>';
+      }?>
       <li><a href="./login/logout.php"><i class="fa fa-sign-out text-red"></i>  <span>Keluar</span></a></li>
   <?php echo'
       </ul>

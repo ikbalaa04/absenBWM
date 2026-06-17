@@ -1,6 +1,7 @@
 <?php if(empty($connection)){
   header('location:./404');
 } else {
+$admin_role_label = ($level_user == 1) ? 'Administrator' : 'Operator';
 $query="SELECT presence.employees_id,presence.time_in,presence.time_out,employees.employees_name FROM presence,employees WHERE presence.employees_id=employees.id AND presence.presence_date='$date' ORDER BY presence.presence_id DESC LIMIT 10";
 $result_notif = $connection->query($query);
 
@@ -151,7 +152,7 @@ echo'<div class="wrapper">
           </li>
 
         <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">'.strip_tags(substr($row_user['fullname'],0,10)).' <span class="caret"></span></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">'.strip_tags(substr($row_user['fullname'],0,10)).' <small>('.$admin_role_label.')</small> <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">';?>
                 <li><a href="./login/logout.php"><i class="fa fa-sign-out"></i> Logout</a></li>
               </ul>
