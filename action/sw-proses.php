@@ -1116,11 +1116,17 @@ $error = array();
       $cuty_description  = sanitize_cuty_description($connection, $_POST['cuty_description']);
   }
 
+  if (empty($error) && $cuty_type == 'cuti') {
+    $quota_error = cuty_quota_validate_request($connection, $row_user['id'], $cuty_start, $cuty_end);
+    if (!empty($quota_error)) {
+      $error[] = $quota_error;
+    }
+  }
 
 if (empty($error)) {
   $query="SELECT cuty_id from cuty where MONTH(cuty_start) ='$month' AND employees_id='$row_user[id]' AND cuty_type!='izin_jam'";
   $result= $connection->query($query) or die($connection->error.__LINE__);
-  if($cuty_type == 'izin_jam' || !$result ->num_rows >0){
+  if($cuty_type == 'cuti' || $cuty_type == 'izin_jam' || !$result ->num_rows >0){
     $cuty_status = $cuty_type == 'izin_jam' ? '1' : '3';
     $add ="INSERT INTO cuty (employees_id,
               cuty_type,
@@ -1212,6 +1218,12 @@ $error = array();
       $cuty_description  = sanitize_cuty_description($connection, $_POST['cuty_description']);
   }
 
+  if (empty($error) && $cuty_type == 'cuti') {
+    $quota_error = cuty_quota_validate_request($connection, $row_user['id'], $cuty_start, $cuty_end, $cuty_id);
+    if (!empty($quota_error)) {
+      $error[] = $quota_error;
+    }
+  }
 
 if (empty($error)) {
     $status_update = $cuty_type == 'izin_jam' ? ", cuty_status='1'" : "";

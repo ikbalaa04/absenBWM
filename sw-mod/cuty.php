@@ -13,8 +13,34 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
         session_destroy();
         header("location:./");
 }else{
+  $quota_year = date('Y', strtotime($date));
+  $cuty_quota = cuty_quota_summary($connection, $row_user['id'], $quota_year);
   echo'<!-- App Capsule -->
     <div id="appCapsule">
+    <div class="section mt-2">
+      <div class="card">
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-3">
+              <strong>'.$cuty_quota['quota'].'</strong>
+              <div class="text-muted small">Kuota '.$quota_year.'</div>
+            </div>
+            <div class="col-3">
+              <strong>'.$cuty_quota['approved'].'</strong>
+              <div class="text-muted small">Disetujui</div>
+            </div>
+            <div class="col-3">
+              <strong>'.$cuty_quota['pending'].'</strong>
+              <div class="text-muted small">Menunggu</div>
+            </div>
+            <div class="col-3">
+              <strong>'.$cuty_quota['remaining'].'</strong>
+              <div class="text-muted small">Sisa</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="section mt-2">
     <div class="card">
     <div class="card-body">

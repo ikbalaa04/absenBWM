@@ -26,6 +26,24 @@ case 'update-status':
       $error[] = 'tidak boleh kosong';
     } else {
       $status = mysqli_real_escape_string($connection, $_GET['status']);
+      if (!in_array($status, array('1','2'))) {
+        $error[] = 'Status tidak valid';
+      }
+  }
+
+  if (empty($error) && $status == '1') {
+    $query_cuty = $connection->query("SELECT employees_id,cuty_type,cuty_start,cuty_end FROM cuty WHERE cuty_id='$cuty_id' LIMIT 1");
+    if (!$query_cuty || $query_cuty->num_rows == 0) {
+      $error[] = 'Data izin tidak ditemukan';
+    } else {
+      $row_cuty = $query_cuty->fetch_assoc();
+      if ($row_cuty['cuty_type'] == 'cuti') {
+        $quota_error = cuty_quota_validate_request($connection, $row_cuty['employees_id'], $row_cuty['cuty_start'], $row_cuty['cuty_end'], $cuty_id);
+        if (!empty($quota_error)) {
+          $error[] = $quota_error;
+        }
+      }
+    }
   }
 
   if (empty($error)) { 

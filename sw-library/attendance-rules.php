@@ -173,6 +173,88 @@ if (!function_exists('attendance_ensure_schema')) {
   }
 }
 
+if (!function_exists('cuty_annual_quota_days')) {
+  function cuty_annual_quota_days($year = null) {
+    return 12;
+  }
+}
+
+if (!function_exists('cuty_days_in_year')) {
+  function cuty_days_in_year($start_date, $end_date, $year) {
+    if (empty($start_date) || empty($end_date) || empty($year)) {
+      return 0;
+    }
+    $start = strtotime($start_date);
+    $end = strtotime($end_date);
+    if (!$start || !$end || $start > $end) {
+      return 0;
+    }
+    $year_start = strtotime($year.'-01-01');
+    $year_end = strtotime($year.'-12-31');
+    $range_start = max($start, $year_start);
+    $range_end = min($end, $year_end);
+    if ($range_start > $range_end) {
+      return 0;
+    }
+    return ((int)floor(($range_end - $range_start) / 86400)) + 1;
+  }
+}
+
+if (!function_exists('cuty_quota_summary')) {
+  function cuty_quota_summary($connection, $employees_id, $year, $exclude_cuty_id = 0) {
+    $summary = array(
+      'quota' => cuty_annual_quota_days($year),
+      'approved' => 0,
+      'pending' => 0,
+      'used' => 0,
+      'remaining' => cuty_annual_quota_days($year)
+    );
+    if (empty($connection) || empty($employees_id) || empty($year)) {
+      return $summary;
+    }
+
+    $employees_id = mysqli_real_escape_string($connection, $employees_id);
+    $year = (int)$year;
+    $year_start = mysqli_real_escape_string($connection, $year.'-01-01');
+    $year_end = mysqli_real_escape_string($connection, $year.'-12-31');
+    $exclude = (int)$exclude_cuty_id;
+    $exclude_sql = $exclude > 0 ? " AND cuty_id!='$exclude'" : "";
+    $query = "SELECT cuty_start,cuty_end,cuty_status FROM cuty WHERE employees_id='$employees_id' AND cuty_type='cuti' AND cuty_status IN ('1','3') AND cuty_start <= '$year_end' AND cuty_end >= '$year_start'".$exclude_sql;
+    $result = $connection->query($query);
+    if ($result) {
+      while ($row = $result->fetch_assoc()) {
+        $days = cuty_days_in_year($row['cuty_start'], $row['cuty_end'], $year);
+        if ($row['cuty_status'] == '1') {
+          $summary['approved'] += $days;
+        } else {
+          $summary['pending'] += $days;
+        }
+      }
+    }
+    $summary['used'] = $summary['approved'] + $summary['pending'];
+    $summary['remaining'] = max(0, $summary['quota'] - $summary['used']);
+    return $summary;
+  }
+}
+
+if (!function_exists('cuty_quota_validate_request')) {
+  function cuty_quota_validate_request($connection, $employees_id, $start_date, $end_date, $exclude_cuty_id = 0) {
+    $start_year = (int)date('Y', strtotime($start_date));
+    $end_year = (int)date('Y', strtotime($end_date));
+    for ($year = $start_year; $year <= $end_year; $year++) {
+      $request_days = cuty_days_in_year($start_date, $end_date, $year);
+      if ($request_days <= 0) {
+        continue;
+      }
+      $summary = cuty_quota_summary($connection, $employees_id, $year, $exclude_cuty_id);
+      if ($request_days > $summary['remaining']) {
+        return 'Kuota cuti tahun '.$year.' tidak mencukupi. Sisa '.$summary['remaining'].' hari, diajukan '.$request_days.' hari.';
+      }
+    }
+    return '';
+  }
+}
+
 if (!function_exists('attendance_distance_meter')) {
   function attendance_distance_meter($lat1, $lon1, $lat2, $lon2) {
     $earth_radius = 6371000;

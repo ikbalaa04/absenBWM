@@ -589,6 +589,7 @@ $('.btn-print').click(function (e) {
                         $('#modal-add').modal('hide');
                         $('#form-add-cuty').trigger("reset");
                         toggleCutyDateFields($('#form-add-cuty'));
+                        setTimeout(function(){ location.reload(); }, 1500);
                     } else {
                         swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
                     }
@@ -667,6 +668,7 @@ $('.btn-print').click(function (e) {
                         loadDataCuty();
                         $('#modal-update').modal('hide');
                         $('#form-update-cuty').trigger("reset");
+                        setTimeout(function(){ location.reload(); }, 1500);
                     } else {
                         swal({title: 'Oops!', text: data, icon: 'error', timer: 1500,});
                     }
