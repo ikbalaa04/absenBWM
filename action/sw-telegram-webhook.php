@@ -34,6 +34,12 @@ if ($text === '' || $chat_id === '') {
   exit;
 }
 
+if (preg_match('/^\/start(?:@\S+)?$/', $text)) {
+  telegram_send_message($connection, $chat_id, "Silakan buka Profil di aplikasi Absensi, klik Hubungkan Telegram, lalu kirim perintah /start dengan kode yang muncul.");
+  echo json_encode(array('ok' => true));
+  exit;
+}
+
 if (!preg_match('/^\/start(?:@\S+)?\s+([A-Za-z0-9_-]+)$/', $text, $matches)) {
   echo json_encode(array('ok' => true));
   exit;
