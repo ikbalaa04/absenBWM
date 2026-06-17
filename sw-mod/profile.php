@@ -38,6 +38,13 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   if (!empty($row_user['photo']) && file_exists(__DIR__.'/../sw-content/karyawan/'.$row_user['photo'])) {
       $profile_photo_url = $base_url.'sw-content/karyawan/'.$row_user['photo'];
   }
+  $telegram_connected = !empty($row_user['telegram_chat_id']);
+  $telegram_token = isset($row_user['telegram_connection_token']) ? (string)$row_user['telegram_connection_token'] : '';
+  $telegram_token_expires = isset($row_user['telegram_connection_token_expires_at']) ? (string)$row_user['telegram_connection_token_expires_at'] : '';
+  if (!empty($telegram_token_expires) && strtotime($telegram_token_expires) < time()) {
+      $telegram_token = '';
+  }
+  $telegram_bot_link = !empty($telegram_token) ? telegram_bot_url($connection, $telegram_token) : '';
   echo'<!-- App Capsule -->
     <div id="appCapsule">
         <div class="section mt-3 text-center">
@@ -102,6 +109,38 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                         
                     </form>
 
+                </div>
+            </div>
+        </div>
+
+        <div class="section mt-2 mb-2">
+            <div class="section-title">Telegram</div>
+            <div class="card">
+                <div class="card-body">';
+                  if ($telegram_connected) {
+                    echo'
+                    <p>Telegram terhubung'.(!empty($row_user['telegram_username']) ? ' (@'.$row_user['telegram_username'].')' : '').'.</p>
+                    <button type="button" class="btn btn-primary mr-1 telegram-test">Kirim Test Telegram</button>
+                    <button type="button" class="btn btn-danger telegram-disconnect">Putuskan Telegram</button>';
+                  } else {
+                    echo'
+                    <p>Hubungkan Telegram untuk menerima reminder absensi dan update approval.</p>';
+                    if (!empty($telegram_token)) {
+                      echo'
+                      <div class="alert alert-info">
+                        Kirim perintah ini ke bot Telegram:<br>
+                        <b>/start '.$telegram_token.'</b><br>
+                        <small>Berlaku sampai '.date('d-m-Y H:i', strtotime($telegram_token_expires)).'</small>
+                      </div>';
+                      if (!empty($telegram_bot_link)) {
+                        echo'<a class="btn btn-primary mr-1" href="'.$telegram_bot_link.'" target="_blank" rel="noopener">Buka Bot Telegram</a>';
+                      }
+                      echo'<button type="button" class="btn btn-secondary telegram-connect">Buat Ulang Kode Telegram</button>';
+                    } else {
+                      echo'<button type="button" class="btn btn-primary telegram-connect">Hubungkan Telegram</button>';
+                    }
+                  }
+                echo'
                 </div>
             </div>
         </div>

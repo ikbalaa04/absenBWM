@@ -71,6 +71,7 @@ if (!isset($_POST['attendance_checkin_grace_minutes']) || $_POST['attendance_che
 }
 
 $telegram_bot_token = isset($_POST['telegram_bot_token']) ? mysqli_real_escape_string($connection, trim($_POST['telegram_bot_token'])) : '';
+$telegram_bot_username = isset($_POST['telegram_bot_username']) ? mysqli_real_escape_string($connection, trim($_POST['telegram_bot_username'])) : '';
 $telegram_admin_chat_ids = isset($_POST['telegram_admin_chat_ids']) ? mysqli_real_escape_string($connection, trim($_POST['telegram_admin_chat_ids'])) : '';
 $telegram_reminder_minutes = isset($_POST['telegram_reminder_minutes']) ? (int)$_POST['telegram_reminder_minutes'] : 10;
 if (!in_array($telegram_reminder_minutes, array(5, 10), true)) {
@@ -84,6 +85,15 @@ if (!preg_match('/^[A-Za-z0-9_\-]{16,64}$/', $telegram_cron_token)) {
   $error[] = 'Token cron Telegram hanya boleh huruf, angka, strip, underscore, minimal 16 karakter.';
 }
 $telegram_cron_token = mysqli_real_escape_string($connection, $telegram_cron_token);
+
+$telegram_webhook_secret = isset($_POST['telegram_webhook_secret']) ? trim($_POST['telegram_webhook_secret']) : '';
+if ($telegram_webhook_secret === '') {
+  $telegram_webhook_secret = function_exists('random_bytes') ? bin2hex(random_bytes(16)) : md5(uniqid('', true));
+}
+if (!preg_match('/^[A-Za-z0-9_\-]{16,64}$/', $telegram_webhook_secret)) {
+  $error[] = 'Webhook secret Telegram hanya boleh huruf, angka, strip, underscore, minimal 16 karakter.';
+}
+$telegram_webhook_secret = mysqli_real_escape_string($connection, $telegram_webhook_secret);
 
 $site_logo    = $_FILES['site_logo']["name"];
 $file_tmp = $_FILES['site_logo']['tmp_name']; 
@@ -132,9 +142,11 @@ if($site_logo == ''){
                       site_email_domain='$site_email_domain',
                       attendance_checkin_grace_minutes='$attendance_checkin_grace_minutes',
                       telegram_bot_token='$telegram_bot_token',
+                      telegram_bot_username='$telegram_bot_username',
                       telegram_admin_chat_ids='$telegram_admin_chat_ids',
                       telegram_reminder_minutes='$telegram_reminder_minutes',
-                      telegram_cron_token='$telegram_cron_token'
+                      telegram_cron_token='$telegram_cron_token',
+                      telegram_webhook_secret='$telegram_webhook_secret'
                       $letter_header_sql WHERE site_id='1'"; 
     if($connection->query($update) === false) { 
       die($connection->error.__LINE__); 
@@ -182,9 +194,11 @@ if($ukuran_file < 1044070){
                       site_email_domain='$site_email_domain',
                       attendance_checkin_grace_minutes='$attendance_checkin_grace_minutes',
                       telegram_bot_token='$telegram_bot_token',
+                      telegram_bot_username='$telegram_bot_username',
                       telegram_admin_chat_ids='$telegram_admin_chat_ids',
                       telegram_reminder_minutes='$telegram_reminder_minutes',
-                      telegram_cron_token='$telegram_cron_token'
+                      telegram_cron_token='$telegram_cron_token',
+                      telegram_webhook_secret='$telegram_webhook_secret'
                       $letter_header_sql WHERE site_id='1'" or die($connection->error.__LINE__); 
       if($connection->query($update) === false) { 
         echo'Data tidak berhasil disimpan!';

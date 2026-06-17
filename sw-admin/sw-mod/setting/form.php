@@ -86,6 +86,14 @@ case 'setting':
         </div>
 
         <div class="form-group">
+          <label class="col-sm-2 control-label">Bot Username</label>
+          <div class="col-sm-6">
+            <input type="text" name="telegram_bot_username" class="form-control" value="'.setting_h(isset($telegram_bot_username) ? $telegram_bot_username : '').'" autocomplete="off" placeholder="contoh: indecon_absensi_bot">
+            <p class="text-muted">Dipakai untuk tombol buka bot Telegram di profil staff.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
           <label class="col-sm-2 control-label">Chat ID Admin</label>
           <div class="col-sm-6">
             <textarea name="telegram_admin_chat_ids" class="form-control" rows="2">'.setting_h(isset($telegram_admin_chat_ids) ? $telegram_admin_chat_ids : '').'</textarea>
@@ -109,6 +117,14 @@ case 'setting':
           <div class="col-sm-6">
             <input type="text" name="telegram_cron_token" class="form-control" value="'.setting_h(isset($telegram_cron_token) ? $telegram_cron_token : '').'" autocomplete="off">
             <p class="text-muted">URL cron: '.setting_h($site_url).'action/sw-telegram-cron.php?token='.setting_h(isset($telegram_cron_token) ? $telegram_cron_token : '').'</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Webhook Secret</label>
+          <div class="col-sm-6">
+            <input type="text" name="telegram_webhook_secret" class="form-control" value="'.setting_h(isset($telegram_webhook_secret) ? $telegram_webhook_secret : '').'" autocomplete="off">
+            <p class="text-muted">URL webhook: '.setting_h($site_url).'action/sw-telegram-webhook.php?secret='.setting_h(isset($telegram_webhook_secret) ? $telegram_webhook_secret : '').'</p>
           </div>
         </div>
         <hr>

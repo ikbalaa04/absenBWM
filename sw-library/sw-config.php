@@ -31,14 +31,20 @@ if ($connection->connect_error){
 		if (empty($site_columns['telegram_bot_token'])) {
 			$connection->query("ALTER TABLE sw_site ADD telegram_bot_token varchar(150) NOT NULL DEFAULT '' AFTER attendance_checkin_grace_minutes");
 		}
+		if (empty($site_columns['telegram_bot_username'])) {
+			$connection->query("ALTER TABLE sw_site ADD telegram_bot_username varchar(100) NOT NULL DEFAULT '' AFTER telegram_bot_token");
+		}
 		if (empty($site_columns['telegram_admin_chat_ids'])) {
-			$connection->query("ALTER TABLE sw_site ADD telegram_admin_chat_ids text NULL AFTER telegram_bot_token");
+			$connection->query("ALTER TABLE sw_site ADD telegram_admin_chat_ids text NULL AFTER telegram_bot_username");
 		}
 		if (empty($site_columns['telegram_reminder_minutes'])) {
 			$connection->query("ALTER TABLE sw_site ADD telegram_reminder_minutes tinyint(2) NOT NULL DEFAULT 10 AFTER telegram_admin_chat_ids");
 		}
 		if (empty($site_columns['telegram_cron_token'])) {
 			$connection->query("ALTER TABLE sw_site ADD telegram_cron_token varchar(64) NOT NULL DEFAULT '' AFTER telegram_reminder_minutes");
+		}
+		if (empty($site_columns['telegram_webhook_secret'])) {
+			$connection->query("ALTER TABLE sw_site ADD telegram_webhook_secret varchar(64) NOT NULL DEFAULT '' AFTER telegram_cron_token");
 		}
 		$query_site  = "SELECT * FROM sw_site LIMIT 1";
 		$result_site = $connection->query($query_site);

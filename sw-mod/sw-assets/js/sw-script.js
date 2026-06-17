@@ -241,6 +241,73 @@ $('#update-profile').submit(function (e) {
     }
 });
 
+$(document).on('click', '.telegram-connect', function () {
+    loading();
+    $.ajax({
+        url: swProcessUrl+"?action=telegram-connect",
+        type: "POST",
+        success: function (data) {
+            if (data == 'success') {
+                swal({title: 'Berhasil!', text: 'Kode koneksi Telegram dibuat.', icon: 'success', timer: 1500,});
+                setTimeout(function(){ location.reload(); }, 1500);
+            } else {
+                swal({title: 'Oops!', text: data, icon: 'error', timer: 2000,});
+            }
+        },
+        complete: function () {
+            $(".loading").hide();
+        }
+    });
+});
+
+$(document).on('click', '.telegram-test', function () {
+    loading();
+    $.ajax({
+        url: swProcessUrl+"?action=telegram-test",
+        type: "POST",
+        success: function (data) {
+            if (data == 'success') {
+                swal({title: 'Berhasil!', text: 'Test Telegram berhasil dikirim.', icon: 'success', timer: 1500,});
+            } else {
+                swal({title: 'Oops!', text: data, icon: 'error', timer: 2000,});
+            }
+        },
+        complete: function () {
+            $(".loading").hide();
+        }
+    });
+});
+
+$(document).on('click', '.telegram-disconnect', function () {
+    swal({
+        title: "Putuskan Telegram?",
+        text: "Notifikasi Telegram ke akun ini akan berhenti.",
+        icon: "warning",
+        buttons: true,
+        dangerMode: true,
+    }).then(function(willDisconnect) {
+        if (!willDisconnect) {
+            return;
+        }
+        loading();
+        $.ajax({
+            url: swProcessUrl+"?action=telegram-disconnect",
+            type: "POST",
+            success: function (data) {
+                if (data == 'success') {
+                    swal({title: 'Berhasil!', text: 'Telegram berhasil diputuskan.', icon: 'success', timer: 1500,});
+                    setTimeout(function(){ location.reload(); }, 1500);
+                } else {
+                    swal({title: 'Oops!', text: data, icon: 'error', timer: 2000,});
+                }
+            },
+            complete: function () {
+                $(".loading").hide();
+            }
+        });
+    });
+});
+
 
 
 /* ---------- UPDATE PASSWORD-----------------*/

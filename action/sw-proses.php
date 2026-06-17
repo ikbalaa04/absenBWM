@@ -533,6 +533,40 @@ case 'profile':
   }
 break;
 
+case 'telegram-connect':
+  $token = telegram_generate_connection_token($connection);
+  $safe_token = mysqli_real_escape_string($connection, $token);
+  $expires_at = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+  $update = "UPDATE employees SET telegram_connection_token='$safe_token', telegram_connection_token_expires_at='$expires_at' WHERE id='$row_user[id]'";
+  if ($connection->query($update) === false) {
+    echo'Kode Telegram tidak dapat dibuat.';
+  } else {
+    echo'success';
+  }
+break;
+
+case 'telegram-disconnect':
+  $update = "UPDATE employees SET telegram_chat_id='', telegram_username='', telegram_connected_at=NULL, telegram_connection_token=NULL, telegram_connection_token_expires_at=NULL WHERE id='$row_user[id]'";
+  if ($connection->query($update) === false) {
+    echo'Telegram tidak dapat diputuskan.';
+  } else {
+    echo'success';
+  }
+break;
+
+case 'telegram-test':
+  if (empty($row_user['telegram_chat_id'])) {
+    echo'Telegram belum terhubung.';
+    break;
+  }
+  $message = '<b>Test Telegram</b>'."\n".'Notifikasi Telegram dari '.telegram_escape($site_name).' berhasil diterima.';
+  if (telegram_send_message($connection, $row_user['telegram_chat_id'], $message)) {
+    echo'success';
+  } else {
+    echo'Test Telegram gagal dikirim. Periksa token bot.';
+  }
+break;
+
 
 // ----------- UPDATE PASSWORD -------------------//
 case 'update-password':

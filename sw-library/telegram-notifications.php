@@ -16,14 +16,20 @@ if (!function_exists('telegram_ensure_schema')) {
     if (empty($site_columns['telegram_bot_token'])) {
       $connection->query("ALTER TABLE sw_site ADD telegram_bot_token varchar(150) NOT NULL DEFAULT '' AFTER attendance_checkin_grace_minutes");
     }
+    if (empty($site_columns['telegram_bot_username'])) {
+      $connection->query("ALTER TABLE sw_site ADD telegram_bot_username varchar(100) NOT NULL DEFAULT '' AFTER telegram_bot_token");
+    }
     if (empty($site_columns['telegram_admin_chat_ids'])) {
-      $connection->query("ALTER TABLE sw_site ADD telegram_admin_chat_ids text NULL AFTER telegram_bot_token");
+      $connection->query("ALTER TABLE sw_site ADD telegram_admin_chat_ids text NULL AFTER telegram_bot_username");
     }
     if (empty($site_columns['telegram_reminder_minutes'])) {
       $connection->query("ALTER TABLE sw_site ADD telegram_reminder_minutes tinyint(2) NOT NULL DEFAULT 10 AFTER telegram_admin_chat_ids");
     }
     if (empty($site_columns['telegram_cron_token'])) {
       $connection->query("ALTER TABLE sw_site ADD telegram_cron_token varchar(64) NOT NULL DEFAULT '' AFTER telegram_reminder_minutes");
+    }
+    if (empty($site_columns['telegram_webhook_secret'])) {
+      $connection->query("ALTER TABLE sw_site ADD telegram_webhook_secret varchar(64) NOT NULL DEFAULT '' AFTER telegram_cron_token");
     }
 
     $employee_columns = array();
@@ -35,6 +41,19 @@ if (!function_exists('telegram_ensure_schema')) {
     }
     if (empty($employee_columns['telegram_chat_id'])) {
       $connection->query("ALTER TABLE employees ADD telegram_chat_id varchar(100) NOT NULL DEFAULT '' AFTER employees_email");
+    }
+    if (empty($employee_columns['telegram_username'])) {
+      $connection->query("ALTER TABLE employees ADD telegram_username varchar(100) NOT NULL DEFAULT '' AFTER telegram_chat_id");
+    }
+    if (empty($employee_columns['telegram_connected_at'])) {
+      $connection->query("ALTER TABLE employees ADD telegram_connected_at datetime DEFAULT NULL AFTER telegram_username");
+    }
+    if (empty($employee_columns['telegram_connection_token'])) {
+      $connection->query("ALTER TABLE employees ADD telegram_connection_token varchar(64) DEFAULT NULL AFTER telegram_connected_at");
+      $connection->query("ALTER TABLE employees ADD UNIQUE KEY telegram_connection_token (telegram_connection_token)");
+    }
+    if (empty($employee_columns['telegram_connection_token_expires_at'])) {
+      $connection->query("ALTER TABLE employees ADD telegram_connection_token_expires_at datetime DEFAULT NULL AFTER telegram_connection_token");
     }
 
     $connection->query("CREATE TABLE IF NOT EXISTS telegram_notification_log (
@@ -56,17 +75,49 @@ if (!function_exists('telegram_ensure_schema')) {
 if (!function_exists('telegram_setting_row')) {
   function telegram_setting_row($connection) {
     telegram_ensure_schema($connection);
-    $result = $connection->query("SELECT telegram_bot_token,telegram_admin_chat_ids,telegram_reminder_minutes,telegram_cron_token,site_name FROM sw_site LIMIT 1");
+    $result = $connection->query("SELECT telegram_bot_token,telegram_bot_username,telegram_admin_chat_ids,telegram_reminder_minutes,telegram_cron_token,telegram_webhook_secret,site_name FROM sw_site LIMIT 1");
     if ($result && $result->num_rows > 0) {
       return $result->fetch_assoc();
     }
     return array(
       'telegram_bot_token' => '',
+      'telegram_bot_username' => '',
       'telegram_admin_chat_ids' => '',
       'telegram_reminder_minutes' => 10,
       'telegram_cron_token' => '',
+      'telegram_webhook_secret' => '',
       'site_name' => 'Absensi'
     );
+  }
+}
+
+if (!function_exists('telegram_bot_url')) {
+  function telegram_bot_url($connection, $start_token = '') {
+    $setting = telegram_setting_row($connection);
+    $username = trim((string)$setting['telegram_bot_username']);
+    if ($username === '') {
+      return '';
+    }
+    $url = 'https://t.me/'.ltrim($username, '@');
+    if ($start_token !== '') {
+      $url .= '?start='.urlencode($start_token);
+    }
+    return $url;
+  }
+}
+
+if (!function_exists('telegram_generate_connection_token')) {
+  function telegram_generate_connection_token($connection) {
+    telegram_ensure_schema($connection);
+    for ($i = 0; $i < 5; $i++) {
+      $token = function_exists('random_bytes') ? bin2hex(random_bytes(12)) : md5(uniqid('', true));
+      $safe = mysqli_real_escape_string($connection, $token);
+      $result = $connection->query("SELECT id FROM employees WHERE telegram_connection_token='$safe' LIMIT 1");
+      if (!$result || $result->num_rows == 0) {
+        return $token;
+      }
+    }
+    return md5(uniqid('', true));
   }
 }
 
