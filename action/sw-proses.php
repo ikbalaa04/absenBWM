@@ -9,6 +9,7 @@
     $allowed_ext = array("png", "jpg", "jpeg");
     //$created_cookies = rand(19999,9999).rand(888888,111111).date('ymdhisss');
     $salt = '$%DEf0&TTd#%dSuTyr47542"_-^@#&*!=QxR094{a911}+';
+    $admin_salt = '$%DSuTyr47542@#&*!=QxR094{a911}+';
     $expired_cookie = time()+60*60*24*7;
 
 function sanitize_cuty_description($connection, $description) {
@@ -82,10 +83,11 @@ case 'login':
       $created_cookies = create_auth_cookie_token($email);
   }
 
-  if (empty($_POST['password'])) { 
+  if (empty($_POST['password'])) {
         $error[] = 'Password tidak boleh kosong';
     } else {
       $password = hash('sha256',$salt.$_POST['password']);
+      $admin_password = hash('sha256',$admin_salt.$_POST['password']);
 
   }
 
@@ -93,7 +95,12 @@ if (empty($error)){
     $query_login ="SELECT id,employees_email,employees_name,created_cookies FROM employees WHERE employees_email='$email' AND employees_password='$password'";
     $result_login       = $connection->query($query_login);
 
-  if($result_login->num_rows > 0){
+    if (!$result_login || $result_login->num_rows == 0) {
+      $query_login ="SELECT employees.id,employees.employees_email,employees.employees_name,employees.created_cookies FROM user INNER JOIN employees ON employees.id=user.employee_id WHERE (user.username='$email' OR user.email='$email' OR employees.employees_email='$email') AND user.password='$admin_password' LIMIT 1";
+      $result_login = $connection->query($query_login);
+    }
+
+  if($result_login && $result_login->num_rows > 0){
       $row                = $result_login->fetch_assoc();
       $update_user = mysqli_query($connection,"UPDATE employees SET created_login='$time_login', created_cookies='$created_cookies' WHERE id='$row[id]'");
       $COOKIES_MEMBER         =  epm_encode($row['id']);
