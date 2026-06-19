@@ -105,6 +105,10 @@ function attendance_deadline_message($presence_date, $current_time, $target_time
   if (empty($target_time) || $target_time == '00:00:00') {
     return '';
   }
+  if ($grace_minutes === null || $grace_minutes === '') {
+    return '';
+  }
+  $grace_minutes = max(0, (int)$grace_minutes);
 
   $target_timestamp = strtotime($presence_date.' '.$target_time);
   $current_timestamp = strtotime($presence_date.' '.$current_time);
@@ -490,11 +494,13 @@ if (empty($error)){
               echo'Anda belum Absen Masuk pada Tanggal '.tanggal_ind($date).'. Silakan Absen Masuk terlebih dahulu.';
               break;
             }
-            $checkin_grace_minutes = isset($attendance_checkin_grace_minutes) ? max(0, (int)$attendance_checkin_grace_minutes) : 120;
-            $checkin_deadline_error = attendance_deadline_message($date, $time, $rule_time_in, $checkin_grace_minutes, 'absen masuk');
-            if ($checkin_deadline_error !== '') {
-              echo $checkin_deadline_error;
-              break;
+            if (isset($attendance_checkin_grace_minutes) && $attendance_checkin_grace_minutes !== null && $attendance_checkin_grace_minutes !== '') {
+              $checkin_grace_minutes = max(0, (int)$attendance_checkin_grace_minutes);
+              $checkin_deadline_error = attendance_deadline_message($date, $time, $rule_time_in, $checkin_grace_minutes, 'absen masuk');
+              if ($checkin_deadline_error !== '') {
+                echo $checkin_deadline_error;
+                break;
+              }
             }
             if ($location_type === 'outside' && $outside_weekly_limit_minutes > 0) {
               $outside_used_minutes = attendance_weekly_minutes_by_location($connection, $row_u['id'], $week_start, $week_end, 'outside', true);

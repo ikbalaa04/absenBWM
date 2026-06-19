@@ -19,14 +19,16 @@ if ($connection->connect_error){
 		$result_columns = $connection->query("SHOW COLUMNS FROM sw_site");
 		if ($result_columns) {
 			while ($column = $result_columns->fetch_assoc()) {
-				$site_columns[$column['Field']] = true;
+				$site_columns[$column['Field']] = $column;
 			}
 		}
 		if (empty($site_columns['site_letter_header'])) {
 			$connection->query("ALTER TABLE sw_site ADD site_letter_header varchar(150) NOT NULL DEFAULT '' AFTER site_logo");
 		}
 		if (empty($site_columns['attendance_checkin_grace_minutes'])) {
-			$connection->query("ALTER TABLE sw_site ADD attendance_checkin_grace_minutes int(5) NOT NULL DEFAULT 120 AFTER site_email_domain");
+			$connection->query("ALTER TABLE sw_site ADD attendance_checkin_grace_minutes int(5) NULL DEFAULT NULL AFTER site_email_domain");
+		} elseif (isset($site_columns['attendance_checkin_grace_minutes']['Null']) && $site_columns['attendance_checkin_grace_minutes']['Null'] === 'NO') {
+			$connection->query("ALTER TABLE sw_site MODIFY attendance_checkin_grace_minutes int(5) NULL DEFAULT NULL");
 		}
 		if (empty($site_columns['telegram_bot_token'])) {
 			$connection->query("ALTER TABLE sw_site ADD telegram_bot_token varchar(150) NOT NULL DEFAULT '' AFTER attendance_checkin_grace_minutes");

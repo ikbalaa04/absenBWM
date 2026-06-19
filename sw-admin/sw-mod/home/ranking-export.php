@@ -56,7 +56,7 @@ function ranking_export_table_rows($rows) {
   foreach ($rows as $row) {
     $rank++;
     $summary = $row['summary'];
-    $izin_sakit_cuti = (int)$summary['permission'] + (int)$summary['sick'] + (int)$summary['leave'];
+    $izin_sakit_cuti = (int)$summary['permission'] + (int)$summary['sick'] + (int)$summary['leave'] + (int)$summary['hourly_permission'];
     $html .= '<tr>
       <td class="text-center">'.$rank.'</td>
       <td>'.htmlspecialchars($row['employees_name'], ENT_QUOTES, 'UTF-8').'</td>

@@ -4,17 +4,18 @@ if (!function_exists('attendance_ranking_defaults')) {
     return array(
       'ranking_enabled' => 0,
       'point_present_ontime' => 10,
+      'point_present_hourly_permission' => 8,
       'point_checkout_complete' => 2,
-      'point_late_minor' => 7,
-      'point_late_major' => 4,
+      'point_late_30' => 7,
+      'point_late_120' => 4,
+      'point_late_240' => 1,
       'point_leave_early' => -3,
       'point_missing_checkout' => -2,
       'point_absent_without_note' => -10,
       'point_assignment' => 10,
       'point_permission' => 0,
       'point_sick' => 0,
-      'point_leave' => 0,
-      'late_major_threshold_minutes' => 15
+      'point_leave' => 0
     );
   }
 }
@@ -31,9 +32,13 @@ if (!function_exists('attendance_ranking_ensure_schema')) {
       ranking_enabled tinyint(1) NOT NULL DEFAULT 0,
       ranking_start_date date DEFAULT NULL,
       point_present_ontime int(6) NOT NULL DEFAULT 10,
+      point_present_hourly_permission int(6) NOT NULL DEFAULT 8,
       point_checkout_complete int(6) NOT NULL DEFAULT 2,
       point_late_minor int(6) NOT NULL DEFAULT 7,
       point_late_major int(6) NOT NULL DEFAULT 4,
+      point_late_30 int(6) NOT NULL DEFAULT 7,
+      point_late_120 int(6) NOT NULL DEFAULT 4,
+      point_late_240 int(6) NOT NULL DEFAULT 1,
       point_leave_early int(6) NOT NULL DEFAULT -3,
       point_missing_checkout int(6) NOT NULL DEFAULT -2,
       point_absent_without_note int(6) NOT NULL DEFAULT -10,
@@ -156,6 +161,16 @@ if (!function_exists('attendance_ranking_deadline_passed')) {
   }
 }
 
+if (!function_exists('attendance_ranking_has_hourly_leave')) {
+  function attendance_ranking_has_hourly_leave($connection, $employees_id, $presence_date) {
+    $employees_id = mysqli_real_escape_string($connection, $employees_id);
+    $presence_date = mysqli_real_escape_string($connection, $presence_date);
+    $query = "SELECT cuty_id FROM cuty WHERE employees_id='$employees_id' AND cuty_status='1' AND cuty_type='izin_jam' AND cuty_start <= '$presence_date' AND cuty_end >= '$presence_date' LIMIT 1";
+    $result = $connection->query($query);
+    return ($result && $result->num_rows > 0);
+  }
+}
+
 if (!function_exists('attendance_ranking_calculate')) {
   function attendance_ranking_calculate($connection, $date_from, $date_to, $limit = 10) {
     $settings = attendance_ranking_get_settings($connection);
@@ -163,7 +178,7 @@ if (!function_exists('attendance_ranking_calculate')) {
     $date_to_sql = mysqli_real_escape_string($connection, $date_to);
     $rankings = array();
 
-    $query_employees = "SELECT employees.id,employees.employees_name,employees.shift_id,shift.time_in AS shift_time_in,shift.time_out AS shift_time_out,shift.checkout_required
+    $query_employees = "SELECT employees.id,employees.employees_name,employees.shift_id,employees.attendance_mode,shift.time_in AS shift_time_in,shift.time_out AS shift_time_out,shift.checkout_required
       FROM employees
       INNER JOIN shift ON shift.shift_id=employees.shift_id
       ORDER BY employees.employees_name ASC";
@@ -181,6 +196,7 @@ if (!function_exists('attendance_ranking_calculate')) {
       $summary = array(
         'present' => 0,
         'ontime' => 0,
+        'hourly_permission' => 0,
         'late' => 0,
         'assignment' => 0,
         'permission' => 0,
@@ -190,6 +206,11 @@ if (!function_exists('attendance_ranking_calculate')) {
         'missing_checkout' => 0,
         'leave_early' => 0
       );
+
+      $ranking_location_type = attendance_resolve_location_type(isset($employee['attendance_mode']) ? $employee['attendance_mode'] : 'office', 'office');
+      if ($ranking_location_type === '') {
+        $ranking_location_type = 'office';
+      }
 
       $query_presence = "SELECT presence_date,time_in,time_out,present_id,rule_time_in,rule_time_out FROM presence WHERE employees_id='$employee_id' AND presence_date BETWEEN '$date_from_sql' AND '$date_to_sql'";
       $result_presence = $connection->query($query_presence);
@@ -203,18 +224,29 @@ if (!function_exists('attendance_ranking_calculate')) {
             if ($checkin_timestamp && ($first_checkin_timestamp === 0 || $checkin_timestamp < $first_checkin_timestamp)) {
               $first_checkin_timestamp = $checkin_timestamp;
             }
-            $rule_time_in = !empty($presence['rule_time_in']) ? $presence['rule_time_in'] : $employee['shift_time_in'];
-            $rule_time_out = !empty($presence['rule_time_out']) ? $presence['rule_time_out'] : $employee['shift_time_out'];
+            $presence_work_day_info = attendance_employee_work_day_rule($connection, $employee, $presence['presence_date'], $ranking_location_type);
+            $presence_rule = isset($presence_work_day_info['rule']) ? $presence_work_day_info['rule'] : array();
+            $rule_time_in = !empty($presence['rule_time_in']) ? $presence['rule_time_in'] : (!empty($presence_rule['time_in']) ? $presence_rule['time_in'] : $employee['shift_time_in']);
+            $rule_time_out = !empty($presence['rule_time_out']) ? $presence['rule_time_out'] : (!empty($presence_rule['time_out']) ? $presence_rule['time_out'] : $employee['shift_time_out']);
+            $has_hourly_leave = attendance_ranking_has_hourly_leave($connection, $employee['id'], $presence['presence_date']);
             $late_minutes = attendance_late_minutes_after_hourly_leave($connection, $employee['id'], $presence['presence_date'], $presence['time_in'], $rule_time_in);
             if ($late_minutes <= 0) {
-              $summary['ontime']++;
-              $score += (int)$settings['point_present_ontime'];
-            } elseif ($late_minutes <= (int)$settings['late_major_threshold_minutes']) {
+              if ($has_hourly_leave) {
+                $summary['hourly_permission']++;
+                $score += (int)$settings['point_present_hourly_permission'];
+              } else {
+                $summary['ontime']++;
+                $score += (int)$settings['point_present_ontime'];
+              }
+            } elseif ($late_minutes <= 30) {
               $summary['late']++;
-              $score += (int)$settings['point_late_minor'];
+              $score += (int)$settings['point_late_30'];
+            } elseif ($late_minutes <= 120) {
+              $summary['late']++;
+              $score += (int)$settings['point_late_120'];
             } else {
               $summary['late']++;
-              $score += (int)$settings['point_late_major'];
+              $score += (int)$settings['point_late_240'];
             }
 
             if ((int)$employee['checkout_required'] === 1) {
@@ -222,6 +254,12 @@ if (!function_exists('attendance_ranking_calculate')) {
                 $score += (int)$settings['point_checkout_complete'];
                 $out_time = strtotime($presence['presence_date'].' '.$presence['time_out']);
                 $rule_out_time = strtotime($presence['presence_date'].' '.$rule_time_out);
+                if (!empty($rule_time_in) && !empty($rule_time_out) && $rule_time_out < $rule_time_in) {
+                  $rule_out_time += 86400;
+                  if ($presence['time_out'] < $rule_time_in) {
+                    $out_time += 86400;
+                  }
+                }
                 if ($out_time && $rule_out_time && $out_time < $rule_out_time) {
                   $summary['leave_early']++;
                   $score += (int)$settings['point_leave_early'];
@@ -275,7 +313,7 @@ if (!function_exists('attendance_ranking_calculate')) {
         if (!empty($used_dates[$ranking_date])) {
           continue;
         }
-        $work_day_info = attendance_employee_work_day_rule($connection, $employee, $ranking_date, 'office');
+        $work_day_info = attendance_employee_work_day_rule($connection, $employee, $ranking_date, $ranking_location_type);
         if (!$work_day_info['is_work_day']) {
           continue;
         }

@@ -63,12 +63,13 @@ if (empty($_POST['site_url'])) {
 }
 
 if (!isset($_POST['attendance_checkin_grace_minutes']) || $_POST['attendance_checkin_grace_minutes'] === '') {
-  $error[] = 'Batas absen masuk wajib diisi';
+  $attendance_checkin_grace_minutes = null;
 } elseif (!preg_match('/^[0-9]+$/', (string)$_POST['attendance_checkin_grace_minutes'])) {
   $error[] = 'Batas absen masuk harus berupa angka menit.';
 } else {
   $attendance_checkin_grace_minutes = (int)$_POST['attendance_checkin_grace_minutes'];
 }
+$attendance_checkin_grace_sql = $attendance_checkin_grace_minutes === null ? "NULL" : "'".$attendance_checkin_grace_minutes."'";
 
 $telegram_bot_token = isset($_POST['telegram_bot_token']) ? mysqli_real_escape_string($connection, trim($_POST['telegram_bot_token'])) : '';
 $telegram_bot_username = isset($_POST['telegram_bot_username']) ? mysqli_real_escape_string($connection, trim($_POST['telegram_bot_username'])) : '';
@@ -140,7 +141,7 @@ if($site_logo == ''){
                       site_description='$site_description',
                       site_email='$site_email',
                       site_email_domain='$site_email_domain',
-                      attendance_checkin_grace_minutes='$attendance_checkin_grace_minutes',
+                      attendance_checkin_grace_minutes=$attendance_checkin_grace_sql,
                       telegram_bot_token='$telegram_bot_token',
                       telegram_bot_username='$telegram_bot_username',
                       telegram_admin_chat_ids='$telegram_admin_chat_ids',
@@ -192,7 +193,7 @@ if($ukuran_file < 1044070){
                       site_logo='$nama_file_unik',
                       site_email='$site_email',
                       site_email_domain='$site_email_domain',
-                      attendance_checkin_grace_minutes='$attendance_checkin_grace_minutes',
+                      attendance_checkin_grace_minutes=$attendance_checkin_grace_sql,
                       telegram_bot_token='$telegram_bot_token',
                       telegram_bot_username='$telegram_bot_username',
                       telegram_admin_chat_ids='$telegram_admin_chat_ids',
@@ -254,9 +255,6 @@ if($level_user ==1){
     $data[$field] = (int)$_POST[$field];
   }
 
-  if (isset($data['late_major_threshold_minutes']) && $data['late_major_threshold_minutes'] < 0) {
-    $error[] = 'Batas telat berat tidak boleh negatif.';
-  }
   $ranking_start_date = isset($_POST['ranking_start_date']) ? trim($_POST['ranking_start_date']) : '';
   $ranking_start_timestamp = strtotime($ranking_start_date);
   if (empty($ranking_start_date) || !$ranking_start_timestamp) {
@@ -274,9 +272,11 @@ if($level_user ==1){
     ranking_enabled=?,
     ranking_start_date=?,
     point_present_ontime=?,
+    point_present_hourly_permission=?,
     point_checkout_complete=?,
-    point_late_minor=?,
-    point_late_major=?,
+    point_late_30=?,
+    point_late_120=?,
+    point_late_240=?,
     point_leave_early=?,
     point_missing_checkout=?,
     point_absent_without_note=?,
@@ -284,7 +284,6 @@ if($level_user ==1){
     point_permission=?,
     point_sick=?,
     point_leave=?,
-    late_major_threshold_minutes=?,
     updated_at=NOW()
     WHERE setting_id=1");
   if (!$stmt) {
@@ -292,21 +291,22 @@ if($level_user ==1){
     break;
   }
   $stmt->bind_param(
-    'isiiiiiiiiiiii',
+    'isiiiiiiiiiiiii',
     $data['ranking_enabled'],
     $ranking_start_date,
     $data['point_present_ontime'],
+    $data['point_present_hourly_permission'],
     $data['point_checkout_complete'],
-    $data['point_late_minor'],
-    $data['point_late_major'],
+    $data['point_late_30'],
+    $data['point_late_120'],
+    $data['point_late_240'],
     $data['point_leave_early'],
     $data['point_missing_checkout'],
     $data['point_absent_without_note'],
     $data['point_assignment'],
     $data['point_permission'],
     $data['point_sick'],
-    $data['point_leave'],
-    $data['late_major_threshold_minutes']
+    $data['point_leave']
   );
   if($stmt->execute() === false) {
     echo'Data tidak berhasil disimpan!';

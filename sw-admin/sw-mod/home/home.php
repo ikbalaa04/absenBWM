@@ -229,7 +229,7 @@ echo'
             $rank_no++;
             $summary = $ranking_row['summary'];
             $rank_label = $rank_no <= 3 ? 'label-success' : 'label-default';
-            $izin_sakit_cuti = (int)$summary['permission'] + (int)$summary['sick'] + (int)$summary['leave'];
+            $izin_sakit_cuti = (int)$summary['permission'] + (int)$summary['sick'] + (int)$summary['leave'] + (int)$summary['hourly_permission'];
             echo'
                 <tr>
                   <td class="text-center"><span class="label '.$rank_label.'">'.$rank_no.'</span></td>

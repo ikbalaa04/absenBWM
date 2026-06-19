@@ -71,9 +71,9 @@ case 'setting':
         <div class="form-group">
           <label class="col-sm-2 control-label">Batas Absen Masuk</label>
           <div class="col-sm-3">
-            <input type="number" min="0" name="attendance_checkin_grace_minutes" class="form-control" value="'.setting_h(isset($attendance_checkin_grace_minutes) ? $attendance_checkin_grace_minutes : 120).'" required="required">
+            <input type="number" min="0" name="attendance_checkin_grace_minutes" class="form-control" value="'.setting_h((isset($attendance_checkin_grace_minutes) && $attendance_checkin_grace_minutes !== null) ? $attendance_checkin_grace_minutes : '').'">
           </div>
-          <div class="col-sm-5"><p class="text-muted">Dalam menit setelah jam masuk shift. Default 120 menit.</p></div>
+          <div class="col-sm-5"><p class="text-muted">Dalam menit setelah jam masuk shift. Kosongkan jika tidak ada batas. Isi 0 untuk toleransi 0 menit.</p></div>
         </div>
         <hr>
         <h4>Notifikasi Telegram</h4>
@@ -200,13 +200,7 @@ case 'ranking':
 
         <hr>
         <h4>Pengaturan Waktu</h4>
-        <p class="text-muted">Bagian ini hanya mengatur batas waktu kategori keterlambatan, bukan nilai poin.</p>
-
-        <div class="form-group">
-          <label class="col-sm-2 control-label">Batas Telat Berat</label>
-          <div class="col-sm-3"><input type="number" min="0" name="late_major_threshold_minutes" class="form-control" value="'.setting_h($ranking['late_major_threshold_minutes']).'" required></div>
-          <div class="col-sm-4"><p class="text-muted">Dalam menit. Contoh: lebih dari 15 menit masuk kategori telat berat.</p></div>
-        </div>
+        <p class="text-muted">Kategori telat memakai jam masuk efektif pada hari tersebut, termasuk custom jam kerja per hari. Batas kategori: sampai 30 menit, sampai 120 menit, dan sampai 240 menit. Telat di atas 240 menit memakai kategori 240 menit.</p>
 
         <hr>
         <h4>Pengaturan Poin</h4>
@@ -218,18 +212,30 @@ case 'ranking':
         </div>
 
         <div class="form-group">
+          <label class="col-sm-2 control-label">Hadir dengan Izin Per Jam</label>
+          <div class="col-sm-3"><input type="number" name="point_present_hourly_permission" class="form-control" value="'.setting_h($ranking['point_present_hourly_permission']).'" required></div>
+          <div class="col-sm-4"><p class="text-muted">Dipakai jika keterlambatan tertutup izin per jam yang sudah disetujui.</p></div>
+        </div>
+
+        <div class="form-group">
           <label class="col-sm-2 control-label">Absen Pulang Lengkap</label>
           <div class="col-sm-3"><input type="number" name="point_checkout_complete" class="form-control" value="'.setting_h($ranking['point_checkout_complete']).'" required></div>
         </div>
 
         <div class="form-group">
-          <label class="col-sm-2 control-label">Terlambat Ringan</label>
-          <div class="col-sm-3"><input type="number" name="point_late_minor" class="form-control" value="'.setting_h($ranking['point_late_minor']).'" required></div>
+          <label class="col-sm-2 control-label">Telat Maks 30 Menit</label>
+          <div class="col-sm-3"><input type="number" name="point_late_30" class="form-control" value="'.setting_h($ranking['point_late_30']).'" required></div>
         </div>
 
         <div class="form-group">
-          <label class="col-sm-2 control-label">Terlambat Berat</label>
-          <div class="col-sm-3"><input type="number" name="point_late_major" class="form-control" value="'.setting_h($ranking['point_late_major']).'" required></div>
+          <label class="col-sm-2 control-label">Telat Maks 120 Menit</label>
+          <div class="col-sm-3"><input type="number" name="point_late_120" class="form-control" value="'.setting_h($ranking['point_late_120']).'" required></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Telat Maks 240 Menit</label>
+          <div class="col-sm-3"><input type="number" name="point_late_240" class="form-control" value="'.setting_h($ranking['point_late_240']).'" required></div>
+          <div class="col-sm-4"><p class="text-muted">Dipakai untuk telat di atas 120 menit.</p></div>
         </div>
 
         <div class="form-group">
