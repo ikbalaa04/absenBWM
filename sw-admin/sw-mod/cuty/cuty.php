@@ -36,6 +36,7 @@ echo'
     <th>Masuk Kerja</th>
     <th>Kuota Cuti</th>
     <th>Keterangan</th>
+    <th>Lampiran</th>
     <th>Status</th>
     <th style="width:150px" class="text-center">Aksi</th>
   </tr>
@@ -70,15 +71,14 @@ echo'
     if ($cuty_type == 'cuti') {
       $quota_year = date('Y', strtotime($row['cuty_start']));
       $quota = cuty_quota_summary($connection, $row['employees_id'], $quota_year, $row['cuty_id']);
-      $requested_days = cuty_days_in_year($row['cuty_start'], $row['cuty_end'], $quota_year);
-      $remaining_after_request = max(0, $quota['remaining'] - $requested_days);
       $quota_label = '<small>
         Kuota '.$quota_year.': <b>'.$quota['quota'].'</b><br>
-        Terpakai: <b>'.$quota['used'].'</b><br>
-        Ajuan ini: <b>'.$requested_days.'</b><br>
-        Sisa sebelum ajuan: <b>'.$quota['remaining'].'</b><br>
-        Estimasi sisa: <b>'.$remaining_after_request.'</b>
+        Sisa: <b>'.$quota['remaining'].'</b>
       </small>';
+    }
+    $attachment_label = '-';
+    if ($cuty_type == 'sakit' && !empty($row['cuty_doctor_file'])) {
+      $attachment_label = '<a href="../sw-content/cuty/'.rawurlencode($row['cuty_doctor_file']).'" target="_blank" rel="noopener"><small>Surat dokter</small></a>';
     }
     echo'
     <tr>
@@ -89,11 +89,8 @@ echo'
       <td>'.$cuty_end_label.'</td>
       <td>'.$date_work_label.'</td>
       <td>'.$quota_label.'</td>
-      <td>'.strip_tags($row['cuty_description']);
-      if ($cuty_type == 'sakit' && !empty($row['cuty_doctor_file'])) {
-        echo'<br><a href="../sw-content/cuty/'.rawurlencode($row['cuty_doctor_file']).'" target="_blank" rel="noopener"><small>Surat dokter</small></a>';
-      }
-      echo'</td>
+      <td>'.strip_tags($row['cuty_description']).'</td>
+      <td>'.$attachment_label.'</td>
       <td>'.$status.'</td>
       <td class="text-center">
         <div class="btn-group">';
