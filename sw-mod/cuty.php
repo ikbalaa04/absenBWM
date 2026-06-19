@@ -102,7 +102,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                         <a href="javascript:;" data-dismiss="modal">Close</a>
                     </div>
                     <div class="modal-body">
-                        <form id="form-add-cuty" autocomplete="off" novalidate>
+                        <form id="form-add-cuty" autocomplete="off" enctype="multipart/form-data" novalidate>
                             <div class="form-group basic">
                                 <div class="input-wrapper">
                                     <label class="label">Nama</label>
@@ -144,7 +144,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
 
                             <div class="form-group basic cuty-end-field">
                                 <div class="input-wrapper">
-                                    <label class="label">Berakhir Cuti</label>
+                                    <label class="label cuty-end-label">Berakhir Cuti</label>
                                         <div class="input-group">
                                             <input type="text" class="form-control datepicker" id="cutyend" name="cuty_end" placeholder="'.tanggal_ind($date).'" value="">
                                             <div class="input-group-addon">
@@ -165,6 +165,14 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                                             <input type="time" class="form-control" name="cuty_time_end">
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group basic cuty-doctor-field" style="display:none">
+                                <div class="input-wrapper">
+                                    <label class="label">Surat Keterangan Dokter</label>
+                                    <input type="file" class="form-control" name="cuty_doctor_file" accept="image/jpeg,image/png,application/pdf">
+                                    <small class="text-muted">Wajib untuk sakit lebih dari 3 hari. Format: PDF, JPG, JPEG, PNG. Maksimal 5MB.</small>
                                 </div>
                             </div>
 
@@ -195,7 +203,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                         <a href="javascript:;" data-dismiss="modal">Close</a>
                     </div>
                     <div class="modal-body">
-                        <form id="form-update-cuty" autocomplete="off" novalidate>
+                        <form id="form-update-cuty" autocomplete="off" enctype="multipart/form-data" novalidate>
                             <input type="hidden" id="city-id" name="cuty_id" value="" readonly required>
                             <div class="form-group basic">
                                 <div class="input-wrapper">
@@ -238,7 +246,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
 
                             <div class="form-group basic cuty-end-field">
                                 <div class="input-wrapper">
-                                    <label class="label">Berakhir Cuti</label>
+                                    <label class="label cuty-end-label">Berakhir Cuti</label>
                                         <div class="input-group">
                                             <input type="text" class="form-control datepicker" id="cuty-end" name="cuty_end" placeholder="'.tanggal_ind($date).'" value="">
                                             <div class="input-group-addon">
@@ -259,6 +267,15 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                                             <input type="time" class="form-control" id="cuty-time-end" name="cuty_time_end">
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group basic cuty-doctor-field" style="display:none">
+                                <div class="input-wrapper">
+                                    <label class="label">Surat Keterangan Dokter</label>
+                                    <input type="file" class="form-control" id="cuty-doctor-file" name="cuty_doctor_file" accept="image/jpeg,image/png,application/pdf">
+                                    <small class="text-muted cuty-doctor-existing"></small>
+                                    <small class="text-muted d-block">Wajib untuk sakit lebih dari 3 hari. Format: PDF, JPG, JPEG, PNG. Maksimal 5MB.</small>
                                 </div>
                             </div>
 

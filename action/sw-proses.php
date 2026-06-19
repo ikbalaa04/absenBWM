@@ -1,5 +1,5 @@
 <?php session_start();
-    require_once'../sw-library/sw-config.php'; 
+    require_once'../sw-library/sw-config.php';
     require_once'../sw-library/sw-function.php';
     require_once'../sw-mod/out/sw-cookies.php';
     $ip_login  = $_SERVER['REMOTE_ADDR'];
@@ -44,6 +44,56 @@ function cuty_hour_minutes($start_time, $end_time) {
   return max(0, (int)floor(($end - $start) / 60));
 }
 
+function cuty_total_days($start_date, $end_date) {
+  if (empty($start_date) || empty($end_date)) {
+    return 0;
+  }
+  $start = strtotime($start_date);
+  $end = strtotime($end_date);
+  if (!$start || !$end || $start > $end) {
+    return 0;
+  }
+  return ((int)floor(($end - $start) / 86400)) + 1;
+}
+
+function cuty_upload_doctor_file($field_name, $employees_id) {
+  if (empty($_FILES[$field_name]['name']) || empty($_FILES[$field_name]['tmp_name'])) {
+    return array('file' => '', 'error' => '');
+  }
+
+  $file_name = $_FILES[$field_name]['name'];
+  $size = $_FILES[$field_name]['size'];
+  $upload_error = $_FILES[$field_name]['error'];
+  $tmp_name = $_FILES[$field_name]['tmp_name'];
+  $valid = array('pdf', 'jpg', 'jpeg', 'png');
+  $extension = strtolower(getExtension($file_name));
+
+  if ($upload_error !== UPLOAD_ERR_OK) {
+    return array('file' => '', 'error' => 'Surat keterangan dokter gagal diupload, coba ulangi.');
+  }
+  if (!in_array($extension, $valid)) {
+    return array('file' => '', 'error' => 'Surat keterangan dokter harus PDF, JPG, JPEG, atau PNG.');
+  }
+  if ($size > 5000000) {
+    return array('file' => '', 'error' => 'Surat keterangan dokter maksimal 5MB.');
+  }
+
+  $upload_dir = '../sw-content/cuty/';
+  if (!is_dir($upload_dir)) {
+    @mkdir($upload_dir, 0755, true);
+  }
+  if (!is_dir($upload_dir) || !is_writable($upload_dir)) {
+    return array('file' => '', 'error' => 'Folder upload surat dokter belum siap.');
+  }
+
+  $safe_name = $employees_id.'-doctor-'.md5($file_name.time()).'.'.$extension;
+  if (!move_uploaded_file($tmp_name, $upload_dir.$safe_name)) {
+    return array('file' => '', 'error' => 'Surat keterangan dokter gagal disimpan di server.');
+  }
+
+  return array('file' => $safe_name, 'error' => '');
+}
+
 function create_auth_cookie_token($email) {
   if (function_exists('random_bytes')) {
     return bin2hex(random_bytes(16));
@@ -76,9 +126,9 @@ function attendance_deadline_message($presence_date, $current_time, $target_time
 switch (@$_GET['action']){
 case 'login':
   $error = array();
-  if (empty($_POST['email'])) { 
+  if (empty($_POST['email'])) {
         $error[] = 'Email tidak boleh kosong';
-    } else { 
+    } else {
       $email = mysqli_real_escape_string($connection,$_POST['email']);
       $created_cookies = create_auth_cookie_token($email);
   }
@@ -127,7 +177,7 @@ if (empty($error)){
     }
   }
 
-  else{       
+  else{
   	echo'Bidang inputan tidak boleh ada yang kosong!';
   }
 
@@ -214,8 +264,8 @@ if (filter_var($employees_email, FILTER_VALIDATE_EMAIL)) {
               '',
               '$date',
               '$created_cookies')";
-    if($connection->query($add) === false) { 
-        die($connection->error.__LINE__); 
+    if($connection->query($add) === false) {
+        die($connection->error.__LINE__);
         echo'Data tidak berhasil disimpan!';
     } else{
         echo'success';
@@ -229,7 +279,7 @@ if (filter_var($employees_email, FILTER_VALIDATE_EMAIL)) {
      echo'Email yang anda masukkan salah!';
     }}
 
-    else{           
+    else{
         echo'Bidang inputan masih ada yang kosong..!';
     }
 break;
@@ -238,8 +288,8 @@ break;
 /* ------------- FORGOT ---------------*/
 case 'forgot':
   $pass="1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  $panjang_pass='8';$len=strlen($pass); 
-  $start=$len-$panjang; $xx=rand('0',$start); 
+  $panjang_pass='8';$len=strlen($pass);
+  $start=$len-$panjang; $xx=rand('0',$start);
   $yy=str_shuffle($pass);
 
 $error = array();
@@ -273,8 +323,8 @@ if (filter_var($employees_email, FILTER_VALIDATE_EMAIL)) {
     $row = $result->fetch_assoc();
 
     $update ="UPDATE employees SET employees_password='$employees_password' WHERE employees_email='$row[employees_email]'";
-    if($connection->query($update) === false) { 
-        die($connection->error.__LINE__); 
+    if($connection->query($update) === false) {
+        die($connection->error.__LINE__);
         echo'Penyetelan password baru gagal, silahkan nanti coba kembali!';
     } else{
         echo'success';
@@ -288,7 +338,7 @@ if (filter_var($employees_email, FILTER_VALIDATE_EMAIL)) {
      echo'Email yang Anda masukkan salah!';
     }}
 
-    else{           
+    else{
         echo'Bidang inputan masih ada yang kosong..!';
     }
 break;
@@ -422,8 +472,8 @@ if (empty($error)){
                 $directory= "../sw-content/absent/".$filename;
                 /* -------- Upload Foto Pulang -------*/
                   $update ="UPDATE presence SET time_out='$time',picture_out='$filename',latitude_longtitude_out='$latitude' WHERE employees_id='$row_u[id]' AND presence_date='$date'";
-                  if($connection->query($update) === false) { 
-                      die($connection->error.__LINE__); 
+                  if($connection->query($update) === false) {
+                      die($connection->error.__LINE__);
                       echo'Sepetinya sitem kami sedang error!';
                   } else{
                       //Jam Pulang
@@ -488,9 +538,9 @@ if (empty($error)){
                               '$latitude',
                               '',
                               '')";
-                    
-            if($connection->query($add) === false) { 
-                die($connection->error.__LINE__); 
+
+            if($connection->query($add) === false) {
+                die($connection->error.__LINE__);
                 echo'Sepertinya Sistem Kami sedang error!';
             } else{
                 echo'success/Selamat Anda berhasil Absen Masuk pada Tanggal '.tanggal_ind($date).' dan Jam : '.$time.', Semangat bekerja "'.$row_u['employees_name'].'" !';
@@ -500,13 +550,13 @@ if (empty($error)){
       }
       else{
         // Jika user tidak ditemukan
-        echo'User tidak ditemukan';die($connection->error.__LINE__); 
+        echo'User tidak ditemukan';die($connection->error.__LINE__);
       }
   }
     else{
       echo implode('<br>', $error);
 }
- 
+
 
 
 // ----------- UPDATE PROFILE -------------------//
@@ -520,15 +570,15 @@ case 'profile':
       $employees_name= mysqli_real_escape_string($connection, $_POST['employees_name']);
   }
 
-  if (empty($error)) { 
-    $update="UPDATE employees SET employees_name='$employees_name' WHERE id='$row_user[id]'"; 
-    if($connection->query($update) === false) { 
-        die($connection->error.__LINE__); 
+  if (empty($error)) {
+    $update="UPDATE employees SET employees_name='$employees_name' WHERE id='$row_user[id]'";
+    if($connection->query($update) === false) {
+        die($connection->error.__LINE__);
         echo'Data tidak berhasil disimpan!';
     } else{
         echo'success';
     }}
-    else{           
+    else{
         echo'Bidang inputan tidak boleh ada yang kosong..!';
   }
 break;
@@ -584,7 +634,7 @@ case 'update-password':
       $password_baru =mysqli_real_escape_string($connection,hash('sha256',$salt.$employees_password));
   }
 
-  if (empty($error)) { 
+  if (empty($error)) {
     $pesan = '<html><body>';
     $pesan .= 'Saat ini ['.$employees_email.'] Sedang mengganti Password baru<br>';
     $pesan .= '<b>Password Baru Anda : '.$employees_password.'</b><br><br><br>Harap simpan baik-baik akun Anda.<br><br>';
@@ -596,15 +646,15 @@ case 'update-password':
     $headers .= "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
 
-    $update="UPDATE employees SET employees_password='$password_baru' WHERE id='$id'"; 
-    if($connection->query($update) === false) { 
-        die($connection->error.__LINE__); 
+    $update="UPDATE employees SET employees_password='$password_baru' WHERE id='$id'";
+    if($connection->query($update) === false) {
+        die($connection->error.__LINE__);
         echo'Data tidak berhasil disimpan!';
     } else{
         echo'success';
         mail($to, $subject, $pesan, $headers);
     }}
-    else{           
+    else{
         echo'Bidang inputan tidak boleh ada yang kosong..!';
     }
 break;
@@ -786,7 +836,7 @@ case 'update-photo':
   $photo_new = $row_user['id'].'-'.strip_tags(md5($file_name.time())).'-'.seo_title($time).'.'.$extension;
   $pathFile = $filepath.$photo_new;
 
-  $query = "SELECT photo FROM employees WHERE id='$row_user[id]'"; 
+  $query = "SELECT photo FROM employees WHERE id='$row_user[id]'";
   $result = $connection->query($query);
   $rows = $result->fetch_assoc();
   $photo = $rows['photo'];
@@ -795,9 +845,9 @@ case 'update-photo':
   }
 
   $update ="UPDATE employees SET photo='$photo_new' WHERE id=$row_user[id]";
-  if($connection->query($update) === false) { 
+  if($connection->query($update) === false) {
     echo'Pengaturan tidak dapat disimpan, coba ulangi beberapa saat lagi.!';
-    die($connection->error.__LINE__); 
+    die($connection->error.__LINE__);
   } else {
     if(move_uploaded_file($tmpName, $pathFile)){
       echo'success';
@@ -817,7 +867,7 @@ if(isset($_POST['from']) OR isset($_POST['to'])){
       $filter ="presence_date BETWEEN '$from' AND '$to'";
       $history_start = $from;
       $history_end = $to;
-  } 
+  }
 	else{
 	      $filter ="MONTH(presence_date) ='$month'";
 	      $history_start = date('Y-'.$month.'-01');
@@ -899,7 +949,7 @@ echo'<table class="table rounded" id="swdatatable">
         <tr>
             <th class="text-center">'.$no.'</th>
             <th scope="row">'.tgl_ind($row_absen['presence_date']).'</th>
-            
+
             <td><a class="image-link" href="./sw-content/absent/'.$row_absen['picture_in'].'">
             <span class="badge badge-success">'.$row_absen['time_in'].'</span></a>'.$status.'</td>
 
@@ -993,7 +1043,7 @@ echo'
   <div class="col-md-3">
     <p>Terlambat : <span class="label badge badge-danger">'.$late_total.'</span></p>
   </div>
-  
+
 
   <div class="col-md-3">
     <p>Sakit : <span class="badge badge-warning">'.$sakit->num_rows.'</span></p>
@@ -1035,17 +1085,17 @@ case 'update-history':
   }
 
   $information = mysqli_real_escape_string($connection, $_POST['information']);
- 
-  if (empty($error)) { 
+
+  if (empty($error)) {
     $update="UPDATE presence SET present_id='$present_id',
-                    information='$information' WHERE presence_id='$presence_id' AND employees_id='$row_user[id]'"; 
-    if($connection->query($update) === false) { 
-        die($connection->error.__LINE__); 
+                    information='$information' WHERE presence_id='$presence_id' AND employees_id='$row_user[id]'";
+    if($connection->query($update) === false) {
+        die($connection->error.__LINE__);
         echo'Data tidak berhasil disimpan!';
     } else{
         echo'success';
     }}
-    else{           
+    else{
         echo'Bidang inputan tidak boleh ada yang kosong..!';
   }
 
@@ -1057,7 +1107,7 @@ if(isset($_POST['from']) OR isset($_POST['to'])){
       $to   = date('Y-m-d', strtotime($_POST['to']));
 
       $filter ="cuty_start BETWEEN '$from' AND '$to'";
-  } 
+  }
   else{
       $filter ="MONTH(cuty_start) ='$month'";
 }
@@ -1075,6 +1125,13 @@ $query_cuty ="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE e
           $cuty_date_info = '<ion-icon name="calendar-outline"></ion-icon> '.tanggal_ind($row_cuty['cuty_start']).' - '.tanggal_ind($row_cuty['cuty_end']).'<br>';
         } elseif($cuty_type == 'izin_jam'){
           $cuty_date_info = '<ion-icon name="calendar-outline"></ion-icon> '.tanggal_ind($row_cuty['cuty_start']).'<br><ion-icon name="time-outline"></ion-icon> '.substr($row_cuty['cuty_time_start'],0,5).' - '.substr($row_cuty['cuty_time_end'],0,5).'<br>';
+        } elseif($cuty_type == 'sakit' && $row_cuty['cuty_end'] != $row_cuty['cuty_start']){
+          $cuty_date_info = '<ion-icon name="calendar-outline"></ion-icon> '.tanggal_ind($row_cuty['cuty_start']).' - '.tanggal_ind($row_cuty['cuty_end']).'<br>';
+        }
+        $doctor_file = isset($row_cuty['cuty_doctor_file']) ? $row_cuty['cuty_doctor_file'] : '';
+        $doctor_info = '';
+        if ($cuty_type == 'sakit' && !empty($doctor_file)) {
+          $doctor_info = '<br><ion-icon name="document-attach-outline"></ion-icon> <a href="'.base_url().'sw-content/cuty/'.rawurlencode($doctor_file).'" target="_blank" rel="noopener">Surat dokter</a>';
         }
         if($row_cuty['cuty_status']=='1'){
           $status = '<span class="badge badge-success">Disetujui</span>';
@@ -1089,13 +1146,13 @@ $query_cuty ="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE e
               <div>
                   <strong>'.$row_cuty['employees_name'].' '.$status.'</strong>
                   <p><span class="badge badge-info">'.$cuty_type_label.'</span><br>'.$cuty_date_info.'
-                    <ion-icon name="chatbubble-outline"></ion-icon> '.$cuty_description.'</p>
+                    <ion-icon name="chatbubble-outline"></ion-icon> '.$cuty_description.$doctor_info.'</p>
               </div>
           </div>
           <div class="right">';
             if($row_cuty['cuty_status']=='3' || $cuty_type == 'izin_jam'){
               echo'
-             <button type="button" class="btn btn-success btn-sm btn-update-cuty" data-id="'.$row_cuty['cuty_id'].'" data-type="'.$cuty_type.'" data-start="'.tanggal_ind($row_cuty['cuty_start']).'" data-end="'.tanggal_ind($row_cuty['cuty_end']).'" data-time-start="'.substr($row_cuty['cuty_time_start'],0,5).'" data-time-end="'.substr($row_cuty['cuty_time_end'],0,5).'" data-description="'.$cuty_description_attr.'">Edit</button>';
+             <button type="button" class="btn btn-success btn-sm btn-update-cuty" data-id="'.$row_cuty['cuty_id'].'" data-type="'.$cuty_type.'" data-start="'.tanggal_ind($row_cuty['cuty_start']).'" data-end="'.tanggal_ind($row_cuty['cuty_end']).'" data-time-start="'.substr($row_cuty['cuty_time_start'],0,5).'" data-time-end="'.substr($row_cuty['cuty_time_end'],0,5).'" data-doctor-file="'.htmlspecialchars($doctor_file, ENT_QUOTES, 'UTF-8').'" data-description="'.$cuty_description_attr.'">Edit</button>';
            }
              else{
               echo'<button type="button" class="btn btn-secondary btn-sm access-failed">Terkunci</button>';
@@ -1125,11 +1182,11 @@ $error = array();
   if ($cuty_type == 'cuti' && empty($_POST['cuty_end'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_end= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_end'])) : $cuty_start;
+      $cuty_end= in_array($cuty_type, array('cuti', 'sakit')) && !empty($_POST['cuty_end']) ? date('Y-m-d',strtotime($_POST['cuty_end'])) : $cuty_start;
   }
 
-  if ($cuty_type == 'cuti' && strtotime($cuty_start) > strtotime($cuty_end)) {
-      $error[] = 'tanggal cuti tidak valid';
+  if (in_array($cuty_type, array('cuti', 'sakit')) && strtotime($cuty_start) > strtotime($cuty_end)) {
+      $error[] = 'tanggal izin tidak valid';
   }
 
   $cuty_time_start = '00:00:00';
@@ -1149,7 +1206,7 @@ $error = array();
   }
 
   $date_work = $cuty_end;
-  $cuty_total = $cuty_type == 'cuti' ? ((strtotime($cuty_end) - strtotime($cuty_start)) / 86400) + 1 : 0;
+  $cuty_total = in_array($cuty_type, array('cuti', 'sakit')) ? cuty_total_days($cuty_start, $cuty_end) : 0;
 
   if (empty($_POST['cuty_description'])) {
       $error[] = 'tidak boleh kosong';
@@ -1164,10 +1221,23 @@ $error = array();
     }
   }
 
+  $cuty_doctor_file = '';
+  if (empty($error) && $cuty_type == 'sakit' && $cuty_total > 3) {
+    $upload = cuty_upload_doctor_file('cuty_doctor_file', $row_user['id']);
+    if (!empty($upload['error'])) {
+      $error[] = $upload['error'];
+    } else {
+      $cuty_doctor_file = $upload['file'];
+    }
+    if (empty($cuty_doctor_file)) {
+      $error[] = 'Surat keterangan dokter wajib dilampirkan untuk sakit lebih dari 3 hari.';
+    }
+  }
+
 if (empty($error)) {
   $query="SELECT cuty_id from cuty where MONTH(cuty_start) ='$month' AND employees_id='$row_user[id]' AND cuty_type!='izin_jam'";
   $result= $connection->query($query) or die($connection->error.__LINE__);
-  if($cuty_type == 'cuti' || $cuty_type == 'izin_jam' || !$result ->num_rows >0){
+  if($cuty_type == 'cuti' || $cuty_type == 'sakit' || $cuty_type == 'izin_jam' || !$result ->num_rows >0){
     $cuty_status = $cuty_type == 'izin_jam' ? '1' : '3';
     $add ="INSERT INTO cuty (employees_id,
               cuty_type,
@@ -1179,6 +1249,7 @@ if (empty($error)) {
               date_work,
               cuty_total,
               cuty_description,
+              cuty_doctor_file,
               cuty_status) values('$row_user[id]',
               '$cuty_type',
               '$cuty_start',
@@ -1189,9 +1260,10 @@ if (empty($error)) {
               '$date_work',
               '$cuty_total',
               '$cuty_description',
+              '$cuty_doctor_file',
               '$cuty_status')";
-    if($connection->query($add) === false) { 
-        die($connection->error.__LINE__); 
+    if($connection->query($add) === false) {
+        die($connection->error.__LINE__);
         echo'Data tidak berhasil disimpan!';
     } else{
         if ($cuty_status == '3') {
@@ -1199,7 +1271,7 @@ if (empty($error)) {
           $request_label = $cuty_type == 'cuti' ? 'Cuti' : ($cuty_type == 'sakit' ? 'Sakit' : 'Izin');
           $message = '<b>Request '.$request_label.'</b>'."\n".
             'Staff: '.telegram_escape($row_user['employees_name'])."\n".
-            'Tanggal: '.telegram_escape(tgl_ind($cuty_start)).($cuty_type == 'cuti' ? ' - '.telegram_escape(tgl_ind($cuty_end)) : '')."\n".
+            'Tanggal: '.telegram_escape(tgl_ind($cuty_start)).(in_array($cuty_type, array('cuti', 'sakit')) && $cuty_end != $cuty_start ? ' - '.telegram_escape(tgl_ind($cuty_end)) : '')."\n".
             'Keterangan: '.telegram_escape($cuty_description);
           telegram_send_admin($connection, $message, 'cuty-request-'.$cuty_id);
         }
@@ -1209,7 +1281,7 @@ if (empty($error)) {
       echo'Sepertinya "'.$row_user['employees_name'].'" sudah mengajukan izin di BULAN ini!';
     }}
 
-    else{           
+    else{
         echo'Bidang inputan masih ada yang kosong..!';
     }
 
@@ -1225,6 +1297,17 @@ $error = array();
       $cuty_id = anti_injection($_POST['cuty_id']);
   }
 
+  $existing_doctor_file = '';
+  if (empty($error)) {
+    $query_existing_cuty = $connection->query("SELECT employees_id,cuty_doctor_file FROM cuty WHERE cuty_id='$cuty_id' AND employees_id='$row_user[id]' LIMIT 1");
+    if (!$query_existing_cuty || $query_existing_cuty->num_rows == 0) {
+      $error[] = 'Data izin tidak ditemukan';
+    } else {
+      $row_existing_cuty = $query_existing_cuty->fetch_assoc();
+      $existing_doctor_file = isset($row_existing_cuty['cuty_doctor_file']) ? $row_existing_cuty['cuty_doctor_file'] : '';
+    }
+  }
+
   $cuty_type = get_cuty_type(isset($_POST['cuty_type']) ? $_POST['cuty_type'] : 'cuti');
 
   if (empty($_POST['cuty_start'])) {
@@ -1236,11 +1319,11 @@ $error = array();
   if ($cuty_type == 'cuti' && empty($_POST['cuty_end'])) {
       $error[] = 'tidak boleh kosong';
     } else {
-      $cuty_end= $cuty_type == 'cuti' ? date('Y-m-d',strtotime($_POST['cuty_end'])) : $cuty_start;
+      $cuty_end= in_array($cuty_type, array('cuti', 'sakit')) && !empty($_POST['cuty_end']) ? date('Y-m-d',strtotime($_POST['cuty_end'])) : $cuty_start;
   }
 
-  if ($cuty_type == 'cuti' && strtotime($cuty_start) > strtotime($cuty_end)) {
-      $error[] = 'tanggal cuti tidak valid';
+  if (in_array($cuty_type, array('cuti', 'sakit')) && strtotime($cuty_start) > strtotime($cuty_end)) {
+      $error[] = 'tanggal izin tidak valid';
   }
 
   $cuty_time_start = '00:00:00';
@@ -1260,7 +1343,7 @@ $error = array();
   }
 
   $date_work = $cuty_end;
-  $cuty_total = $cuty_type == 'cuti' ? ((strtotime($cuty_end) - strtotime($cuty_start)) / 86400) + 1 : 0;
+  $cuty_total = in_array($cuty_type, array('cuti', 'sakit')) ? cuty_total_days($cuty_start, $cuty_end) : 0;
 
   if (empty($_POST['cuty_description'])) {
       $error[] = 'tidak boleh kosong';
@@ -1275,6 +1358,22 @@ $error = array();
     }
   }
 
+  $cuty_doctor_file = $cuty_type == 'sakit' ? $existing_doctor_file : '';
+  $new_doctor_file = '';
+  $doctor_upload_present = !empty($_FILES['cuty_doctor_file']['name']) && !empty($_FILES['cuty_doctor_file']['tmp_name']);
+  if (empty($error) && $doctor_upload_present) {
+    $upload = cuty_upload_doctor_file('cuty_doctor_file', $row_user['id']);
+    if (!empty($upload['error'])) {
+      $error[] = $upload['error'];
+    } else {
+      $new_doctor_file = $upload['file'];
+      $cuty_doctor_file = $new_doctor_file;
+    }
+  }
+  if (empty($error) && $cuty_type == 'sakit' && $cuty_total > 3 && empty($cuty_doctor_file)) {
+    $error[] = 'Surat keterangan dokter wajib dilampirkan untuk sakit lebih dari 3 hari.';
+  }
+
 if (empty($error)) {
     $status_update = $cuty_type == 'izin_jam' ? ", cuty_status='1'" : "";
     $update="UPDATE cuty SET cuty_type='$cuty_type',
@@ -1285,14 +1384,18 @@ if (empty($error)) {
             cuty_minutes='$cuty_minutes',
             date_work='$date_work',
             cuty_total='$cuty_total',
-            cuty_description='$cuty_description'".$status_update." WHERE cuty_id='$cuty_id'"; 
-    if($connection->query($update) === false) { 
-        die($connection->error.__LINE__); 
+            cuty_description='$cuty_description',
+            cuty_doctor_file='$cuty_doctor_file'".$status_update." WHERE cuty_id='$cuty_id'";
+    if($connection->query($update) === false) {
+        die($connection->error.__LINE__);
         echo'Data tidak berhasil disimpan!';
     } else{
+        if (!empty($existing_doctor_file) && $cuty_doctor_file != $existing_doctor_file && file_exists("../sw-content/cuty/$existing_doctor_file")) {
+          unlink("../sw-content/cuty/$existing_doctor_file");
+        }
         echo'success';
     }}
-    else{           
+    else{
         echo'Bidang inputan masih ada yang kosong..!';
     }
 
@@ -1303,8 +1406,8 @@ break;
 case 'load-home-counter':
   if(isset($_POST['month_filter'])){
       $month_filter = strip_tags($_POST['month_filter']);
-      $filter ="MONTH(presence_date) ='$month_filter' AND year(presence_date) = '$year'"; 
-    } 
+      $filter ="MONTH(presence_date) ='$month_filter' AND year(presence_date) = '$year'";
+    }
     else{
       $filter ="MONTH(presence_date) ='$month' AND year(presence_date) = '$year'";
   }
@@ -1321,7 +1424,7 @@ case 'load-home-counter':
 
   if(isset($_POST['month_filter'])){
       $cuty_month_filter = strip_tags($_POST['month_filter']);
-    } 
+    }
     else{
       $cuty_month_filter = $month;
   }
@@ -1417,7 +1520,7 @@ case 'load-home-counter':
       </a>
   </div>
   <!-- * item -->';
-    
+
 
 break;
 }?>

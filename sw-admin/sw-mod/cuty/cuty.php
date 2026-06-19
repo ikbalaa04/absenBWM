@@ -63,18 +63,21 @@ echo'
       $cuty_start_label .= '<br><small>'.substr($row['cuty_time_start'],0,5).' - '.substr($row['cuty_time_end'],0,5).'</small>';
       $cuty_end_label = '-';
       $date_work_label = '-';
+    } elseif ($cuty_type == 'sakit' && $row['cuty_end'] == $row['cuty_start']) {
+      $cuty_end_label = '-';
     }
     $quota_label = '-';
     if ($cuty_type == 'cuti') {
       $quota_year = date('Y', strtotime($row['cuty_start']));
       $quota = cuty_quota_summary($connection, $row['employees_id'], $quota_year, $row['cuty_id']);
       $requested_days = cuty_days_in_year($row['cuty_start'], $row['cuty_end'], $quota_year);
-      $available_after_current = $quota['remaining'] + $requested_days;
+      $remaining_after_request = max(0, $quota['remaining'] - $requested_days);
       $quota_label = '<small>
         Kuota '.$quota_year.': <b>'.$quota['quota'].'</b><br>
         Terpakai: <b>'.$quota['used'].'</b><br>
         Ajuan ini: <b>'.$requested_days.'</b><br>
-        Sisa tersedia: <b>'.$available_after_current.'</b>
+        Sisa sebelum ajuan: <b>'.$quota['remaining'].'</b><br>
+        Estimasi sisa: <b>'.$remaining_after_request.'</b>
       </small>';
     }
     echo'
@@ -86,7 +89,11 @@ echo'
       <td>'.$cuty_end_label.'</td>
       <td>'.$date_work_label.'</td>
       <td>'.$quota_label.'</td>
-      <td>'.strip_tags($row['cuty_description']).'</td>
+      <td>'.strip_tags($row['cuty_description']);
+      if ($cuty_type == 'sakit' && !empty($row['cuty_doctor_file'])) {
+        echo'<br><a href="../sw-content/cuty/'.rawurlencode($row['cuty_doctor_file']).'" target="_blank" rel="noopener"><small>Surat dokter</small></a>';
+      }
+      echo'</td>
       <td>'.$status.'</td>
       <td class="text-center">
         <div class="btn-group">';

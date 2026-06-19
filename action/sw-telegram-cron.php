@@ -21,7 +21,6 @@ if (!in_array($reminder_minutes, array(5, 10), true)) {
 
 $today = date('Y-m-d');
 $now = time();
-$window_seconds = 300;
 $sent = 0;
 $checked = 0;
 
@@ -48,7 +47,8 @@ if ($result) {
     $time_out = isset($rule['time_out']) ? $rule['time_out'] : '00:00:00';
     if ($time_in !== '00:00:00') {
       $reminder_at = strtotime($today.' '.$time_in) - ($reminder_minutes * 60);
-      if ($reminder_at <= $now && $now <= ($reminder_at + $window_seconds)) {
+      $schedule_at = strtotime($today.' '.$time_in);
+      if ($reminder_at <= $now && $now <= $schedule_at) {
         $employees_id = mysqli_real_escape_string($connection, $employee['id']);
         $presence = $connection->query("SELECT presence_id FROM presence WHERE employees_id='$employees_id' AND presence_date='$today' AND time_in!='00:00:00' LIMIT 1");
         if (!$presence || $presence->num_rows == 0) {
@@ -64,7 +64,8 @@ if ($result) {
 
     if ((int)$employee['checkout_required'] === 1 && $time_out !== '00:00:00') {
       $reminder_at = strtotime($today.' '.$time_out) - ($reminder_minutes * 60);
-      if ($reminder_at <= $now && $now <= ($reminder_at + $window_seconds)) {
+      $schedule_at = strtotime($today.' '.$time_out);
+      if ($reminder_at <= $now && $now <= $schedule_at) {
         $employees_id = mysqli_real_escape_string($connection, $employee['id']);
         $presence = $connection->query("SELECT presence_id FROM presence WHERE employees_id='$employees_id' AND presence_date='$today' AND time_in!='00:00:00' AND (time_out='00:00:00' OR time_out IS NULL) LIMIT 1");
         if ($presence && $presence->num_rows > 0) {

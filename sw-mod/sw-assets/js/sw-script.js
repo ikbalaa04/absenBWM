@@ -104,7 +104,7 @@ $('#form-login').submit(function (e) {
             contentType: false,
             cache: false,
             async: false,
-            beforeSend: function () { 
+            beforeSend: function () {
               loading();
             },
             success: function (data) {
@@ -128,7 +128,7 @@ $('#form-login').submit(function (e) {
 /* ----------- REGISTRASI ------------*/
 $('#form-registrasi').submit(function (e) {
     e.preventDefault();
-    if($('#email').val()=='' && $('#password').val()=='' && $('#position_id').val()=='' && $('#shift_id').val()=='' && $('#building').val()==''){    
+    if($('#email').val()=='' && $('#password').val()=='' && $('#position_id').val()=='' && $('#shift_id').val()=='' && $('#building').val()==''){
          swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
         return false;
         loading();
@@ -143,7 +143,7 @@ $('#form-registrasi').submit(function (e) {
             contentType: false,
             cache: false,
             async: false,
-            beforeSend: function () { 
+            beforeSend: function () {
               loading();
             },
             success: function (data) {
@@ -166,7 +166,7 @@ $('#form-registrasi').submit(function (e) {
 /* ----------- FORGOT ------------*/
 $('#form-forgot').submit(function (e) {
     e.preventDefault();
-    if($('#email').val()==''){    
+    if($('#email').val()==''){
          swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
         return false;
         loading();
@@ -181,7 +181,7 @@ $('#form-forgot').submit(function (e) {
             contentType: false,
             cache: false,
             async: false,
-            beforeSend: function () { 
+            beforeSend: function () {
               loading();
             },
             success: function (data) {
@@ -205,7 +205,7 @@ $('#form-forgot').submit(function (e) {
 /* ---------- UPDATE PROFILE -----------------*/
 $('#update-profile').submit(function (e) {
     e.preventDefault();
-    if($('#name').val()==''){    
+    if($('#name').val()==''){
          swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
         return false;
         loading();
@@ -220,7 +220,7 @@ $('#update-profile').submit(function (e) {
             contentType: false,
             cache: false,
             async: false,
-            beforeSend: function () { 
+            beforeSend: function () {
               loading();
             },
             success: function (data) {
@@ -313,7 +313,7 @@ $(document).on('click', '.telegram-disconnect', function () {
 /* ---------- UPDATE PASSWORD-----------------*/
 $('#update-password').submit(function (e) {
     e.preventDefault();
-    if($('#employees_password').val()==''){    
+    if($('#employees_password').val()==''){
          swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
         return false;
         loading();
@@ -328,17 +328,17 @@ $('#update-password').submit(function (e) {
             contentType: false,
             cache: false,
             async: false,
-            beforeSend: function () { 
+            beforeSend: function () {
               loading();
             },
             success: function (data) {
                 if (data == 'success') {
                     swal({title: 'Berhasil!', text: 'Password berhasil di perbaharui!', icon: 'success', timer: 2000,});
                     setTimeout(function(){ location.reload(); }, 2500);
-                    
+
                 } else {
                     swal({title: 'Oops!', text: data, icon: 'error', timer: 2000,});
-                   
+
                 }
             },
 
@@ -351,7 +351,7 @@ $('#update-password').submit(function (e) {
 
 /* --------- UPDATE PHOTO PROFILE ---------------*/
  $(document).on('change','#avatar',function(){
-        var file_data = $('#avatar').prop('files')[0];  
+        var file_data = $('#avatar').prop('files')[0];
         if (!file_data) {
           return false;
         }
@@ -422,7 +422,7 @@ $('.btn-sortir').click(function (e) {
           dataType:"text",
           cache: false,
           async: false,
-            beforeSend: function () { 
+            beforeSend: function () {
              loading();
             },
             success: function (data) {
@@ -440,13 +440,13 @@ $('.btn-print').click(function (e) {
         var type        = $('.type').val();
         if(type =='pdf'){
             // cek berdasarkan bulan
-            if(from==''){    
+            if(from==''){
                 var url = swPrintUrl+"?action=pdf";
             }else{
                 var url = swPrintUrl+"?action=pdf&from="+from+"&to="+to+"";
             }
         }else{
-            if(from==''){    
+            if(from==''){
                 var url = swPrintUrl+"?action=excel";
             }else{
                 var url = swPrintUrl+"?action=excel&from="+from+"&to="+to+"";
@@ -458,29 +458,29 @@ $('.btn-print').click(function (e) {
 /* ------------------- UPDATE DATA HISTORY ------------------------- */
     $(document).on('click', '.modal-update', function(){
         $('#modal-show').modal('show');
-        var presence_id = $(this).attr("data-id"); 
+        var presence_id = $(this).attr("data-id");
         document.getElementById('presence_id').value = presence_id;
 
-        /*var masuk = $(this).attr("data-masuk"); 
+        /*var masuk = $(this).attr("data-masuk");
         document.getElementById('timein').value = masuk;
 
-        var pulang = $(this).attr("data-pulang"); 
+        var pulang = $(this).attr("data-pulang");
         document.getElementById('timeout').value = pulang;*/
 
-        var status = $(this).attr("data-status"); 
+        var status = $(this).attr("data-status");
         document.getElementById('status').value = status;
 
-        var information = $(this).attr("data-information"); 
+        var information = $(this).attr("data-information");
         document.getElementById('information').value = information;
 
-        var tanggal = $(this).attr("data-date"); 
+        var tanggal = $(this).attr("data-date");
         $('.status-date').html(tanggal);
     });
 
     /* ---------- UPDATE HISTORY-----------------*/
         $('#update-history').submit(function (e) {
             e.preventDefault();
-            if($('#timein').val()=='' && $('#timeout').val()==''){    
+            if($('#timein').val()=='' && $('#timeout').val()==''){
                  swal({title:'Oops!', text: 'Harap bwidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
                 return false;
                 loading();
@@ -495,7 +495,7 @@ $('.btn-print').click(function (e) {
                     contentType: false,
                     cache: false,
                     async: false,
-                    beforeSend: function () { 
+                    beforeSend: function () {
                       loading();
                     },
                     success: function (data) {
@@ -506,7 +506,7 @@ $('.btn-print').click(function (e) {
                             loadData();
                         } else {
                             swal({title: 'Oops!', text: data, icon: 'error', timer: 2000,});
-                            
+
                         }
                     },
 
@@ -552,7 +552,7 @@ $('.btn-print').click(function (e) {
               dataType:"text",
               cache: false,
               async: false,
-                beforeSend: function () { 
+                beforeSend: function () {
                  loading();
                 },
                 success: function (data) {
@@ -568,6 +568,38 @@ $('.btn-print').click(function (e) {
         return $(form).find('textarea.cuty_description').val().trim() === '';
     }
 
+    function parseCutyDate(value) {
+        if (!value) {
+            return null;
+        }
+        var parts = value.split('-');
+        if (parts.length === 3) {
+            var day = parseInt(parts[0], 10);
+            var month = parseInt(parts[1], 10) - 1;
+            var year = parseInt(parts[2], 10);
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                return new Date(year, month, day);
+            }
+        }
+        var parsed = new Date(value);
+        return isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function cutyDateRangeDays(form) {
+        var start = parseCutyDate($(form).find('input[name=cuty_start]').val());
+        var end = parseCutyDate($(form).find('input[name=cuty_end]').val());
+        if (!start) {
+            return 0;
+        }
+        if (!end) {
+            end = start;
+        }
+        if (end < start) {
+            return -1;
+        }
+        return Math.floor((end - start) / 86400000) + 1;
+    }
+
     function toggleCutyDateFields(form) {
         var type = $(form).find('.cuty-type').val();
         var startField = $(form).find('.cuty-start-field');
@@ -575,41 +607,68 @@ $('.btn-print').click(function (e) {
         var startLabel = startField.find('.cuty-start-label');
         var endField = $(form).find('.cuty-end-field');
         var endInput = endField.find('input');
+        var endLabel = endField.find('.cuty-end-label');
         var hourField = $(form).find('.cuty-hour-field');
         var hourInputs = hourField.find('input');
         var quotaInfo = $(form).find('.cuty-quota-info');
+        var doctorField = $(form).find('.cuty-doctor-field');
+        var doctorInput = doctorField.find('input[type=file]');
+        var sickDays = cutyDateRangeDays(form);
 
         if (type === 'cuti') {
             startLabel.text('Mulai Cuti');
+            endLabel.text('Berakhir Cuti');
             startField.show();
             endField.show();
             hourField.hide();
             quotaInfo.show();
+            doctorField.hide();
             startInput.prop('required', true);
             endInput.prop('required', true);
             hourInputs.prop('required', false);
+            doctorInput.prop('required', false);
+        } else if (type === 'sakit') {
+            startLabel.text('Mulai Sakit');
+            endLabel.text('Berakhir Sakit');
+            startField.show();
+            endField.show();
+            hourField.hide();
+            quotaInfo.hide();
+            doctorField.show();
+            startInput.prop('required', true);
+            endInput.prop('required', false);
+            hourInputs.prop('required', false);
+            doctorInput.prop('required', sickDays > 3);
         } else if (type === 'izin_jam') {
             startLabel.text('Tanggal Izin');
             startField.show();
             endField.hide();
             hourField.show();
             quotaInfo.hide();
+            doctorField.hide();
             startInput.prop('required', true);
             endInput.prop('required', false);
             hourInputs.prop('required', true);
+            doctorInput.prop('required', false);
         } else {
             startLabel.text('Tanggal Izin');
             startField.show();
             endField.hide();
             hourField.hide();
             quotaInfo.hide();
+            doctorField.hide();
             startInput.prop('required', true);
             endInput.prop('required', false);
             hourInputs.prop('required', false);
+            doctorInput.prop('required', false);
         }
     }
 
     $(document).on('change', '.cuty-type', function() {
+        toggleCutyDateFields($(this).closest('form'));
+    });
+
+    $(document).on('change', 'input[name=cuty_start], input[name=cuty_end]', function() {
         toggleCutyDateFields($(this).closest('form'));
     });
 
@@ -625,19 +684,27 @@ $('.btn-print').click(function (e) {
         e.preventDefault();
         var form = this;
         var type = $("select[name=cuty_type]", form).val();
-        if($("#cutystart", form).val()==""){  
+        if($("#cutystart", form).val()==""){
              swal({title:'Oops!', text: 'Tanggal izin wajib diisi.!', icon: 'error', timer: 1500,});
             return false;
         }
-        if(type=="cuti" && $("#cutyend", form).val()==""){  
+        if(type=="cuti" && $("#cutyend", form).val()==""){
              swal({title:'Oops!', text: 'Tanggal mulai dan tanggal akhir wajib diisi untuk cuti.!', icon: 'error', timer: 1500,});
             return false;
         }
-        if(type=="izin_jam" && ($("input[name=cuty_time_start]", form).val()=="" || $("input[name=cuty_time_end]", form).val()=="")){  
+        if((type=="cuti" || type=="sakit") && cutyDateRangeDays(form) < 0){
+             swal({title:'Oops!', text: 'Tanggal akhir tidak boleh sebelum tanggal mulai.!', icon: 'error', timer: 1500,});
+            return false;
+        }
+        if(type=="sakit" && cutyDateRangeDays(form) > 3 && $("input[name=cuty_doctor_file]", form).val()==""){
+             swal({title:'Oops!', text: 'Surat keterangan dokter wajib dilampirkan untuk sakit lebih dari 3 hari.!', icon: 'error', timer: 1500,});
+            return false;
+        }
+        if(type=="izin_jam" && ($("input[name=cuty_time_start]", form).val()=="" || $("input[name=cuty_time_end]", form).val()=="")){
              swal({title:'Oops!', text: 'Jam mulai dan selesai wajib diisi untuk izin per jam.!', icon: 'error', timer: 1500,});
             return false;
         }
-        if(isCutyDescriptionEmpty(form)){  
+        if(isCutyDescriptionEmpty(form)){
              swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
             return false;
         }
@@ -650,7 +717,7 @@ $('.btn-print').click(function (e) {
                 contentType: false,
                 cache: false,
                 async: false,
-                beforeSend: function () { 
+                beforeSend: function () {
                   loading();
                 },
                 success: function (data) {
@@ -675,28 +742,32 @@ $('.btn-print').click(function (e) {
 
    $(document).on('click', '.btn-update-cuty', function(){
         $('#modal-update').modal('show');
-        var id = $(this).attr("data-id"); 
+        var id = $(this).attr("data-id");
         document.getElementById('city-id').value = id;
 
-        var type = $(this).attr("data-type") || 'cuti'; 
+        var type = $(this).attr("data-type") || 'cuti';
         document.getElementById('cuty-type').value = type;
 
-        var start = $(this).attr("data-start"); 
+        var start = $(this).attr("data-start");
         document.getElementById('cuty-start').value = start;
 
-        var end = $(this).attr("data-end"); 
+        var end = $(this).attr("data-end");
         document.getElementById('cuty-end').value = end;
 
-        var timeStart = $(this).attr("data-time-start") || ""; 
+        var timeStart = $(this).attr("data-time-start") || "";
         document.getElementById('cuty-time-start').value = timeStart;
 
-        var timeEnd = $(this).attr("data-time-end") || ""; 
+        var timeEnd = $(this).attr("data-time-end") || "";
         document.getElementById('cuty-time-end').value = timeEnd;
 
-        var cuty_description = $(this).attr("data-description"); 
+        var doctorFile = $(this).attr("data-doctor-file") || "";
+        document.getElementById('cuty-doctor-file').value = "";
+        $('.cuty-doctor-existing').text(doctorFile ? 'Lampiran saat ini: ' + doctorFile + '. Upload file baru untuk mengganti.' : '');
+
+        var cuty_description = $(this).attr("data-description");
         document.getElementById('cuty_description').value = cuty_description;
         toggleCutyDateFields($('#form-update-cuty'));
-        /*var cuty_description = $(this).attr("data-date"); 
+        /*var cuty_description = $(this).attr("data-date");
         $('.status-date').html(tanggal);*/
     });
 
@@ -705,19 +776,27 @@ $('.btn-print').click(function (e) {
         e.preventDefault();
         var form = this;
         var type = $("select[name=cuty_type]", form).val();
-        if($("#cuty-start", form).val()==""){  
+        if($("#cuty-start", form).val()==""){
              swal({title:'Oops!', text: 'Tanggal izin wajib diisi.!', icon: 'error', timer: 1500,});
             return false;
         }
-        if(type=="cuti" && $("#cuty-end", form).val()==""){  
+        if(type=="cuti" && $("#cuty-end", form).val()==""){
              swal({title:'Oops!', text: 'Tanggal mulai dan tanggal akhir wajib diisi untuk cuti.!', icon: 'error', timer: 1500,});
             return false;
         }
-        if(type=="izin_jam" && ($("input[name=cuty_time_start]", form).val()=="" || $("input[name=cuty_time_end]", form).val()=="")){  
+        if((type=="cuti" || type=="sakit") && cutyDateRangeDays(form) < 0){
+             swal({title:'Oops!', text: 'Tanggal akhir tidak boleh sebelum tanggal mulai.!', icon: 'error', timer: 1500,});
+            return false;
+        }
+        if(type=="sakit" && cutyDateRangeDays(form) > 3 && $("input[name=cuty_doctor_file]", form).val()=="" && $('.cuty-doctor-existing').text()==""){
+             swal({title:'Oops!', text: 'Surat keterangan dokter wajib dilampirkan untuk sakit lebih dari 3 hari.!', icon: 'error', timer: 1500,});
+            return false;
+        }
+        if(type=="izin_jam" && ($("input[name=cuty_time_start]", form).val()=="" || $("input[name=cuty_time_end]", form).val()=="")){
              swal({title:'Oops!', text: 'Jam mulai dan selesai wajib diisi untuk izin per jam.!', icon: 'error', timer: 1500,});
             return false;
         }
-        if(isCutyDescriptionEmpty(form)){  
+        if(isCutyDescriptionEmpty(form)){
              swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
             return false;
         }
@@ -730,7 +809,7 @@ $('.btn-print').click(function (e) {
                 contentType: false,
                 cache: false,
                 async: false,
-                beforeSend: function () { 
+                beforeSend: function () {
                   loading();
                 },
                 success: function (data) {
@@ -806,7 +885,7 @@ $('.btn-print').click(function (e) {
               dataType:"text",
               cache: false,
               async: false,
-                beforeSend: function () { 
+                beforeSend: function () {
                  loading();
                 },
                 success: function (data) {
@@ -819,8 +898,8 @@ $('.btn-print').click(function (e) {
     });
 
     /* ------------------ FAILED ACCESS ------------------*/
-   $(document).on("click", ".access-failed", function(){ 
-      swal({title:"Error!", text: "Anda tidak memiliki hak akses lagi!", icon:"error",timer:2500,});  
+   $(document).on("click", ".access-failed", function(){
+      swal({title:"Error!", text: "Anda tidak memiliki hak akses lagi!", icon:"error",timer:2500,});
     });
 
 
@@ -845,7 +924,7 @@ function nWin(context,title) {
     var printWindow = window.open('', '');
     var doc = printWindow.document;
     doc.write("<html><head>");
-    doc.write("<title>"+title+" - Print Mode</title>");    
+    doc.write("<title>"+title+" - Print Mode</title>");
     doc.write("<link href='sw-mod/sw-assets/css/sw-print.css' rel='stylesheet' type='text/css' media='print'>");
     doc.write("</head><body>");
     doc.write(context);

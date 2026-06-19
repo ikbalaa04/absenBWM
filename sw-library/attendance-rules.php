@@ -168,6 +168,9 @@ if (!function_exists('attendance_ensure_schema')) {
 	    if (empty($cuty_columns['cuty_minutes'])) {
 	      $connection->query("ALTER TABLE cuty ADD cuty_minutes int(5) NOT NULL DEFAULT 0 AFTER cuty_time_end");
 	    }
+	    if (empty($cuty_columns['cuty_doctor_file'])) {
+	      $connection->query("ALTER TABLE cuty ADD cuty_doctor_file varchar(150) NOT NULL DEFAULT '' AFTER cuty_description");
+	    }
 
     $done = true;
   }

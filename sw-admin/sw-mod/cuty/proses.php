@@ -56,8 +56,12 @@ case 'update-status':
         if ($query_notify && $query_notify->num_rows > 0) {
           $notify = $query_notify->fetch_assoc();
           $type_label = $notify['cuty_type'] == 'cuti' ? 'Cuti' : ($notify['cuty_type'] == 'sakit' ? 'Sakit' : ($notify['cuty_type'] == 'izin_jam' ? 'Izin per jam' : 'Izin'));
+          $date_range = telegram_escape(tgl_ind($notify['cuty_start']));
+          if (in_array($notify['cuty_type'], array('cuti', 'sakit')) && $notify['cuty_end'] != $notify['cuty_start']) {
+            $date_range .= ' - '.telegram_escape(tgl_ind($notify['cuty_end']));
+          }
           $message = '<b>'.$type_label.' '.telegram_status_label($status).'</b>'."\n".
-            'Tanggal: '.telegram_escape(tgl_ind($notify['cuty_start'])).($notify['cuty_type'] == 'cuti' ? ' - '.telegram_escape(tgl_ind($notify['cuty_end'])) : '')."\n".
+            'Tanggal: '.$date_range."\n".
             'Status: '.telegram_escape(telegram_status_label($status));
           telegram_send_employee($connection, $notify['employees_id'], $message, 'cuty-status-'.$cuty_id.'-'.$status);
         }
@@ -126,8 +130,18 @@ case 'delete':
     break;
   }
 
+  $doctor_file = '';
+  $query_cuty = $connection->query("SELECT cuty_doctor_file FROM cuty WHERE cuty_id='$id' LIMIT 1");
+  if ($query_cuty && $query_cuty->num_rows > 0) {
+    $row_cuty = $query_cuty->fetch_assoc();
+    $doctor_file = isset($row_cuty['cuty_doctor_file']) ? $row_cuty['cuty_doctor_file'] : '';
+  }
+
   $deleted = "DELETE FROM cuty WHERE cuty_id='$id'";
   if($connection->query($deleted) === true) {
+      if (!empty($doctor_file) && file_exists("../../../sw-content/cuty/$doctor_file")) {
+        unlink("../../../sw-content/cuty/$doctor_file");
+      }
       echo'success';
   } else {
       echo'Data tidak berhasil dihapus.!';

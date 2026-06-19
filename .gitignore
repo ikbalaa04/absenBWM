@@ -2,3 +2,5 @@
 .idea/
 .agent/
 .agents/
+sw-content/cuty/*
+!sw-content/cuty/.gitkeep
