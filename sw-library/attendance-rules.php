@@ -566,6 +566,17 @@ if (!function_exists('attendance_format_minutes')) {
   }
 }
 
+if (!function_exists('attendance_daily_credit_minutes')) {
+  function attendance_daily_credit_minutes($presence_date, $rule_time_in, $rule_time_out, $rule_min_work_minutes = 0) {
+    $rule_min_work_minutes = (int)$rule_min_work_minutes;
+    if ($rule_min_work_minutes > 0) {
+      return $rule_min_work_minutes;
+    }
+
+    return 480;
+  }
+}
+
 if (!function_exists('attendance_weekly_minutes_by_location')) {
   function attendance_weekly_minutes_by_location($connection, $employees_id, $week_start, $week_end, $location_type, $include_running_today = true) {
     $employees_id = mysqli_real_escape_string($connection, $employees_id);
@@ -578,22 +589,14 @@ if (!function_exists('attendance_weekly_minutes_by_location')) {
 
     $minutes = 0;
     $today = date('Y-m-d');
-    $query = "SELECT presence_date,time_in,time_out FROM presence WHERE employees_id='$employees_id' AND attendance_location_type='$location_type' AND presence_date BETWEEN '$week_start' AND '$week_end' AND present_id='1'";
+    $query = "SELECT presence_date,time_out,rule_time_in,rule_time_out,rule_min_work_minutes FROM presence WHERE employees_id='$employees_id' AND attendance_location_type='$location_type' AND presence_date BETWEEN '$week_start' AND '$week_end' AND present_id='1'";
     $result = $connection->query($query);
     if ($result) {
       while ($row = $result->fetch_assoc()) {
-        if ($row['time_out'] != '00:00:00') {
-          $start_time = strtotime($row['presence_date'].' '.$row['time_in']);
-          $end_time = strtotime($row['presence_date'].' '.$row['time_out']);
-          if ($end_time < $start_time) {
-            $end_time += 86400;
-          }
-          $minutes += max(0, ($end_time - $start_time) / 60);
-        } elseif ($include_running_today && $row['presence_date'] == $today) {
-          $start_time = strtotime($row['presence_date'].' '.$row['time_in']);
-          $running_minutes = max(0, (time() - $start_time) / 60);
-          $minutes += max(1, ceil($running_minutes));
+        if (!$include_running_today && $row['presence_date'] == $today && $row['time_out'] == '00:00:00') {
+          continue;
         }
+        $minutes += attendance_daily_credit_minutes($row['presence_date'], $row['rule_time_in'], $row['rule_time_out'], $row['rule_min_work_minutes']);
       }
     }
 

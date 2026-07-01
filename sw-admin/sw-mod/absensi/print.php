@@ -1,7 +1,9 @@
 <?php session_start(); error_reporting(0);
     require_once'../../../sw-library/sw-config.php'; 
     require_once'../../../sw-library/sw-function.php';
+    require_once'../../../sw-library/attendance-rules.php';
     include_once'../../../sw-library/vendor/autoload.php';
+attendance_ensure_schema($connection);
 if(empty($_SESSION['SESSION_USER']) || empty($_SESSION['SESSION_ID'])){
     //Kondisi tidak login
    header('location:../login/');
@@ -117,7 +119,7 @@ echo'
       $newtimestamp = strtotime(''.$shift_time_in.' + 05 minute');
       $newtimestamp = date('H:i:s', $newtimestamp);
 
-      $query_absen ="SELECT presence_id,presence_date,time_in,time_out,picture_in,picture_out,present_id,latitude_longtitude_in,information,TIMEDIFF(TIME(time_in),'$shift_time_in') AS selisih,if (time_in>'$shift_time_in','Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status,TIMEDIFF(TIME(time_out),'$shift_time_out') AS selisih_out FROM presence WHERE $filter ORDER BY presence_id DESC";
+      $query_absen ="SELECT presence_id,presence_date,time_in,time_out,picture_in,picture_out,present_id,latitude_longtitude_in,information,rule_time_in,rule_time_out,rule_min_work_minutes,TIMEDIFF(TIME(time_in),'$shift_time_in') AS selisih,if (time_in>'$shift_time_in','Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status,TIMEDIFF(TIME(time_out),'$shift_time_out') AS selisih_out FROM presence WHERE $filter ORDER BY presence_id DESC";
       $result_absen = $connection->query($query_absen);
       $row_absen = $result_absen->fetch_assoc();
 
@@ -152,13 +154,12 @@ echo'
         }
 
         // DURASI KERJA  =========================================
-        $durasi_kerja_start = strtotime(''.$date_month_year.' '.$row_absen['time_in'].'');
-    		$durasi_kerja_end   = strtotime(''.$date_month_year.' '.$row_absen['time_out'].'');
-    		$diff  				= $durasi_kerja_end - $durasi_kerja_start;
-    		$durasi_jam   		= floor($diff / (60 * 60));
-    		$durasi_menit 		= $diff - ($durasi_jam * (60 * 60) );
-    		$durasi_detik 		= $diff % 60;
-    		$durasi_kerja 		= ''.$durasi_jam.' jam, '.floor($durasi_menit/60 ).' menit';
+        $durasi_kerja = '';
+        if (!empty($row_absen['time_in']) && $row_absen['time_in'] != '00:00:00') {
+          $rule_time_in_print = !empty($row_absen['rule_time_in']) ? $row_absen['rule_time_in'] : $shift_time_in;
+          $rule_time_out_print = !empty($row_absen['rule_time_out']) ? $row_absen['rule_time_out'] : $shift_time_out;
+          $durasi_kerja = attendance_format_minutes(attendance_daily_credit_minutes($date_month_year, $rule_time_in_print, $rule_time_out_print, $row_absen['rule_min_work_minutes']));
+        }
 
     		// JAM LEMBUR =========================================
     		if($row_absen['time_out'] > $shift_time_out){
@@ -384,7 +385,7 @@ echo'
       $newtimestamp = strtotime(''.$shift_time_in.' + 05 minute');
       $newtimestamp = date('H:i:s', $newtimestamp);
 
-      $query_absen ="SELECT presence_id,presence_date,time_in,time_out,picture_in,picture_out,present_id,latitude_longtitude_in,information,TIMEDIFF(TIME(time_in),'$shift_time_in') AS selisih,if (time_in>'$shift_time_in','Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status,TIMEDIFF(TIME(time_out),'$shift_time_out') AS selisih_out FROM presence WHERE $filter ORDER BY presence_id DESC";
+      $query_absen ="SELECT presence_id,presence_date,time_in,time_out,picture_in,picture_out,present_id,latitude_longtitude_in,information,rule_time_in,rule_time_out,rule_min_work_minutes,TIMEDIFF(TIME(time_in),'$shift_time_in') AS selisih,if (time_in>'$shift_time_in','Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status,TIMEDIFF(TIME(time_out),'$shift_time_out') AS selisih_out FROM presence WHERE $filter ORDER BY presence_id DESC";
       $result_absen = $connection->query($query_absen);
       $row_absen = $result_absen->fetch_assoc();
 
@@ -425,13 +426,12 @@ echo'
         }
 
         // DURASI KERJA  =========================================
-        $durasi_kerja_start = strtotime(''.$date_month_year.' '.$row_absen['time_in'].'');
-		$durasi_kerja_end   = strtotime(''.$date_month_year.' '.$row_absen['time_out'].'');
-		$diff  				= $durasi_kerja_end - $durasi_kerja_start;
-		$durasi_jam   		= floor($diff / (60 * 60));
-		$durasi_menit 		= $diff - ($durasi_jam * (60 * 60) );
-		$durasi_detik 		= $diff % 60;
-		$durasi_kerja 		= ''.$durasi_jam.' jam, '.floor($durasi_menit/60 ).' menit';
+        $durasi_kerja = '';
+        if (!empty($row_absen['time_in']) && $row_absen['time_in'] != '00:00:00') {
+          $rule_time_in_print = !empty($row_absen['rule_time_in']) ? $row_absen['rule_time_in'] : $shift_time_in;
+          $rule_time_out_print = !empty($row_absen['rule_time_out']) ? $row_absen['rule_time_out'] : $shift_time_out;
+          $durasi_kerja = attendance_format_minutes(attendance_daily_credit_minutes($date_month_year, $rule_time_in_print, $rule_time_out_print, $row_absen['rule_min_work_minutes']));
+        }
 
 		// JAM LEMBUR =========================================
 		if($row_absen['time_out'] > $shift_time_out){
@@ -581,6 +581,7 @@ echo'<!DOCTYPE html>
       
 
       $shift_time_in  = $row['time_in'];
+      $shift_time_out = $row['time_out'];
       $newtimestamp   = strtotime(''.$shift_time_in.' + 05 minute');
       $newtimestamp   = date('H:i:s', $newtimestamp);
 echo'
@@ -845,7 +846,7 @@ echo'
         $filter ="employees_id='$id' AND  presence_date='$date_month_year' AND MONTH(presence_date) ='$month'";
       }
 
-      $query_absen ="SELECT presence_id,presence_date,time_in,time_out,picture_in,picture_out,present_id,latitude_longtitude_in,information,TIMEDIFF(TIME(time_in),'$shift_time_in') AS selisih,if (time_in>'$shift_time_in','Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status,TIMEDIFF(TIME(time_out),'$shift_time_out') AS selisih_out FROM presence WHERE $filter ORDER BY presence_id DESC";
+      $query_absen ="SELECT presence_id,presence_date,time_in,time_out,picture_in,picture_out,present_id,latitude_longtitude_in,information,rule_time_in,rule_time_out,rule_min_work_minutes,TIMEDIFF(TIME(time_in),'$shift_time_in') AS selisih,if (time_in>'$shift_time_in','Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status,TIMEDIFF(TIME(time_out),'$shift_time_out') AS selisih_out FROM presence WHERE $filter ORDER BY presence_id DESC";
       $result_absen = $connection->query($query_absen);
       $row_absen = $result_absen->fetch_assoc();
 
@@ -886,13 +887,12 @@ echo'
         }
 
         // DURASI KERJA  =========================================
-        $durasi_kerja_start = strtotime(''.$date_month_year.' '.$row_absen['time_in'].'');
-    $durasi_kerja_end   = strtotime(''.$date_month_year.' '.$row_absen['time_out'].'');
-    $diff         = $durasi_kerja_end - $durasi_kerja_start;
-    $durasi_jam       = floor($diff / (60 * 60));
-    $durasi_menit     = $diff - ($durasi_jam * (60 * 60) );
-    $durasi_detik     = $diff % 60;
-    $durasi_kerja     = ''.$durasi_jam.' jam, '.floor($durasi_menit/60 ).' menit';
+        $durasi_kerja = '';
+        if (!empty($row_absen['time_in']) && $row_absen['time_in'] != '00:00:00') {
+          $rule_time_in_print = !empty($row_absen['rule_time_in']) ? $row_absen['rule_time_in'] : $shift_time_in;
+          $rule_time_out_print = !empty($row_absen['rule_time_out']) ? $row_absen['rule_time_out'] : $shift_time_out;
+          $durasi_kerja = attendance_format_minutes(attendance_daily_credit_minutes($date_month_year, $rule_time_in_print, $rule_time_out_print, $row_absen['rule_min_work_minutes']));
+        }
 
     // JAM LEMBUR =========================================
     if($row_absen['time_out'] > $shift_time_out){

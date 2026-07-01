@@ -463,7 +463,7 @@ if (empty($error)){
                 }
                 if ($location_type === 'outside' && $outside_weekly_limit_minutes > 0) {
                   $outside_used_before_checkout = attendance_weekly_minutes_by_location($connection, $row_u['id'], $week_start, $week_end, 'outside', false);
-                  $current_outside_minutes = max(0, (strtotime($date.' '.$time) - strtotime($date.' '.$row['time_in'])) / 60);
+                  $current_outside_minutes = attendance_daily_credit_minutes($date, $rule_time_in, $rule_time_out, $rule_min_work_minutes);
                   $outside_projected_minutes = (int)floor($outside_used_before_checkout + $current_outside_minutes);
                   if ($outside_projected_minutes > ($outside_weekly_limit_minutes + $outside_grace_minutes)) {
                     echo'Kuota luar kantor minggu ini sudah melewati batas. Maksimal '.floor($outside_weekly_limit_minutes / 60).' jam '.($outside_weekly_limit_minutes % 60).' menit + toleransi '.$outside_grace_minutes.' menit.';

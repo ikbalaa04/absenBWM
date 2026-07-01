@@ -71,7 +71,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
   $office_rule = attendance_get_shift_rule($connection, $row_user['shift_id'], 'office', $date);
   if ($office_weekly_target_minutes <= 0) {
     if ($office_rule['time_out'] != '00:00:00') {
-      $office_weekly_target_minutes = max(0, (strtotime($office_rule['time_out']) - strtotime($office_rule['time_in'])) / 60) * 5;
+      $office_weekly_target_minutes = attendance_daily_credit_minutes($date, $office_rule['time_in'], $office_rule['time_out'], $office_rule['min_work_minutes']) * 5;
     }
   }
   $employee_id = mysqli_real_escape_string($connection, $row_user['id']);
