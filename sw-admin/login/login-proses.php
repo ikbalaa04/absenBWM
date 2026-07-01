@@ -15,11 +15,11 @@ if (isset($_REQUEST['username'])){
 	$staff_password = hash('sha256',$staff_salt.$_REQUEST['password']);
 	$session	= md5(rand(1000,9999).rand(19078,9999).date('ymdhisss'));
 
-	$query_login = "SELECT * FROM user WHERE (username='$login_name' OR email='$login_name') AND password='$admin_password' LIMIT 1";
+	$query_login = "SELECT user.* FROM user LEFT JOIN employees ON employees.id=user.employee_id WHERE (user.username='$login_name' OR user.email='$login_name') AND user.password='$admin_password' AND (user.employee_id IS NULL OR employees.employees_status='active') LIMIT 1";
 	$result_login = $connection->query($query_login);
 
 	if (!$result_login || $result_login->num_rows == 0) {
-		$query_login = "SELECT user.* FROM user INNER JOIN employees ON employees.id=user.employee_id WHERE (user.username='$login_name' OR user.email='$login_name' OR employees.employees_email='$login_name') AND employees.employees_password='$staff_password' LIMIT 1";
+		$query_login = "SELECT user.* FROM user INNER JOIN employees ON employees.id=user.employee_id WHERE (user.username='$login_name' OR user.email='$login_name' OR employees.employees_email='$login_name') AND employees.employees_password='$staff_password' AND employees.employees_status='active' LIMIT 1";
 		$result_login = $connection->query($query_login);
 	}
 

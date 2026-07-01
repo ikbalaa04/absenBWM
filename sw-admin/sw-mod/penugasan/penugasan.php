@@ -5,7 +5,7 @@ if(empty($connection)){
   include_once 'sw-mod/sw-panel.php';
   assignment_refresh_status($connection);
   $management_options = '';
-  $query_management="SELECT employees.id,employees.employees_code,employees.employees_name,position.position_name FROM employees INNER JOIN position ON position.position_id=employees.position_id WHERE position.position_name LIKE '%Manajemen%' ORDER BY employees.employees_name ASC";
+  $query_management="SELECT employees.id,employees.employees_code,employees.employees_name,position.position_name FROM employees INNER JOIN position ON position.position_id=employees.position_id WHERE position.position_name LIKE '%Manajemen%' AND employees.employees_status='active' ORDER BY employees.employees_name ASC";
   $result_management = $connection->query($query_management);
   if($result_management && $result_management->num_rows > 0){
     while($manager = $result_management->fetch_assoc()) {
@@ -187,7 +187,7 @@ echo'
             <label>Nama Staff</label>
             <select class="form-control" name="employees_id" required>
               <option value="">- Pilih Staff -</option>';
-              $query_employees="SELECT id,employees_code,employees_name FROM employees ORDER BY employees_name ASC";
+              $query_employees="SELECT id,employees_code,employees_name FROM employees WHERE employees_status='active' ORDER BY employees_name ASC";
               $result_employees = $connection->query($query_employees);
               while($employee = $result_employees->fetch_assoc()) {
                 echo'<option value="'.$employee['id'].'">'.$employee['employees_name'].' - '.$employee['employees_code'].'</option>';
@@ -248,7 +248,7 @@ echo'
             <label>Nama Staff</label>
             <select class="form-control" name="employees_id" id="edit-employees-id" required>
               <option value="">- Pilih Staff -</option>';
-              $query_employees="SELECT id,employees_code,employees_name FROM employees ORDER BY employees_name ASC";
+              $query_employees="SELECT id,employees_code,employees_name FROM employees WHERE employees_status='active' ORDER BY employees_name ASC";
               $result_employees = $connection->query($query_employees);
               while($employee = $result_employees->fetch_assoc()) {
                 echo'<option value="'.$employee['id'].'">'.$employee['employees_name'].' - '.$employee['employees_code'].'</option>';

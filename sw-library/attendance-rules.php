@@ -16,6 +16,9 @@ if (!function_exists('attendance_ensure_schema')) {
 	    if (empty($columns['attendance_mode'])) {
 	      $connection->query("ALTER TABLE employees ADD attendance_mode enum('office','remote','hybrid') NOT NULL DEFAULT 'office' AFTER building_id");
 	    }
+	    if (empty($columns['employees_status'])) {
+	      $connection->query("ALTER TABLE employees ADD employees_status enum('active','inactive') NOT NULL DEFAULT 'active' AFTER attendance_mode");
+	    }
 
 	    $presence_columns = array();
 	    $result = $connection->query("SHOW COLUMNS FROM presence");

@@ -146,11 +146,11 @@ case 'login':
   }
 
 if (empty($error)){
-    $query_login ="SELECT id,employees_email,employees_name,created_cookies FROM employees WHERE employees_email='$email' AND employees_password='$password'";
+    $query_login ="SELECT id,employees_email,employees_name,created_cookies FROM employees WHERE employees_email='$email' AND employees_password='$password' AND employees_status='active'";
     $result_login       = $connection->query($query_login);
 
     if (!$result_login || $result_login->num_rows == 0) {
-      $query_login ="SELECT employees.id,employees.employees_email,employees.employees_name,employees.created_cookies FROM user INNER JOIN employees ON employees.id=user.employee_id WHERE (user.username='$email' OR user.email='$email' OR employees.employees_email='$email') AND user.password='$admin_password' LIMIT 1";
+      $query_login ="SELECT employees.id,employees.employees_email,employees.employees_name,employees.created_cookies FROM user INNER JOIN employees ON employees.id=user.employee_id WHERE (user.username='$email' OR user.email='$email' OR employees.employees_email='$email') AND user.password='$admin_password' AND employees.employees_status='active' LIMIT 1";
       $result_login = $connection->query($query_login);
     }
 
@@ -743,7 +743,7 @@ if (empty($_POST['assignment_signer_id'])) {
     $error[] = 'Pemberi tugas wajib dipilih';
   } else {
     $assignment_signer_id = mysqli_real_escape_string($connection, $_POST['assignment_signer_id']);
-    $query_signer = "SELECT employees.id FROM employees INNER JOIN position ON position.position_id=employees.position_id WHERE employees.id='$assignment_signer_id' AND position.position_name LIKE '%Manajemen%' LIMIT 1";
+    $query_signer = "SELECT employees.id FROM employees INNER JOIN position ON position.position_id=employees.position_id WHERE employees.id='$assignment_signer_id' AND position.position_name LIKE '%Manajemen%' AND employees.employees_status='active' LIMIT 1";
     $result_signer = $connection->query($query_signer);
     if (!$result_signer || $result_signer->num_rows == 0) {
       $error[] = 'Pemberi tugas harus user dengan jabatan Manajemen';

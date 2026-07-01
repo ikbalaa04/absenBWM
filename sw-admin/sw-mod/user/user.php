@@ -4,7 +4,7 @@ if(empty($connection)){
 } else {
   include_once 'sw-mod/sw-panel.php';
   $employee_options = '<option value="">Tidak ditautkan ke staff</option>';
-  $query_employees = "SELECT id,employees_code,employees_name,employees_email FROM employees ORDER BY employees_name ASC";
+  $query_employees = "SELECT id,employees_code,employees_name,employees_email FROM employees WHERE employees_status='active' ORDER BY employees_name ASC";
   $result_employees = $connection->query($query_employees);
   if($result_employees && $result_employees->num_rows > 0){
     while($employee = $result_employees->fetch_assoc()) {

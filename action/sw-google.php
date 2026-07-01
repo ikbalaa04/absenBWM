@@ -22,9 +22,15 @@ if ($gclient->getAccessToken()) {
 	$created_cookies=  md5($email);
 	// Buat query untuk mengecek apakah data user dengan email tersebut sudah ada atau belum
 	// Jika ada, ambil id, username, dan nama dari user tersebut
-	$query ="SELECT id,employees_email,created_cookies FROM employees WHERE employees_email='$email'";
+	$query ="SELECT id,employees_email,created_cookies,employees_status FROM employees WHERE employees_email='$email'";
     $result= $connection->query($query);
     $row_user   = $result->fetch_assoc();
+    if(!empty($row_user) && isset($row_user['employees_status']) && $row_user['employees_status'] === 'inactive'){
+    	setcookie('COOKIES_MEMBER', '', 0, '/');
+    	setcookie('COOKIES_COOKIES', '', 0, '/');
+    	header("location:../");
+    	exit;
+    }
 
 			if(empty($row_user)){
 				// Jika User dengan email tersebut belum ada

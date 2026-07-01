@@ -25,7 +25,7 @@ function assignment_number($connection, $date) {
 
 function validate_assignment_signer($connection, $assignment_signer_id) {
   $assignment_signer_id = mysqli_real_escape_string($connection, $assignment_signer_id);
-  $query = "SELECT employees.id FROM employees INNER JOIN position ON position.position_id=employees.position_id WHERE employees.id='$assignment_signer_id' AND position.position_name LIKE '%Manajemen%' LIMIT 1";
+  $query = "SELECT employees.id FROM employees INNER JOIN position ON position.position_id=employees.position_id WHERE employees.id='$assignment_signer_id' AND position.position_name LIKE '%Manajemen%' AND employees.employees_status='active' LIMIT 1";
   $result = $connection->query($query);
   return $result && $result->num_rows > 0;
 }

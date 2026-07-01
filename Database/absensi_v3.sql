@@ -77,6 +77,7 @@ CREATE TABLE `employees` (
   `position_id` int(5) NOT NULL,
   `shift_id` int(11) NOT NULL,
   `building_id` int(11) NOT NULL,
+  `employees_status` enum('active','inactive') NOT NULL DEFAULT 'active',
   `photo` varchar(100) NOT NULL,
   `created_login` datetime NOT NULL,
   `created_cookies` varchar(70) NOT NULL
@@ -86,9 +87,9 @@ CREATE TABLE `employees` (
 -- Dumping data untuk tabel `employees`
 --
 
-INSERT INTO `employees` (`id`, `employees_code`, `employees_email`, `employees_password`, `employees_name`, `position_id`, `shift_id`, `building_id`, `photo`, `created_login`, `created_cookies`) VALUES
-(6, 'OM001-2021', 'user@example.com', 'd060522d419e32b1f5929878c5949c09b2acf30f754954d77644957774f96836', 'User Demo', 2, 1, 1, 'OM001-2021-1a9d0a42736063ec60e8833614f44a6d-142948-.jpg', '2021-08-10 22:42:02', '4c6c453e7a58b5fc11908a3916f944e1'),
-(14, '123456789', 'intan@gmail.com', 'acd2bcf0a751e78ba7a1904d55cb26b00b7b5c21ea1c7a91b373c2cf44ae0b29', 'Intan', 1, 1, 1, '', '2021-08-06 00:00:00', '6baf05e5de14becf64ed2a919923babc');
+INSERT INTO `employees` (`id`, `employees_code`, `employees_email`, `employees_password`, `employees_name`, `position_id`, `shift_id`, `building_id`, `employees_status`, `photo`, `created_login`, `created_cookies`) VALUES
+(6, 'OM001-2021', 'user@example.com', 'd060522d419e32b1f5929878c5949c09b2acf30f754954d77644957774f96836', 'User Demo', 2, 1, 1, 'active', 'OM001-2021-1a9d0a42736063ec60e8833614f44a6d-142948-.jpg', '2021-08-10 22:42:02', '4c6c453e7a58b5fc11908a3916f944e1'),
+(14, '123456789', 'intan@gmail.com', 'acd2bcf0a751e78ba7a1904d55cb26b00b7b5c21ea1c7a91b373c2cf44ae0b29', 'Intan', 1, 1, 1, 'active', '', '2021-08-06 00:00:00', '6baf05e5de14becf64ed2a919923babc');
 
 -- --------------------------------------------------------
 

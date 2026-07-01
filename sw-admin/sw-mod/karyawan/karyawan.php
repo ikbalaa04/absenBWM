@@ -58,6 +58,7 @@ echo'
               <th>Shift</th>
               <th>Jam Kerja</th>
               <th>Lokasi</th>
+              <th>Status</th>
               <th>Last Login</th>
               <th style="width:150px" class="text-right">Aksi</th>
             </tr>
@@ -70,6 +71,8 @@ echo'
            while ($row= $result->fetch_assoc()) {
               $no++;
               $work_minutes = attendance_shift_weekly_work_minutes($connection, $row['shift_id'], isset($row['attendance_mode']) ? $row['attendance_mode'] : 'office');
+              $employee_status = isset($row['employees_status']) ? $row['employees_status'] : 'active';
+              $status_label = $employee_status === 'inactive' ? '<span class="label label-default">Nonaktif</span>' : '<span class="label label-success">Aktif</span>';
               echo'
               <tr>
                 <td class="text-center">'.$no.'</td>
@@ -80,6 +83,7 @@ echo'
                 <td>'.admin_karyawan_h($row['shift_name']).'</td>
                 <td>'.attendance_format_minutes($work_minutes).'</td>
                 <td>'.admin_karyawan_h($row['name']).'</td>
+                <td>'.$status_label.'</td>
                 <td>'.(($row['created_login'] != '0000-00-00 00:00:00' && !empty($row['created_login'])) ? tgl_indo($row['created_login']).' - '.jam_indo($row['created_login']) : '<span class="text-muted">Belum login</span>').'</td>
                 <td class="text-right">
                   <div class="btn-group">';
@@ -251,6 +255,16 @@ echo'
                 </div>
 
                 <div class="form-group">
+                  <label class="col-sm-2 control-label">Status Akun</label>
+                  <div class="col-sm-6">
+                   <select class="form-control" name="employees_status" required="">
+                      <option value="active">Aktif</option>
+                      <option value="inactive">Nonaktif</option>
+                  </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
                   <label class="col-sm-2 control-label">Foto</label>
                   <div class="col-sm-6">
                     <img width="80" class="preview" src="./sw-assets/img/avatar.jpg"><br><br>
@@ -405,6 +419,16 @@ echo'
                       <option value="office" '.($row['attendance_mode'] == 'office' ? 'selected' : '').'>Full Kantor</option>
                       <option value="hybrid" '.($row['attendance_mode'] == 'hybrid' ? 'selected' : '').'>Hybrid</option>
                       <option value="remote" '.($row['attendance_mode'] == 'remote' ? 'selected' : '').'>Full Luar Kantor / Remote</option>
+                  </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">Status Akun</label>
+                  <div class="col-sm-6">
+                   <select class="form-control" name="employees_status" required="">
+                      <option value="active" '.((!isset($row['employees_status']) || $row['employees_status'] == 'active') ? 'selected' : '').'>Aktif</option>
+                      <option value="inactive" '.((isset($row['employees_status']) && $row['employees_status'] == 'inactive') ? 'selected' : '').'>Nonaktif</option>
                   </select>
                   </div>
                 </div>

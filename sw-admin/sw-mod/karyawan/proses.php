@@ -20,6 +20,7 @@ function karyawan_export_rows($connection) {
       $no++;
       $last_login = ($row['created_login'] != '0000-00-00 00:00:00' && !empty($row['created_login'])) ? tgl_indo($row['created_login']).' - '.jam_indo($row['created_login']) : 'Belum login';
       $work_minutes = attendance_shift_weekly_work_minutes($connection, $row['shift_id'], isset($row['attendance_mode']) ? $row['attendance_mode'] : 'office');
+      $employees_status = (isset($row['employees_status']) && $row['employees_status'] === 'inactive') ? 'Nonaktif' : 'Aktif';
       $rows[] = array(
         'no' => $no,
         'employees_code' => $row['employees_code'],
@@ -29,6 +30,7 @@ function karyawan_export_rows($connection) {
         'shift_name' => $row['shift_name'],
         'work_hours' => attendance_format_minutes($work_minutes),
         'building_name' => $row['name'],
+        'employees_status' => $employees_status,
         'last_login' => $last_login
       );
     }
@@ -152,6 +154,7 @@ case 'export':
             <th>Shift</th>
             <th>Jam Kerja</th>
             <th>Lokasi</th>
+            <th>Status</th>
             <th>Last Login</th>
           </tr>
         </thead>
@@ -166,6 +169,7 @@ case 'export':
         <td>'.htmlspecialchars($row['shift_name'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['work_hours'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['building_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['employees_status'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['last_login'], ENT_QUOTES, 'UTF-8').'</td>
       </tr>';
     }
@@ -189,6 +193,7 @@ case 'export':
         <th>Shift</th>
         <th>Jam Kerja</th>
         <th>Lokasi</th>
+        <th>Status</th>
         <th>Last Login</th>
       </tr>';
     foreach ($rows as $row) {
@@ -201,6 +206,7 @@ case 'export':
         <td>'.htmlspecialchars($row['shift_name'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['work_hours'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['building_name'], ENT_QUOTES, 'UTF-8').'</td>
+        <td>'.htmlspecialchars($row['employees_status'], ENT_QUOTES, 'UTF-8').'</td>
         <td>'.htmlspecialchars($row['last_login'], ENT_QUOTES, 'UTF-8').'</td>
       </tr>';
     }
@@ -211,9 +217,9 @@ case 'export':
   header('Content-Type: text/csv; charset=utf-8');
   header('Content-Disposition: attachment; filename="Data-Karyawan-'.$export_date.'.csv"');
   $output = fopen('php://output', 'w');
-  fputcsv($output, array('No', 'Staff ID', 'Nama', 'Email', 'Jabatan', 'Shift', 'Jam Kerja', 'Lokasi', 'Last Login'));
+  fputcsv($output, array('No', 'Staff ID', 'Nama', 'Email', 'Jabatan', 'Shift', 'Jam Kerja', 'Lokasi', 'Status', 'Last Login'));
   foreach ($rows as $row) {
-    fputcsv($output, array($row['no'], $row['employees_code'], $row['employees_name'], $row['employees_email'], $row['position_name'], $row['shift_name'], $row['work_hours'], $row['building_name'], $row['last_login']));
+    fputcsv($output, array($row['no'], $row['employees_code'], $row['employees_name'], $row['employees_email'], $row['position_name'], $row['shift_name'], $row['work_hours'], $row['building_name'], $row['employees_status'], $row['last_login']));
   }
   exit;
 break;
@@ -266,6 +272,7 @@ case 'add':
 
   $telegram_chat_id = isset($_POST['telegram_chat_id']) ? strip_tags(trim($_POST['telegram_chat_id'])) : '';
   $attendance_mode = isset($_POST['attendance_mode']) ? attendance_normalize_mode($_POST['attendance_mode']) : 'office';
+  $employees_status = (isset($_POST['employees_status']) && $_POST['employees_status'] === 'inactive') ? 'inactive' : 'active';
   $photo_data = karyawan_uploaded_photo($max_size, $upload_dir, false);
   if (!empty($photo_data['error'])) {
     $error[] = $photo_data['error'];
@@ -275,12 +282,12 @@ case 'add':
     $photo = $photo_data['filename'];
     $created_login = $date.' '.$time;
     $created_cookies = '-';
-    $stmt = $connection->prepare("INSERT INTO employees (employees_code,employees_email,telegram_chat_id,employees_password,employees_name,position_id,shift_id,building_id,attendance_mode,photo,created_login,created_cookies) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
+    $stmt = $connection->prepare("INSERT INTO employees (employees_code,employees_email,telegram_chat_id,employees_password,employees_name,position_id,shift_id,building_id,attendance_mode,employees_status,photo,created_login,created_cookies) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)");
     if (!$stmt) {
       echo'Data tidak berhasil disimpan!';
       break;
     }
-    $stmt->bind_param('sssssiiissss', $employees_code, $employees_email, $telegram_chat_id, $employees_password, $employees_name, $position_id, $shift_id, $building_id, $attendance_mode, $photo, $created_login, $created_cookies);
+    $stmt->bind_param('sssssiiisssss', $employees_code, $employees_email, $telegram_chat_id, $employees_password, $employees_name, $position_id, $shift_id, $building_id, $attendance_mode, $employees_status, $photo, $created_login, $created_cookies);
     if($stmt->execute() === false) {
       echo'Data tidak berhasil disimpan!';
     } else{
@@ -344,6 +351,7 @@ case 'update':
   }
 
   $attendance_mode = isset($_POST['attendance_mode']) ? attendance_normalize_mode($_POST['attendance_mode']) : 'office';
+  $employees_status = (isset($_POST['employees_status']) && $_POST['employees_status'] === 'inactive') ? 'inactive' : 'active';
   $telegram_chat_id = isset($_POST['telegram_chat_id']) ? strip_tags(trim($_POST['telegram_chat_id'])) : '';
   $photo_data = karyawan_uploaded_photo($max_size, $upload_dir, false);
   if (!empty($photo_data['error'])) {
@@ -352,12 +360,12 @@ case 'update':
 
   if (empty($error)) {
     if (empty($photo_data['filename'])) {
-      $stmt = $connection->prepare("UPDATE employees SET employees_code=?, employees_name=?, telegram_chat_id=?, position_id=?, shift_id=?, building_id=?, attendance_mode=? WHERE id=?");
+      $stmt = $connection->prepare("UPDATE employees SET employees_code=?, employees_name=?, telegram_chat_id=?, position_id=?, shift_id=?, building_id=?, attendance_mode=?, employees_status=? WHERE id=?");
       if (!$stmt) {
         echo'Data tidak berhasil disimpan!';
         break;
       }
-      $stmt->bind_param('sssiiisi', $employees_code, $employees_name, $telegram_chat_id, $position_id, $shift_id, $building_id, $attendance_mode, $id);
+      $stmt->bind_param('sssiiissi', $employees_code, $employees_name, $telegram_chat_id, $position_id, $shift_id, $building_id, $attendance_mode, $employees_status, $id);
       if($stmt->execute() === false) {
         echo'Data tidak berhasil disimpan!';
       } else{
@@ -378,12 +386,12 @@ case 'update':
     }
 
     $photo = $photo_data['filename'];
-    $stmt = $connection->prepare("UPDATE employees SET employees_code=?, employees_name=?, telegram_chat_id=?, position_id=?, shift_id=?, building_id=?, attendance_mode=?, photo=? WHERE id=?");
+    $stmt = $connection->prepare("UPDATE employees SET employees_code=?, employees_name=?, telegram_chat_id=?, position_id=?, shift_id=?, building_id=?, attendance_mode=?, employees_status=?, photo=? WHERE id=?");
     if (!$stmt) {
       echo'Data tidak berhasil disimpan!';
       break;
     }
-    $stmt->bind_param('sssiiissi', $employees_code, $employees_name, $telegram_chat_id, $position_id, $shift_id, $building_id, $attendance_mode, $photo, $id);
+    $stmt->bind_param('sssiiisssi', $employees_code, $employees_name, $telegram_chat_id, $position_id, $shift_id, $building_id, $attendance_mode, $employees_status, $photo, $id);
     if($stmt->execute() === false) {
       echo'Data tidak berhasil disimpan!';
     } else{

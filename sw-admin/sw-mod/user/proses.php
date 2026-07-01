@@ -42,7 +42,7 @@ case 'add':
   $employee_id_sql = 'NULL';
   if (!empty($_POST['employee_id'])) {
         $employee_id = mysqli_real_escape_string($connection, $_POST['employee_id']);
-        $query_employee = $connection->query("SELECT id FROM employees WHERE id='$employee_id' LIMIT 1");
+        $query_employee = $connection->query("SELECT id FROM employees WHERE id='$employee_id' AND employees_status='active' LIMIT 1");
         if (!$query_employee || $query_employee->num_rows == 0) {
           $error[] = 'Staff terkait tidak valid';
         } else {
@@ -164,7 +164,7 @@ case 'update':
   $employee_id_sql = 'NULL';
   if (!empty($_POST['employee_id'])) {
         $employee_id = mysqli_real_escape_string($connection, $_POST['employee_id']);
-        $query_employee = $connection->query("SELECT id FROM employees WHERE id='$employee_id' LIMIT 1");
+        $query_employee = $connection->query("SELECT id FROM employees WHERE id='$employee_id' AND employees_status='active' LIMIT 1");
         if (!$query_employee || $query_employee->num_rows == 0) {
           $error[] = 'Staff terkait tidak valid';
         } else {

@@ -188,6 +188,7 @@ if (!function_exists('attendance_ranking_calculate')) {
     $query_employees = "SELECT employees.id,employees.employees_name,employees.shift_id,employees.attendance_mode,shift.time_in AS shift_time_in,shift.time_out AS shift_time_out,shift.checkout_required
       FROM employees
       INNER JOIN shift ON shift.shift_id=employees.shift_id
+      WHERE employees.employees_status='active'
       ORDER BY employees.employees_name ASC";
     $result_employees = $connection->query($query_employees);
     if (!$result_employees) {
