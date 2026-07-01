@@ -47,7 +47,7 @@ function ranking_export_rows($connection, $period) {
     return array();
   }
 
-  return attendance_ranking_calculate($connection, $period['from'], $period['to'], 100000);
+  return attendance_ranking_calculate($connection, $period['from'], $period['to'], 0);
 }
 
 function ranking_export_table_rows($rows) {

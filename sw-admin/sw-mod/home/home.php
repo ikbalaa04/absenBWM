@@ -65,7 +65,7 @@ if(empty($connection)){
   $ranking_to = $ranking_month_to;
   $ranking_period_available = strtotime($ranking_from) <= strtotime($ranking_to);
   $ranking_label_from = $ranking_period_available ? $ranking_from : $ranking_month_from;
-  $ranking_rows = ($ranking_enabled && $ranking_period_available) ? attendance_ranking_calculate($connection, $ranking_from, $ranking_to, 10) : array();
+  $ranking_rows = ($ranking_enabled && $ranking_period_available) ? attendance_ranking_calculate($connection, $ranking_from, $ranking_to, 0) : array();
   $ranking_month_names = array(
     1 => 'Januari',
     2 => 'Februari',

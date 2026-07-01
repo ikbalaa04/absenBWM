@@ -366,7 +366,8 @@ if (!function_exists('attendance_ranking_calculate')) {
       return strcmp($a['employees_name'], $b['employees_name']);
     });
 
-    return array_slice($rankings, 0, $limit);
+    $limit = (int)$limit;
+    return $limit > 0 ? array_slice($rankings, 0, $limit) : $rankings;
   }
 }
 ?>
