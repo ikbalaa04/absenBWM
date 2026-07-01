@@ -6,6 +6,8 @@ if (!function_exists('attendance_ranking_defaults')) {
       'point_present_ontime' => 10,
       'point_present_hourly_permission' => 8,
       'point_checkout_complete' => 2,
+      'late_tolerance_minutes' => 15,
+      'point_late_60' => 7,
       'point_late_30' => 7,
       'point_late_120' => 4,
       'point_late_240' => 1,
@@ -34,8 +36,10 @@ if (!function_exists('attendance_ranking_ensure_schema')) {
       point_present_ontime int(6) NOT NULL DEFAULT 10,
       point_present_hourly_permission int(6) NOT NULL DEFAULT 8,
       point_checkout_complete int(6) NOT NULL DEFAULT 2,
+      late_tolerance_minutes int(6) NOT NULL DEFAULT 15,
       point_late_minor int(6) NOT NULL DEFAULT 7,
       point_late_major int(6) NOT NULL DEFAULT 4,
+      point_late_60 int(6) NOT NULL DEFAULT 7,
       point_late_30 int(6) NOT NULL DEFAULT 7,
       point_late_120 int(6) NOT NULL DEFAULT 4,
       point_late_240 int(6) NOT NULL DEFAULT 1,
@@ -65,6 +69,9 @@ if (!function_exists('attendance_ranking_ensure_schema')) {
         $type = $field === 'ranking_enabled' ? 'tinyint(1)' : 'int(6)';
         $connection->query("ALTER TABLE attendance_ranking_settings ADD $field $type NOT NULL DEFAULT $default");
       }
+    }
+    if (empty($columns['point_late_60']) && !empty($columns['point_late_30'])) {
+      $connection->query("UPDATE attendance_ranking_settings SET point_late_60=point_late_30 WHERE setting_id=1");
     }
     if (empty($columns['ranking_start_date'])) {
       $connection->query("ALTER TABLE attendance_ranking_settings ADD ranking_start_date date DEFAULT NULL AFTER ranking_enabled");
@@ -212,7 +219,7 @@ if (!function_exists('attendance_ranking_calculate')) {
         $ranking_location_type = 'office';
       }
 
-      $query_presence = "SELECT presence_date,time_in,time_out,present_id,rule_time_in,rule_time_out FROM presence WHERE employees_id='$employee_id' AND presence_date BETWEEN '$date_from_sql' AND '$date_to_sql'";
+      $query_presence = "SELECT presence_date,time_in,time_out,present_id,attendance_location_type,rule_time_in,rule_time_out FROM presence WHERE employees_id='$employee_id' AND presence_date BETWEEN '$date_from_sql' AND '$date_to_sql'";
       $result_presence = $connection->query($query_presence);
       if ($result_presence) {
         while ($presence = $result_presence->fetch_assoc()) {
@@ -224,13 +231,18 @@ if (!function_exists('attendance_ranking_calculate')) {
             if ($checkin_timestamp && ($first_checkin_timestamp === 0 || $checkin_timestamp < $first_checkin_timestamp)) {
               $first_checkin_timestamp = $checkin_timestamp;
             }
-            $presence_work_day_info = attendance_employee_work_day_rule($connection, $employee, $presence['presence_date'], $ranking_location_type);
+            $presence_location_type = attendance_resolve_location_type(isset($employee['attendance_mode']) ? $employee['attendance_mode'] : 'office', isset($presence['attendance_location_type']) ? $presence['attendance_location_type'] : $ranking_location_type);
+            if ($presence_location_type === '') {
+              $presence_location_type = $ranking_location_type;
+            }
+            $presence_work_day_info = attendance_employee_work_day_rule($connection, $employee, $presence['presence_date'], $presence_location_type);
             $presence_rule = isset($presence_work_day_info['rule']) ? $presence_work_day_info['rule'] : array();
             $rule_time_in = !empty($presence['rule_time_in']) ? $presence['rule_time_in'] : (!empty($presence_rule['time_in']) ? $presence_rule['time_in'] : $employee['shift_time_in']);
             $rule_time_out = !empty($presence['rule_time_out']) ? $presence['rule_time_out'] : (!empty($presence_rule['time_out']) ? $presence_rule['time_out'] : $employee['shift_time_out']);
             $has_hourly_leave = attendance_ranking_has_hourly_leave($connection, $employee['id'], $presence['presence_date']);
             $late_minutes = attendance_late_minutes_after_hourly_leave($connection, $employee['id'], $presence['presence_date'], $presence['time_in'], $rule_time_in);
-            if ($late_minutes <= 0) {
+            $late_tolerance_minutes = isset($settings['late_tolerance_minutes']) ? max(0, (int)$settings['late_tolerance_minutes']) : 15;
+            if ($late_minutes <= $late_tolerance_minutes) {
               if ($has_hourly_leave) {
                 $summary['hourly_permission']++;
                 $score += (int)$settings['point_present_hourly_permission'];
@@ -238,9 +250,9 @@ if (!function_exists('attendance_ranking_calculate')) {
                 $summary['ontime']++;
                 $score += (int)$settings['point_present_ontime'];
               }
-            } elseif ($late_minutes <= 30) {
+            } elseif ($late_minutes <= 60) {
               $summary['late']++;
-              $score += (int)$settings['point_late_30'];
+              $score += isset($settings['point_late_60']) ? (int)$settings['point_late_60'] : (int)$settings['point_late_30'];
             } elseif ($late_minutes <= 120) {
               $summary['late']++;
               $score += (int)$settings['point_late_120'];

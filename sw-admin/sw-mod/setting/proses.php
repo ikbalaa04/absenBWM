@@ -243,6 +243,10 @@ if($level_user ==1){
     }
 
     if (!isset($_POST[$field]) || $_POST[$field] === '') {
+      if ($field === 'point_late_30' && isset($data['point_late_60'])) {
+        $data[$field] = (int)$data['point_late_60'];
+        continue;
+      }
       $error[] = 'Semua nilai poin wajib diisi.';
       continue;
     }
@@ -253,6 +257,10 @@ if($level_user ==1){
     }
 
     $data[$field] = (int)$_POST[$field];
+  }
+
+  if (isset($data['late_tolerance_minutes']) && $data['late_tolerance_minutes'] < 0) {
+    $error[] = 'Toleransi telat tidak boleh negatif.';
   }
 
   $ranking_start_date = isset($_POST['ranking_start_date']) ? trim($_POST['ranking_start_date']) : '';
@@ -274,6 +282,8 @@ if($level_user ==1){
     point_present_ontime=?,
     point_present_hourly_permission=?,
     point_checkout_complete=?,
+    late_tolerance_minutes=?,
+    point_late_60=?,
     point_late_30=?,
     point_late_120=?,
     point_late_240=?,
@@ -291,12 +301,14 @@ if($level_user ==1){
     break;
   }
   $stmt->bind_param(
-    'isiiiiiiiiiiiii',
+    'isiiiiiiiiiiiiiii',
     $data['ranking_enabled'],
     $ranking_start_date,
     $data['point_present_ontime'],
     $data['point_present_hourly_permission'],
     $data['point_checkout_complete'],
+    $data['late_tolerance_minutes'],
+    $data['point_late_60'],
     $data['point_late_30'],
     $data['point_late_120'],
     $data['point_late_240'],

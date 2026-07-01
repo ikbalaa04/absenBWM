@@ -200,7 +200,13 @@ case 'ranking':
 
         <hr>
         <h4>Pengaturan Waktu</h4>
-        <p class="text-muted">Kategori telat memakai jam masuk efektif pada hari tersebut, termasuk custom jam kerja per hari. Batas kategori: sampai 30 menit, sampai 120 menit, dan sampai 240 menit. Telat di atas 240 menit memakai kategori 240 menit.</p>
+        <p class="text-muted">Kategori telat memakai jam masuk efektif pada hari tersebut, termasuk custom jam kerja per hari. Batas kategori: sampai 60 menit, sampai 120 menit, dan sampai 240 menit. Telat di atas 240 menit memakai kategori 240 menit.</p>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Toleransi Telat</label>
+          <div class="col-sm-3"><input type="number" min="0" name="late_tolerance_minutes" class="form-control" value="'.setting_h($ranking['late_tolerance_minutes']).'" required></div>
+          <div class="col-sm-4"><p class="text-muted">Dalam menit setelah jam masuk. Jika masih dalam toleransi, tidak dihitung telat.</p></div>
+        </div>
 
         <hr>
         <h4>Pengaturan Poin</h4>
@@ -223,8 +229,9 @@ case 'ranking':
         </div>
 
         <div class="form-group">
-          <label class="col-sm-2 control-label">Telat Maks 30 Menit</label>
-          <div class="col-sm-3"><input type="number" name="point_late_30" class="form-control" value="'.setting_h($ranking['point_late_30']).'" required></div>
+          <label class="col-sm-2 control-label">Telat Maks 60 Menit</label>
+          <div class="col-sm-3"><input type="number" name="point_late_60" class="form-control" value="'.setting_h($ranking['point_late_60']).'" required></div>
+          <div class="col-sm-4"><p class="text-muted">Dipakai setelah melewati toleransi telat sampai 60 menit.</p></div>
         </div>
 
         <div class="form-group">
