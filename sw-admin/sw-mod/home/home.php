@@ -20,9 +20,11 @@ if(empty($connection)){
   $page_absent = isset($_GET['page_absent']) ? max(1, (int)$_GET['page_absent']) : 1;
   $page_login = isset($_GET['page_login']) ? max(1, (int)$_GET['page_login']) : 1;
   $page_cuty = isset($_GET['page_cuty']) ? max(1, (int)$_GET['page_cuty']) : 1;
+  $page_ranking = isset($_GET['page_ranking']) ? max(1, (int)$_GET['page_ranking']) : 1;
   $offset_absent = ($page_absent - 1) * $dashboard_limit;
   $offset_login = ($page_login - 1) * $dashboard_limit;
   $offset_cuty = ($page_cuty - 1) * $dashboard_limit;
+  $offset_ranking = ($page_ranking - 1) * $dashboard_limit;
 
   if (!function_exists('dashboard_pagination')) {
     function dashboard_pagination($param, $current_page, $total_rows, $limit) {
@@ -66,6 +68,12 @@ if(empty($connection)){
   $ranking_period_available = strtotime($ranking_from) <= strtotime($ranking_to);
   $ranking_label_from = $ranking_period_available ? $ranking_from : $ranking_month_from;
   $ranking_rows = ($ranking_enabled && $ranking_period_available) ? attendance_ranking_calculate($connection, $ranking_from, $ranking_to, 0) : array();
+  $total_ranking_rows = count($ranking_rows);
+  if ($total_ranking_rows > 0 && $offset_ranking >= $total_ranking_rows) {
+    $page_ranking = max(1, (int)ceil($total_ranking_rows / $dashboard_limit));
+    $offset_ranking = ($page_ranking - 1) * $dashboard_limit;
+  }
+  $ranking_page_rows = array_slice($ranking_rows, $offset_ranking, $dashboard_limit);
   $ranking_month_names = array(
     1 => 'Januari',
     2 => 'Februari',
@@ -194,6 +202,7 @@ echo'
           <div class="box-body">
             <form method="get" action="./" class="form-inline">
               <input type="hidden" name="mod" value="home">
+              <input type="hidden" name="page_ranking" value="1">
               <div class="form-group">
                 <label>Bulan</label>
                 <select name="ranking_month" class="form-control input-sm">'.$ranking_month_options.'</select>
@@ -223,9 +232,9 @@ echo'
                   <th class="text-center">Alpha</th>
                   <th class="text-right">Aksi</th>
                 </tr>';
-        if(count($ranking_rows) > 0){
-          $rank_no = 0;
-          foreach($ranking_rows as $ranking_row){
+        if(count($ranking_page_rows) > 0){
+          $rank_no = $offset_ranking;
+          foreach($ranking_page_rows as $ranking_row){
             $rank_no++;
             $summary = $ranking_row['summary'];
             $rank_label = $rank_no <= 3 ? 'label-success' : 'label-default';
@@ -253,9 +262,10 @@ echo'
         echo'
               </tbody>
             </table>
-            </div>
+            '.dashboard_pagination('page_ranking', $page_ranking, $total_ranking_rows, $dashboard_limit).'
           </div>
         </div>
+      </div>
       </div>';
       }
       echo'
