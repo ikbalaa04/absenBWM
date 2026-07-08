@@ -456,10 +456,13 @@ if (empty($error)){
 	          }
 	          // Update Absensi Pulang
               if($row['time_out']=='00:00:00'){
-                $checkout_deadline_error = attendance_deadline_message($date, $time, $rule_time_out, 120, 'absen pulang', $rule_time_in);
-                if ($checkout_deadline_error !== '') {
-                  echo $checkout_deadline_error;
-                  break;
+                if (isset($attendance_checkout_grace_minutes) && $attendance_checkout_grace_minutes !== null && $attendance_checkout_grace_minutes !== '') {
+                  $checkout_grace_minutes = max(0, (int)$attendance_checkout_grace_minutes);
+                  $checkout_deadline_error = attendance_deadline_message($date, $time, $rule_time_out, $checkout_grace_minutes, 'absen pulang', $rule_time_in);
+                  if ($checkout_deadline_error !== '') {
+                    echo $checkout_deadline_error;
+                    break;
+                  }
                 }
                 if ($location_type === 'outside' && $outside_weekly_limit_minutes > 0) {
                   $outside_used_before_checkout = attendance_weekly_minutes_by_location($connection, $row_u['id'], $week_start, $week_end, 'outside', false);

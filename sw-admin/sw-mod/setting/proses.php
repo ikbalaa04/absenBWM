@@ -71,6 +71,15 @@ if (!isset($_POST['attendance_checkin_grace_minutes']) || $_POST['attendance_che
 }
 $attendance_checkin_grace_sql = $attendance_checkin_grace_minutes === null ? "NULL" : "'".$attendance_checkin_grace_minutes."'";
 
+if (!isset($_POST['attendance_checkout_grace_minutes']) || $_POST['attendance_checkout_grace_minutes'] === '') {
+  $attendance_checkout_grace_minutes = null;
+} elseif (!preg_match('/^[0-9]+$/', (string)$_POST['attendance_checkout_grace_minutes'])) {
+  $error[] = 'Batas absen pulang harus berupa angka menit.';
+} else {
+  $attendance_checkout_grace_minutes = (int)$_POST['attendance_checkout_grace_minutes'];
+}
+$attendance_checkout_grace_sql = $attendance_checkout_grace_minutes === null ? "NULL" : "'".$attendance_checkout_grace_minutes."'";
+
 $telegram_bot_token = isset($_POST['telegram_bot_token']) ? mysqli_real_escape_string($connection, trim($_POST['telegram_bot_token'])) : '';
 $telegram_bot_username = isset($_POST['telegram_bot_username']) ? mysqli_real_escape_string($connection, trim($_POST['telegram_bot_username'])) : '';
 $telegram_admin_chat_ids = isset($_POST['telegram_admin_chat_ids']) ? mysqli_real_escape_string($connection, trim($_POST['telegram_admin_chat_ids'])) : '';
@@ -142,6 +151,7 @@ if($site_logo == ''){
                       site_email='$site_email',
                       site_email_domain='$site_email_domain',
                       attendance_checkin_grace_minutes=$attendance_checkin_grace_sql,
+                      attendance_checkout_grace_minutes=$attendance_checkout_grace_sql,
                       telegram_bot_token='$telegram_bot_token',
                       telegram_bot_username='$telegram_bot_username',
                       telegram_admin_chat_ids='$telegram_admin_chat_ids',
@@ -194,6 +204,7 @@ if($ukuran_file < 1044070){
                       site_email='$site_email',
                       site_email_domain='$site_email_domain',
                       attendance_checkin_grace_minutes=$attendance_checkin_grace_sql,
+                      attendance_checkout_grace_minutes=$attendance_checkout_grace_sql,
                       telegram_bot_token='$telegram_bot_token',
                       telegram_bot_username='$telegram_bot_username',
                       telegram_admin_chat_ids='$telegram_admin_chat_ids',

@@ -30,8 +30,13 @@ if ($connection->connect_error){
 		} elseif (isset($site_columns['attendance_checkin_grace_minutes']['Null']) && $site_columns['attendance_checkin_grace_minutes']['Null'] === 'NO') {
 			$connection->query("ALTER TABLE sw_site MODIFY attendance_checkin_grace_minutes int(5) NULL DEFAULT NULL");
 		}
+		if (empty($site_columns['attendance_checkout_grace_minutes'])) {
+			$connection->query("ALTER TABLE sw_site ADD attendance_checkout_grace_minutes int(5) NULL DEFAULT 120 AFTER attendance_checkin_grace_minutes");
+		} elseif (isset($site_columns['attendance_checkout_grace_minutes']['Null']) && $site_columns['attendance_checkout_grace_minutes']['Null'] === 'NO') {
+			$connection->query("ALTER TABLE sw_site MODIFY attendance_checkout_grace_minutes int(5) NULL DEFAULT 120");
+		}
 		if (empty($site_columns['telegram_bot_token'])) {
-			$connection->query("ALTER TABLE sw_site ADD telegram_bot_token varchar(150) NOT NULL DEFAULT '' AFTER attendance_checkin_grace_minutes");
+			$connection->query("ALTER TABLE sw_site ADD telegram_bot_token varchar(150) NOT NULL DEFAULT '' AFTER attendance_checkout_grace_minutes");
 		}
 		if (empty($site_columns['telegram_bot_username'])) {
 			$connection->query("ALTER TABLE sw_site ADD telegram_bot_username varchar(100) NOT NULL DEFAULT '' AFTER telegram_bot_token");

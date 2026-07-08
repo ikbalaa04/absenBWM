@@ -75,6 +75,13 @@ case 'setting':
           </div>
           <div class="col-sm-5"><p class="text-muted">Dalam menit setelah jam masuk shift. Kosongkan jika tidak ada batas. Isi 0 untuk toleransi 0 menit.</p></div>
         </div>
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Batas Absen Pulang</label>
+          <div class="col-sm-3">
+            <input type="number" min="0" name="attendance_checkout_grace_minutes" class="form-control" value="'.setting_h((isset($attendance_checkout_grace_minutes) && $attendance_checkout_grace_minutes !== null) ? $attendance_checkout_grace_minutes : 120).'">
+          </div>
+          <div class="col-sm-5"><p class="text-muted">Dalam menit setelah jam pulang shift. Kosongkan jika tidak ada batas. Default 120 menit.</p></div>
+        </div>
         <hr>
         <h4>Notifikasi Telegram</h4>
         <div class="form-group">
