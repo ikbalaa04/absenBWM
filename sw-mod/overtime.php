@@ -15,6 +15,23 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
   overtime_autocomplete_running($connection, $row_user['id']);
   echo'<!-- App Capsule -->
     <div id="appCapsule">
+      <style>
+        .overtime-timer-card{position:relative;overflow:hidden;border-radius:8px;background:#fff}
+        .overtime-timer-hero{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:14px}
+        .overtime-progress-ring{position:relative;width:116px;height:116px;display:flex;align-items:center;justify-content:center}
+        .overtime-progress-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+        .overtime-progress-ring .ring-bg{stroke:#e7e8f2}
+        .overtime-progress-ring .ring-value{stroke:#111844;stroke-linecap:round;transition:stroke-dashoffset .45s ease}
+        .overtime-clock-icon{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#111844;color:#fff;box-shadow:0 8px 20px rgba(17,24,68,.18);animation:overtimePulse 1.7s ease-in-out infinite}
+        .overtime-clock-icon ion-icon{font-size:30px}
+        .overtime-time-text{font-size:28px;font-weight:800;color:#2f2446;line-height:1}
+        .overtime-time-sub{font-size:12px;color:#6f6b7d;margin-top:6px}
+        .overtime-timer-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+        .overtime-timer-meta .meta-box{background:#f6f7fb;border-radius:8px;padding:10px 6px;text-align:center}
+        .overtime-timer-meta .meta-box strong{display:block;color:#2f2446}
+        .overtime-timer-meta .meta-box span{font-size:11px;color:#6f6b7d}
+        @keyframes overtimePulse{0%,100%{transform:scale(1);box-shadow:0 8px 20px rgba(17,24,68,.18)}50%{transform:scale(1.05);box-shadow:0 10px 26px rgba(17,24,68,.28)}}
+      </style>
       <div class="section mt-2">
         <div class="section-title">Ajukan Lembur</div>
         <div class="card">

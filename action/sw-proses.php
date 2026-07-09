@@ -797,7 +797,8 @@ if($result_active && $result_active->num_rows > 0){
   if ($status == 'running' && !empty($row['started_at'])) {
     $running_seconds = min(max(0, time() - strtotime($row['started_at'])), ((int)$row['approved_minutes']) * 60);
   }
-  echo'<div class="overtime-item" data-status="'.$status.'" data-started-at="'.htmlspecialchars($row['started_at'], ENT_QUOTES, 'UTF-8').'" data-approved-minutes="'.(int)$row['approved_minutes'].'" data-overtime-id="'.(int)$row['overtime_id'].'">
+  $progress_percent = ((int)$row['approved_minutes'] > 0 && $status == 'running') ? min(100, round(($running_seconds / (((int)$row['approved_minutes']) * 60)) * 100)) : 0;
+  echo'<div class="overtime-item overtime-timer-card" data-status="'.$status.'" data-started-at="'.htmlspecialchars($row['started_at'], ENT_QUOTES, 'UTF-8').'" data-approved-minutes="'.(int)$row['approved_minutes'].'" data-overtime-id="'.(int)$row['overtime_id'].'">
     <div class="d-flex justify-content-between align-items-start">
       <div>
         <div class="text-muted small">Pengajuan aktif</div>
@@ -805,14 +806,26 @@ if($result_active && $result_active->num_rows > 0){
       </div>
       <span class="badge badge-'.$status_class.'">'.overtime_status_label($status).'</span>
     </div>
-    <div class="row text-center mt-2">
-      <div class="col-4"><strong>'.overtime_format_minutes($row['requested_minutes']).'</strong><div class="text-muted small">Diajukan</div></div>
-      <div class="col-4"><strong>'.overtime_format_minutes($row['approved_minutes']).'</strong><div class="text-muted small">Disetujui</div></div>
-      <div class="col-4"><strong>'.overtime_format_minutes($status == 'running' ? floor($running_seconds / 60) : $row['actual_minutes']).'</strong><div class="text-muted small">Aktual</div></div>
+    <div class="overtime-timer-meta">
+      <div class="meta-box"><strong>'.overtime_format_minutes($row['requested_minutes']).'</strong><span>Diajukan</span></div>
+      <div class="meta-box"><strong>'.overtime_format_minutes($row['approved_minutes']).'</strong><span>Disetujui</span></div>
+      <div class="meta-box"><strong class="overtime-actual-label">'.overtime_format_minutes($status == 'running' ? floor($running_seconds / 60) : $row['actual_minutes']).'</strong><span>Aktual</span></div>
     </div>
     <div class="mt-2 text-muted small">'.htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8').'</div>';
     if ($status == 'running') {
-      echo'<div class="text-center mt-3"><span class="badge badge-success overtime-timer" style="font-size:18px;padding:8px 12px">00:00:00</span></div>';
+      echo'<div class="overtime-timer-hero">
+        <div class="overtime-progress-ring" data-progress="'.$progress_percent.'">
+          <svg viewBox="0 0 116 116" aria-hidden="true">
+            <circle class="ring-bg" cx="58" cy="58" r="50" fill="none" stroke-width="8"></circle>
+            <circle class="ring-value" cx="58" cy="58" r="50" fill="none" stroke-width="8" stroke-dasharray="314" stroke-dashoffset="'.(314 - (314 * $progress_percent / 100)).'"></circle>
+          </svg>
+          <div class="overtime-clock-icon"><ion-icon name="time-outline"></ion-icon></div>
+        </div>
+        <div>
+          <div class="overtime-time-text overtime-timer">00:00:00</div>
+          <div class="overtime-time-sub">Sisa <span class="overtime-remaining">00:00:00</span></div>
+        </div>
+      </div>';
     }
     echo'<div class="mt-3">';
     if ($status == 'approved') {

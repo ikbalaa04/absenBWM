@@ -10,20 +10,36 @@ $(document).ready(function() {
   }
 
   function askApprovedHours(defaultValue, maxValue, callback) {
-    var value = window.prompt('Masukkan durasi lembur yang disetujui dalam jam. Maksimal '+maxValue+' jam.', defaultValue);
-    if (value === null) {
-      return;
-    }
-    value = String(value).replace(',', '.');
-    if (value === '' || isNaN(value) || parseFloat(value) <= 0) {
-      swal({title:'Oops!', text:'Durasi harus berupa angka lebih dari 0.', icon:'error', timer:2500});
-      return;
-    }
-    if (parseFloat(value) > parseFloat(maxValue)) {
-      swal({title:'Oops!', text:'Durasi tidak boleh melebihi durasi pengajuan.', icon:'error', timer:2500});
-      return;
-    }
-    callback(value);
+    swal({
+      title: 'Durasi lembur disetujui',
+      text: 'Masukkan durasi dalam jam. Maksimal '+maxValue+' jam.',
+      content: {
+        element: 'input',
+        attributes: {
+          type: 'number',
+          min: '0.5',
+          max: String(maxValue),
+          step: '0.5',
+          value: String(defaultValue),
+          placeholder: 'Contoh: 2'
+        }
+      },
+      buttons: ['Batal', 'Lanjut']
+    }).then(function(value){
+      if (value === null) {
+        return;
+      }
+      value = String(value).replace(',', '.');
+      if (value === '' || isNaN(value) || parseFloat(value) <= 0) {
+        swal({title:'Oops!', text:'Durasi harus berupa angka lebih dari 0.', icon:'error', timer:2500});
+        return;
+      }
+      if (parseFloat(value) > parseFloat(maxValue)) {
+        swal({title:'Oops!', text:'Durasi tidak boleh melebihi durasi pengajuan.', icon:'error', timer:2500});
+        return;
+      }
+      callback(value);
+    });
   }
 
   $(document).on('click', '.approve-overtime', function(){

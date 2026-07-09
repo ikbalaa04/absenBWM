@@ -108,6 +108,14 @@ function formatOvertimeSeconds(seconds){
   var s = seconds % 60;
   return String(h).padStart(2, "0")+":"+String(m).padStart(2, "0")+":"+String(s).padStart(2, "0");
 }
+function formatOvertimeMinuteLabel(seconds){
+  var minutes = Math.max(0, Math.floor((parseInt(seconds || 0, 10)) / 60));
+  var hours = Math.floor(minutes / 60);
+  var rest = minutes % 60;
+  if(rest === 0){ return hours+" jam"; }
+  if(hours <= 0){ return rest+" menit"; }
+  return hours+" jam "+rest+" menit";
+}
 function refreshOvertimeTimers(){
   $(".overtime-item[data-status=\"running\"]").each(function(){
     var item = $(this);
@@ -125,6 +133,11 @@ function refreshOvertimeTimers(){
       });
     }
     item.find(".overtime-timer").text(formatOvertimeSeconds(elapsed));
+    item.find(".overtime-remaining").text(formatOvertimeSeconds(Math.max(0, maxSeconds - elapsed)));
+    item.find(".overtime-actual-label").text(formatOvertimeMinuteLabel(elapsed));
+    var percent = maxSeconds > 0 ? Math.min(100, Math.max(0, (elapsed / maxSeconds) * 100)) : 0;
+    var circumference = 314;
+    item.find(".ring-value").css("stroke-dashoffset", circumference - (circumference * percent / 100));
   });
 }
 $(document).ready(function(){
@@ -160,15 +173,27 @@ $(document).ready(function(){
   });
   $(document).on("click", ".btn-overtime-stop", function(){
     var id = $(this).data("id");
-    var note = window.prompt("Catatan hasil pekerjaan lembur:", "");
-    if(note === null){ return; }
-    $.post(window.swBaseUrl+"action/sw-proses.php?action=stop-overtime", {id:id, result_note:note}, function(data){
-      if(data === "success"){
-        swal({title:"Berhasil", text:"Lembur selesai dan waktu aktual tercatat.", icon:"success", timer:2200});
-        loadOvertime();
-      } else {
-        swal({title:"Oops!", text:data, icon:"error", timer:3000});
-      }
+    swal({
+      title:"Selesaikan lembur?",
+      text:"Isi catatan hasil pekerjaan lembur.",
+      content:{
+        element:"textarea",
+        attributes:{
+          placeholder:"Catatan hasil pekerjaan",
+          rows:"4"
+        }
+      },
+      buttons:["Batal","Selesai"]
+    }).then(function(note){
+      if(note === null){ return; }
+      $.post(window.swBaseUrl+"action/sw-proses.php?action=stop-overtime", {id:id, result_note:note}, function(data){
+        if(data === "success"){
+          swal({title:"Berhasil", text:"Lembur selesai dan waktu aktual tercatat.", icon:"success", timer:2200});
+          loadOvertime();
+        } else {
+          swal({title:"Oops!", text:data, icon:"error", timer:3000});
+        }
+      });
     });
   });
   $(document).on("click", ".btn-overtime-cancel", function(){
