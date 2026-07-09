@@ -83,10 +83,22 @@ if($mod =='overtime'){
 echo'
 <script>
 function loadOvertime(){
-  $(".loaddataovertime").html("<div class=\"text-center p-3 text-muted\">Memuat data...</div>");
-  $.post(window.swBaseUrl+"action/sw-proses.php?action=overtime", {}, function(data){
-    $(".loaddataovertime").html(data);
+  $(".loaddataovertime-status").html("<div class=\"text-center p-2 text-muted\">Memuat status...</div>");
+  $(".loaddataovertime-history").html("<div class=\"text-center p-3 text-muted\">Memuat history...</div>");
+  $.post(window.swBaseUrl+"action/sw-proses.php?action=overtime-status", {}, function(data){
+    $(".loaddataovertime-status").html(data);
     refreshOvertimeTimers();
+  });
+  $.post(window.swBaseUrl+"action/sw-proses.php?action=overtime-history", {}, function(data){
+    $(".loaddataovertime-history").html(data);
+    if ($("#overtimeHistoryTable").length) {
+      $("#overtimeHistoryTable").DataTable({
+        destroy: true,
+        pageLength: 10,
+        lengthChange: false,
+        ordering: false
+      });
+    }
   });
 }
 function formatOvertimeSeconds(seconds){

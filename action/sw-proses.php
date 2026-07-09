@@ -696,6 +696,20 @@ echo'<div class="card mb-2">
 $query = "SELECT * FROM overtime_requests WHERE employees_id='$employee_id' ORDER BY overtime_date DESC,overtime_id DESC LIMIT 30";
 $result = $connection->query($query);
 if($result && $result->num_rows > 0){
+  echo'<div class="table-responsive p-1">
+    <table id="overtimeHistoryTable" class="table table-striped table-bordered table-sm mb-0">
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Pengajuan</th>
+          <th>Disetujui</th>
+          <th>Aktual</th>
+          <th>Status</th>
+          <th>Pekerjaan</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>';
   while($row = $result->fetch_assoc()){
     $status = $row['status'];
     $status_class = 'secondary';
@@ -712,37 +726,159 @@ if($result && $result->num_rows > 0){
     if ($status == 'running' && !empty($row['started_at'])) {
       $running_seconds = min(max(0, time() - strtotime($row['started_at'])), ((int)$row['approved_minutes']) * 60);
     }
+    $actual_label = overtime_format_minutes($status == 'running' ? floor($running_seconds / 60) : $row['actual_minutes']);
+    if ($status == 'running') {
+      $actual_label .= '<br><span class="badge badge-success overtime-timer">00:00:00</span>';
+    }
+    $action_label = '-';
+    if ($status == 'approved') {
+      $action_label = '<button type="button" class="btn btn-success btn-sm btn-overtime-start" data-id="'.(int)$row['overtime_id'].'">Mulai</button>';
+    } elseif ($status == 'running') {
+      $action_label = '<button type="button" class="btn btn-danger btn-sm btn-overtime-stop" data-id="'.(int)$row['overtime_id'].'">Selesai</button>';
+    } elseif ($status == 'pending') {
+      $action_label = '<button type="button" class="btn btn-outline-danger btn-sm btn-overtime-cancel" data-id="'.(int)$row['overtime_id'].'">Batal</button>';
+    }
+    $description_label = htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8');
+    if (!empty($row['result_note'])) {
+      $description_label .= '<br><small class="text-muted">Hasil: '.htmlspecialchars($row['result_note'], ENT_QUOTES, 'UTF-8').'</small>';
+    }
     echo'
-    <div class="item overtime-item" data-status="'.$status.'" data-started-at="'.htmlspecialchars($row['started_at'], ENT_QUOTES, 'UTF-8').'" data-approved-minutes="'.(int)$row['approved_minutes'].'" data-overtime-id="'.(int)$row['overtime_id'].'">
-      <div class="detail">
-        <div>
-          <strong>'.tgl_ind($row['overtime_date']).'</strong>
-          <p>'.htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8').'</p>
-          <div class="text-muted small">Diajukan: '.overtime_format_minutes($row['requested_minutes']).' | Disetujui: '.overtime_format_minutes($row['approved_minutes']).' | Aktual: '.overtime_format_minutes($status == 'running' ? floor($running_seconds / 60) : $row['actual_minutes']).'</div>';
-          if ($status == 'running') {
-            echo'<div class="mt-1"><span class="badge badge-success overtime-timer">00:00:00</span></div>';
-          }
-          if (!empty($row['result_note'])) {
-            echo'<div class="text-muted small mt-1">Hasil: '.htmlspecialchars($row['result_note'], ENT_QUOTES, 'UTF-8').'</div>';
-          }
-          echo'
-        </div>
-      </div>
-      <div class="right">
-        <span class="badge badge-'.$status_class.'">'.overtime_status_label($status).'</span>';
-        if ($status == 'approved') {
-          echo'<button type="button" class="btn btn-success btn-sm mt-1 btn-overtime-start" data-id="'.(int)$row['overtime_id'].'">Mulai</button>';
-        } elseif ($status == 'running') {
-          echo'<button type="button" class="btn btn-danger btn-sm mt-1 btn-overtime-stop" data-id="'.(int)$row['overtime_id'].'">Selesai</button>';
-        } elseif ($status == 'pending') {
-          echo'<button type="button" class="btn btn-outline-danger btn-sm mt-1 btn-overtime-cancel" data-id="'.(int)$row['overtime_id'].'">Batal</button>';
-        }
-        echo'
-      </div>
-    </div>';
+        <tr class="overtime-item" data-status="'.$status.'" data-started-at="'.htmlspecialchars($row['started_at'], ENT_QUOTES, 'UTF-8').'" data-approved-minutes="'.(int)$row['approved_minutes'].'" data-overtime-id="'.(int)$row['overtime_id'].'">
+          <td>'.tgl_ind($row['overtime_date']).'</td>
+          <td>'.overtime_format_minutes($row['requested_minutes']).'</td>
+          <td>'.overtime_format_minutes($row['approved_minutes']).'</td>
+          <td>'.$actual_label.'</td>
+          <td><span class="badge badge-'.$status_class.'">'.overtime_status_label($status).'</span></td>
+          <td>'.$description_label.'</td>
+          <td>'.$action_label.'</td>
+        </tr>';
   }
+  echo'</tbody>
+    </table>
+  </div>';
 } else {
   echo'<div class="text-center text-muted p-3">Belum ada pengajuan lembur.</div>';
+}
+break;
+
+case 'overtime-status':
+overtime_autocomplete_running($connection, $row_user['id']);
+$employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+$month_filter = (int)$month;
+$year_filter = (int)$year;
+$query_total = "SELECT COALESCE(SUM(actual_minutes),0) AS total_minutes FROM overtime_requests WHERE employees_id='$employee_id' AND status='completed' AND MONTH(overtime_date)='$month_filter' AND YEAR(overtime_date)='$year_filter'";
+$result_total = $connection->query($query_total);
+$row_total = $result_total ? $result_total->fetch_assoc() : array('total_minutes' => 0);
+echo'<div class="row text-center">
+  <div class="col-6">
+    <strong>'.overtime_format_minutes($row_total['total_minutes']).'</strong>
+    <div class="text-muted small">Lembur bulan ini</div>
+  </div>
+  <div class="col-6">
+    <strong>'.overtime_format_minutes(OVERTIME_MAX_MINUTES_PER_DAY).'</strong>
+    <div class="text-muted small">Maksimal per hari</div>
+  </div>
+</div>
+<hr>';
+$query_active = "SELECT * FROM overtime_requests WHERE employees_id='$employee_id' AND status IN ('pending','approved','running') ORDER BY FIELD(status,'running','approved','pending'), overtime_date ASC, overtime_id DESC LIMIT 1";
+$result_active = $connection->query($query_active);
+if($result_active && $result_active->num_rows > 0){
+  $row = $result_active->fetch_assoc();
+  $status = $row['status'];
+  $status_class = 'secondary';
+  if ($status == 'pending') {
+    $status_class = 'warning';
+  } elseif ($status == 'approved') {
+    $status_class = 'primary';
+  } elseif ($status == 'running') {
+    $status_class = 'success';
+  }
+  $running_seconds = 0;
+  if ($status == 'running' && !empty($row['started_at'])) {
+    $running_seconds = min(max(0, time() - strtotime($row['started_at'])), ((int)$row['approved_minutes']) * 60);
+  }
+  echo'<div class="overtime-item" data-status="'.$status.'" data-started-at="'.htmlspecialchars($row['started_at'], ENT_QUOTES, 'UTF-8').'" data-approved-minutes="'.(int)$row['approved_minutes'].'" data-overtime-id="'.(int)$row['overtime_id'].'">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <div class="text-muted small">Pengajuan aktif</div>
+        <h4 class="mb-1">'.tgl_ind($row['overtime_date']).'</h4>
+      </div>
+      <span class="badge badge-'.$status_class.'">'.overtime_status_label($status).'</span>
+    </div>
+    <div class="row text-center mt-2">
+      <div class="col-4"><strong>'.overtime_format_minutes($row['requested_minutes']).'</strong><div class="text-muted small">Diajukan</div></div>
+      <div class="col-4"><strong>'.overtime_format_minutes($row['approved_minutes']).'</strong><div class="text-muted small">Disetujui</div></div>
+      <div class="col-4"><strong>'.overtime_format_minutes($status == 'running' ? floor($running_seconds / 60) : $row['actual_minutes']).'</strong><div class="text-muted small">Aktual</div></div>
+    </div>
+    <div class="mt-2 text-muted small">'.htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8').'</div>';
+    if ($status == 'running') {
+      echo'<div class="text-center mt-3"><span class="badge badge-success overtime-timer" style="font-size:18px;padding:8px 12px">00:00:00</span></div>';
+    }
+    echo'<div class="mt-3">';
+    if ($status == 'approved') {
+      echo'<button type="button" class="btn btn-success btn-block btn-overtime-start" data-id="'.(int)$row['overtime_id'].'"><ion-icon name="play-outline"></ion-icon> Mulai Lembur</button>';
+    } elseif ($status == 'running') {
+      echo'<button type="button" class="btn btn-danger btn-block btn-overtime-stop" data-id="'.(int)$row['overtime_id'].'"><ion-icon name="stop-outline"></ion-icon> Selesai Lembur</button>';
+    } elseif ($status == 'pending') {
+      echo'<button type="button" class="btn btn-outline-danger btn-block btn-overtime-cancel" data-id="'.(int)$row['overtime_id'].'">Batalkan Pengajuan</button>';
+    }
+    echo'</div>
+  </div>';
+} else {
+  echo'<div class="text-center text-muted p-2">Tidak ada pengajuan lembur aktif.</div>';
+}
+break;
+
+case 'overtime-history':
+overtime_autocomplete_running($connection, $row_user['id']);
+$employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+$query = "SELECT * FROM overtime_requests WHERE employees_id='$employee_id' ORDER BY overtime_date DESC,overtime_id DESC LIMIT 100";
+$result = $connection->query($query);
+if($result && $result->num_rows > 0){
+  echo'<div class="table-responsive">
+    <table id="overtimeHistoryTable" class="table table-striped table-bordered table-sm mb-0">
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Pengajuan</th>
+          <th>Disetujui</th>
+          <th>Aktual</th>
+          <th>Status</th>
+          <th>Pekerjaan</th>
+        </tr>
+      </thead>
+      <tbody>';
+  while($row = $result->fetch_assoc()){
+    $status = $row['status'];
+    $status_class = 'secondary';
+    if ($status == 'pending') {
+      $status_class = 'warning';
+    } elseif ($status == 'approved') {
+      $status_class = 'primary';
+    } elseif ($status == 'running') {
+      $status_class = 'success';
+    } elseif ($status == 'rejected' || $status == 'cancelled') {
+      $status_class = 'danger';
+    }
+    $actual_minutes = $status == 'running' ? overtime_effective_actual_minutes($row['started_at'], '', $row['approved_minutes']) : $row['actual_minutes'];
+    $description_label = htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8');
+    if (!empty($row['result_note'])) {
+      $description_label .= '<br><small class="text-muted">Hasil: '.htmlspecialchars($row['result_note'], ENT_QUOTES, 'UTF-8').'</small>';
+    }
+    echo'<tr>
+      <td>'.tgl_ind($row['overtime_date']).'</td>
+      <td>'.overtime_format_minutes($row['requested_minutes']).'</td>
+      <td>'.overtime_format_minutes($row['approved_minutes']).'</td>
+      <td>'.overtime_format_minutes($actual_minutes).'</td>
+      <td><span class="badge badge-'.$status_class.'">'.overtime_status_label($status).'</span></td>
+      <td>'.$description_label.'</td>
+    </tr>';
+  }
+  echo'</tbody>
+    </table>
+  </div>';
+} else {
+  echo'<div class="text-center text-muted p-3">Belum ada history lembur.</div>';
 }
 break;
 

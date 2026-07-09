@@ -36,7 +36,7 @@ echo'
                   <th>Pekerjaan</th>
                   <th>Hasil</th>
                   <th>Status</th>
-                  <th style="width:190px" class="text-center">Aksi</th>
+                  <th style="width:170px" class="text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody>';
@@ -70,20 +70,35 @@ echo'
                   <td>'.nl2br(htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8')).'</td>
                   <td>'.(!empty($row['result_note']) ? nl2br(htmlspecialchars($row['result_note'], ENT_QUOTES, 'UTF-8')) : '-').'</td>
                   <td><span class="label label-'.$status_class.'">'.overtime_status_label($row['status']).'</span></td>
-                  <td class="text-center">';
-      if(($level_user==1 || $level_user==2) && $row['status'] == 'pending'){
+                  <td class="text-center">
+                    <div class="btn-group">';
+      if($level_user==1 || $level_user==2){
         echo'
-                    <div class="input-group input-group-sm">
-                      <input type="number" min="0.5" max="4" step="0.5" class="form-control approved-hours" value="'.(((int)$row['requested_minutes']) / 60).'" data-max="'.(((int)$row['requested_minutes']) / 60).'">
-                      <span class="input-group-btn">
-                        <button type="button" class="btn btn-success approve-overtime" data-id="'.$row['overtime_id'].'">Setujui</button>
-                      </span>
-                    </div>
-                    <button type="button" class="btn btn-danger btn-xs reject-overtime" data-id="'.$row['overtime_id'].'" style="margin-top:6px"><i class="fa fa-remove"></i> Tolak</button>';
+                      <div class="btn-group">
+                        <button type="button" class="btn btn-warning btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Proses
+                          <span class="caret"></span>
+                          <span class="sr-only">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">';
+        if($row['status'] == 'pending'){
+          echo'
+                          <li><a href="javascript:void(0);" class="approve-overtime" data-id="'.$row['overtime_id'].'" data-requested-hours="'.(((int)$row['requested_minutes']) / 60).'" data-approved-hours="'.(((int)$row['requested_minutes']) / 60).'">Setujui</a></li>
+                          <li><a href="javascript:void(0);" class="reject-overtime" data-id="'.$row['overtime_id'].'">Tolak</a></li>';
+        }
+        if(in_array($row['status'], array('approved','running','completed'))){
+          echo'
+                          <li><a href="javascript:void(0);" class="adjust-overtime" data-id="'.$row['overtime_id'].'" data-requested-hours="'.(((int)$row['requested_minutes']) / 60).'" data-approved-hours="'.(((int)$row['approved_minutes']) / 60).'">Sesuaikan Ulang Waktu</a></li>';
+        }
+        echo'
+                        </ul>
+                      </div>
+                      <button type="button" data-id="'.$row['overtime_id'].'" class="btn btn-xs btn-danger delete-overtime" title="Hapus"><i class="fa fa-trash-o"></i> Hapus</button>';
       } else {
-        echo'<span class="text-muted">-</span>';
+        echo'
+                      <button type="button" class="btn btn-warning btn-xs access-failed">Aksi</button>';
       }
       echo'
+                    </div>
                   </td>
                 </tr>';
     }
