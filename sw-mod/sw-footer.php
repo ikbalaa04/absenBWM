@@ -63,7 +63,7 @@ echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/sweetalert.min.js?v='.filemtime(__DIR__ . '/sw-assets/js/sweetalert.min.js').'"></script>
 <script src="'.$base_url.'sw-mod/sw-assets/js/webcamjs/webcam.min.js?v='.filemtime(__DIR__ . '/sw-assets/js/webcamjs/webcam.min.js').'"></script>
 <script>window.swBaseUrl = "'.$base_url.'";</script>';
-if($mod =='history' OR $mod=='cuty'){
+if($mod =='history' OR $mod=='cuty' OR $mod=='overtime'){
 echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="'.$base_url.'sw-mod/sw-assets/js/plugins/datatables/dataTables.bootstrap.min.js"></script>
@@ -79,6 +79,102 @@ echo'
 }
 echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/sw-script.js?v='.filemtime(__DIR__ . '/sw-assets/js/sw-script.js').'"></script>';
+if($mod =='overtime'){
+echo'
+<script>
+function loadOvertime(){
+  $(".loaddataovertime").html("<div class=\"text-center p-3 text-muted\">Memuat data...</div>");
+  $.post(window.swBaseUrl+"action/sw-proses.php?action=overtime", {}, function(data){
+    $(".loaddataovertime").html(data);
+    refreshOvertimeTimers();
+  });
+}
+function formatOvertimeSeconds(seconds){
+  seconds = Math.max(0, parseInt(seconds || 0, 10));
+  var h = Math.floor(seconds / 3600);
+  var m = Math.floor((seconds % 3600) / 60);
+  var s = seconds % 60;
+  return String(h).padStart(2, "0")+":"+String(m).padStart(2, "0")+":"+String(s).padStart(2, "0");
+}
+function refreshOvertimeTimers(){
+  $(".overtime-item[data-status=\"running\"]").each(function(){
+    var item = $(this);
+    var startedAt = item.data("started-at");
+    var approvedMinutes = parseInt(item.data("approved-minutes") || 0, 10);
+    if(!startedAt || approvedMinutes <= 0){ return; }
+    var startTime = new Date(String(startedAt).replace(" ", "T")).getTime();
+    var maxSeconds = approvedMinutes * 60;
+    var elapsed = Math.floor((Date.now() - startTime) / 1000);
+    if (elapsed >= maxSeconds) {
+      elapsed = maxSeconds;
+      var id = item.data("overtime-id");
+      $.post(window.swBaseUrl+"action/sw-proses.php?action=stop-overtime", {id:id, result_note:"Selesai otomatis sesuai batas waktu disetujui."}, function(){
+        loadOvertime();
+      });
+    }
+    item.find(".overtime-timer").text(formatOvertimeSeconds(elapsed));
+  });
+}
+$(document).ready(function(){
+  loadOvertime();
+  setInterval(refreshOvertimeTimers, 1000);
+  $("#form-add-overtime").on("submit", function(e){
+    e.preventDefault();
+    $.ajax({
+      url: window.swBaseUrl+"action/sw-proses.php?action=add-overtime",
+      type: "POST",
+      data: $(this).serialize(),
+      success: function(data){
+        if(data === "success"){
+          swal({title:"Berhasil", text:"Pengajuan lembur berhasil dikirim.", icon:"success", timer:2000});
+          $("#form-add-overtime")[0].reset();
+          loadOvertime();
+        } else {
+          swal({title:"Oops!", text:data, icon:"error", timer:3500});
+        }
+      }
+    });
+  });
+  $(document).on("click", ".btn-overtime-start", function(){
+    var id = $(this).data("id");
+    $.post(window.swBaseUrl+"action/sw-proses.php?action=start-overtime", {id:id}, function(data){
+      if(data === "success"){
+        swal({title:"Berhasil", text:"Stopwatch lembur dimulai.", icon:"success", timer:1800});
+        loadOvertime();
+      } else {
+        swal({title:"Oops!", text:data, icon:"error", timer:3000});
+      }
+    });
+  });
+  $(document).on("click", ".btn-overtime-stop", function(){
+    var id = $(this).data("id");
+    var note = window.prompt("Catatan hasil pekerjaan lembur:", "");
+    if(note === null){ return; }
+    $.post(window.swBaseUrl+"action/sw-proses.php?action=stop-overtime", {id:id, result_note:note}, function(data){
+      if(data === "success"){
+        swal({title:"Berhasil", text:"Lembur selesai dan waktu aktual tercatat.", icon:"success", timer:2200});
+        loadOvertime();
+      } else {
+        swal({title:"Oops!", text:data, icon:"error", timer:3000});
+      }
+    });
+  });
+  $(document).on("click", ".btn-overtime-cancel", function(){
+    var id = $(this).data("id");
+    swal({title:"Batalkan pengajuan?", text:"Pengajuan lembur yang masih menunggu akan dibatalkan.", icon:"warning", buttons:["Tidak","Ya"]}).then(function(ok){
+      if(!ok){ return; }
+      $.post(window.swBaseUrl+"action/sw-proses.php?action=cancel-overtime", {id:id}, function(data){
+        if(data === "success"){
+          loadOvertime();
+        } else {
+          swal({title:"Oops!", text:data, icon:"error", timer:3000});
+        }
+      });
+    });
+  });
+});
+</script>';
+}
 echo'
 <script>
   $(function(){ $("#loader").hide(); $(".loading").hide(); });

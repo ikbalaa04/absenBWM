@@ -35,7 +35,7 @@ if($mod =='shift'){echo'
 <script src="./sw-assets/plugins/timepicker/bootstrap-timepicker.min.js"></script>';
 }
 
-if($mod=='karyawan' OR $mod =='jabatan' OR $mod=='shift' OR $mod=='lokasi' OR $mod=='libur' OR $mod=='user' OR $mod=='absensi' OR $mod=='cuty' OR $mod=='penugasan'){
+if($mod=='karyawan' OR $mod =='jabatan' OR $mod=='shift' OR $mod=='lokasi' OR $mod=='libur' OR $mod=='user' OR $mod=='absensi' OR $mod=='cuty' OR $mod=='overtime' OR $mod=='penugasan'){
 echo'
 <link rel="stylesheet" href="./sw-assets/plugins/datatables/dataTables.bootstrap.css">
 <script src="./sw-assets/plugins/datatables/jquery.dataTables.min.js"></script>

@@ -33,7 +33,7 @@ else{
 
 if(!empty($_GET['mod'])){
   $mod = mysqli_escape_string($connection, @$_GET['mod']);}else {$mod ='home';}
-  $operator_allowed_modules = array('home','cuty','absensi','penugasan');
+  $operator_allowed_modules = array('home','cuty','overtime','absensi','penugasan');
   if($level_user != 1 && !in_array($mod, $operator_allowed_modules)){
     $mod = 'home';
   }

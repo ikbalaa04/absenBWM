@@ -39,8 +39,21 @@ echo'<aside class="main-sidebar">
           </li>';
       }
 
-      if($mod =='cuty'){echo'<li class="active">'; }else{echo'<li>';}
-      echo'<a href="./?mod=cuty"><i class="fa fa-calendar" aria-hidden="true"></i> <span>Data Permohonan Izin</span></a></li>';
+      if($mod =='cuty' OR $mod=='overtime'){echo'<li class="active treeview">'; }else{echo'<li class="treeview">';}
+      echo'
+            <a href="#">
+              <i class="fa fa-calendar" aria-hidden="true"></i> <span>Pengajuan</span>
+              <span class="pull-right-container">
+                <i class="fa fa-angle-left pull-right"></i>
+              </span>
+            </a>
+            <ul class="treeview-menu">';
+              if($mod =='cuty'){echo'<li class="active">'; }else{echo'<li>';}
+              echo'<a href="./?mod=cuty"><i class="fa fa-circle-o"></i> Izin/Cuti</a></li>';
+              if($mod =='overtime'){echo'<li class="active">'; }else{echo'<li>';}
+              echo'<a href="./?mod=overtime"><i class="fa fa-circle-o"></i> Lembur</a></li>
+            </ul>
+          </li>';
 
 
       if($mod =='absensi'){echo'<li class="active">'; }else{echo'<li>';}

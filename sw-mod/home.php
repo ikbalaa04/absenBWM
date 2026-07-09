@@ -130,11 +130,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                 <!-- Wallet Footer -->
                 <div class="wallet-footer">
                     <div class="item">
-                        <a href="'.($off_day_message === '' ? './?mod=absent&type=masuk' : 'javascript:void(0)').'">
+                        <a href="./?mod=overtime">
                             <div class="icon-wrapper bg-danger">
-                                <ion-icon name="camera-outline"></ion-icon>
+                                <ion-icon name="time-outline"></ion-icon>
                             </div>
-                            <strong>Masuk</strong>
+                            <strong>Lembur</strong>
                         </a>
                     </div>
 

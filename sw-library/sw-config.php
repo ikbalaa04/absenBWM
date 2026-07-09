@@ -96,5 +96,7 @@ require_once __DIR__.'/assignment-rules.php';
 assignment_ensure_schema($connection);
 require_once __DIR__.'/attendance-ranking.php';
 attendance_ranking_ensure_schema($connection);
+require_once __DIR__.'/overtime-rules.php';
+overtime_ensure_schema($connection);
 require_once __DIR__.'/telegram-notifications.php';
 telegram_ensure_schema($connection);

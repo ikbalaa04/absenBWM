@@ -668,6 +668,206 @@ case 'update-password':
     }
 break;
 
+// ------------- Lembur -------------*/
+case 'overtime':
+overtime_autocomplete_running($connection, $row_user['id']);
+$employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+$month_filter = !empty($_POST['month']) ? (int)$_POST['month'] : (int)$month;
+$year_filter = !empty($_POST['year']) ? (int)$_POST['year'] : (int)$year;
+$query_total = "SELECT COALESCE(SUM(actual_minutes),0) AS total_minutes FROM overtime_requests WHERE employees_id='$employee_id' AND status='completed' AND MONTH(overtime_date)='$month_filter' AND YEAR(overtime_date)='$year_filter'";
+$result_total = $connection->query($query_total);
+$row_total = $result_total ? $result_total->fetch_assoc() : array('total_minutes' => 0);
+$total_label = overtime_format_minutes($row_total['total_minutes']);
+echo'<div class="card mb-2">
+  <div class="card-body">
+    <div class="row text-center">
+      <div class="col-6">
+        <strong>'.$total_label.'</strong>
+        <div class="text-muted small">Akumulasi Lembur '.$month_filter.'/'.$year_filter.'</div>
+      </div>
+      <div class="col-6">
+        <strong>'.overtime_format_minutes(OVERTIME_MAX_MINUTES_PER_DAY).'</strong>
+        <div class="text-muted small">Maksimal per hari</div>
+      </div>
+    </div>
+  </div>
+</div>';
+
+$query = "SELECT * FROM overtime_requests WHERE employees_id='$employee_id' ORDER BY overtime_date DESC,overtime_id DESC LIMIT 30";
+$result = $connection->query($query);
+if($result && $result->num_rows > 0){
+  while($row = $result->fetch_assoc()){
+    $status = $row['status'];
+    $status_class = 'secondary';
+    if ($status == 'pending') {
+      $status_class = 'warning';
+    } elseif ($status == 'approved') {
+      $status_class = 'primary';
+    } elseif ($status == 'running') {
+      $status_class = 'success';
+    } elseif ($status == 'rejected' || $status == 'cancelled') {
+      $status_class = 'danger';
+    }
+    $running_seconds = 0;
+    if ($status == 'running' && !empty($row['started_at'])) {
+      $running_seconds = min(max(0, time() - strtotime($row['started_at'])), ((int)$row['approved_minutes']) * 60);
+    }
+    echo'
+    <div class="item overtime-item" data-status="'.$status.'" data-started-at="'.htmlspecialchars($row['started_at'], ENT_QUOTES, 'UTF-8').'" data-approved-minutes="'.(int)$row['approved_minutes'].'" data-overtime-id="'.(int)$row['overtime_id'].'">
+      <div class="detail">
+        <div>
+          <strong>'.tgl_ind($row['overtime_date']).'</strong>
+          <p>'.htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8').'</p>
+          <div class="text-muted small">Diajukan: '.overtime_format_minutes($row['requested_minutes']).' | Disetujui: '.overtime_format_minutes($row['approved_minutes']).' | Aktual: '.overtime_format_minutes($status == 'running' ? floor($running_seconds / 60) : $row['actual_minutes']).'</div>';
+          if ($status == 'running') {
+            echo'<div class="mt-1"><span class="badge badge-success overtime-timer">00:00:00</span></div>';
+          }
+          if (!empty($row['result_note'])) {
+            echo'<div class="text-muted small mt-1">Hasil: '.htmlspecialchars($row['result_note'], ENT_QUOTES, 'UTF-8').'</div>';
+          }
+          echo'
+        </div>
+      </div>
+      <div class="right">
+        <span class="badge badge-'.$status_class.'">'.overtime_status_label($status).'</span>';
+        if ($status == 'approved') {
+          echo'<button type="button" class="btn btn-success btn-sm mt-1 btn-overtime-start" data-id="'.(int)$row['overtime_id'].'">Mulai</button>';
+        } elseif ($status == 'running') {
+          echo'<button type="button" class="btn btn-danger btn-sm mt-1 btn-overtime-stop" data-id="'.(int)$row['overtime_id'].'">Selesai</button>';
+        } elseif ($status == 'pending') {
+          echo'<button type="button" class="btn btn-outline-danger btn-sm mt-1 btn-overtime-cancel" data-id="'.(int)$row['overtime_id'].'">Batal</button>';
+        }
+        echo'
+      </div>
+    </div>';
+  }
+} else {
+  echo'<div class="text-center text-muted p-3">Belum ada pengajuan lembur.</div>';
+}
+break;
+
+case 'add-overtime':
+$error = array();
+if (empty($_POST['overtime_date'])) {
+  $error[] = 'Tanggal lembur wajib diisi.';
+} else {
+  $overtime_date = overtime_parse_date($_POST['overtime_date']);
+  if ($overtime_date === '') {
+    $error[] = 'Tanggal lembur tidak valid.';
+  }
+}
+if (empty($_POST['requested_hours'])) {
+  $error[] = 'Durasi lembur wajib diisi.';
+} else {
+  $requested_minutes = overtime_normalize_minutes($_POST['requested_hours']);
+  if ($requested_minutes <= 0) {
+    $error[] = 'Durasi lembur tidak valid.';
+  } elseif ($requested_minutes > OVERTIME_MAX_MINUTES_PER_DAY) {
+    $error[] = 'Durasi lembur maksimal '.overtime_format_minutes(OVERTIME_MAX_MINUTES_PER_DAY).' per hari.';
+  }
+}
+if (empty($_POST['description'])) {
+  $error[] = 'Deskripsi pekerjaan lembur wajib diisi.';
+} else {
+  $description = mysqli_real_escape_string($connection, strip_tags($_POST['description']));
+}
+
+if (empty($error)) {
+  $employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+  $query_existing = "SELECT COALESCE(SUM(CASE
+      WHEN status='completed' THEN actual_minutes
+      WHEN approved_minutes > 0 THEN approved_minutes
+      ELSE requested_minutes
+    END),0) AS used_minutes
+    FROM overtime_requests
+    WHERE employees_id='$employee_id' AND overtime_date='$overtime_date' AND status NOT IN ('rejected','cancelled')";
+  $existing = $connection->query($query_existing);
+  $existing_row = $existing ? $existing->fetch_assoc() : array('used_minutes' => 0);
+  $used_minutes = (int)$existing_row['used_minutes'];
+  if (($used_minutes + $requested_minutes) > OVERTIME_MAX_MINUTES_PER_DAY) {
+    echo'Sisa kuota lembur tanggal tersebut hanya '.overtime_format_minutes(max(0, OVERTIME_MAX_MINUTES_PER_DAY - $used_minutes)).'.';
+    break;
+  }
+  $add = "INSERT INTO overtime_requests (employees_id,overtime_date,requested_minutes,description,status,created_at,updated_at)
+    VALUES('$employee_id','$overtime_date','$requested_minutes','$description','pending','$timeNow','$timeNow')";
+  if($connection->query($add) === false) {
+    echo'Sepertinya sistem kami sedang error.';
+  } else {
+    echo'success';
+  }
+} else {
+  echo implode('<br>', $error);
+}
+break;
+
+case 'start-overtime':
+$overtime_id = !empty($_POST['id']) ? mysqli_real_escape_string($connection, $_POST['id']) : '';
+if ($overtime_id == '') {
+  echo'ID lembur tidak valid.';
+  break;
+}
+$employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+$running = $connection->query("SELECT overtime_id FROM overtime_requests WHERE employees_id='$employee_id' AND status='running' LIMIT 1");
+if ($running && $running->num_rows > 0) {
+  echo'Masih ada stopwatch lembur yang berjalan.';
+  break;
+}
+$query = "SELECT overtime_id,overtime_date FROM overtime_requests WHERE overtime_id='$overtime_id' AND employees_id='$employee_id' AND status='approved' LIMIT 1";
+$result = $connection->query($query);
+if (!$result || $result->num_rows == 0) {
+  echo'Pengajuan lembur tidak ditemukan atau belum disetujui.';
+  break;
+}
+$row_overtime = $result->fetch_assoc();
+if ($row_overtime['overtime_date'] != $date) {
+  echo'Stopwatch lembur hanya bisa dimulai pada tanggal pengajuan.';
+  break;
+}
+$update = "UPDATE overtime_requests SET status='running', started_at='$timeNow', updated_at='$timeNow' WHERE overtime_id='$overtime_id'";
+echo $connection->query($update) ? 'success' : 'Gagal memulai lembur.';
+break;
+
+case 'stop-overtime':
+$overtime_id = !empty($_POST['id']) ? mysqli_real_escape_string($connection, $_POST['id']) : '';
+$result_note = isset($_POST['result_note']) ? mysqli_real_escape_string($connection, strip_tags($_POST['result_note'])) : '';
+if ($overtime_id == '') {
+  echo'ID lembur tidak valid.';
+  break;
+}
+$employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+$query = "SELECT * FROM overtime_requests WHERE overtime_id='$overtime_id' AND employees_id='$employee_id' AND status='running' LIMIT 1";
+$result = $connection->query($query);
+if (!$result || $result->num_rows == 0) {
+  echo'Stopwatch lembur tidak ditemukan.';
+  break;
+}
+$row = $result->fetch_assoc();
+$actual_minutes = overtime_effective_actual_minutes($row['started_at'], $timeNow, $row['approved_minutes']);
+$ended_at = $timeNow;
+$limit_timestamp = strtotime('+'.(int)$row['approved_minutes'].' minutes', strtotime($row['started_at']));
+if ($limit_timestamp && time() >= $limit_timestamp) {
+  $ended_at = date('Y-m-d H:i:s', $limit_timestamp);
+  $actual_minutes = (int)$row['approved_minutes'];
+}
+$update = "UPDATE overtime_requests SET status='completed', ended_at='$ended_at', actual_minutes='$actual_minutes', result_note='$result_note', updated_at='$timeNow' WHERE overtime_id='$overtime_id'";
+echo $connection->query($update) ? 'success' : 'Gagal menyelesaikan lembur.';
+break;
+
+case 'cancel-overtime':
+$overtime_id = !empty($_POST['id']) ? mysqli_real_escape_string($connection, $_POST['id']) : '';
+if ($overtime_id == '') {
+  echo'ID lembur tidak valid.';
+  break;
+}
+$employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+$update = "UPDATE overtime_requests SET status='cancelled', updated_at='$timeNow' WHERE overtime_id='$overtime_id' AND employees_id='$employee_id' AND status='pending'";
+if ($connection->query($update) && $connection->affected_rows > 0) {
+  echo'success';
+} else {
+  echo'Pengajuan lembur tidak dapat dibatalkan.';
+}
+break;
+
 // ------------- Absen Penugasan -------------*/
 case 'assignment-attendance':
 $error = array();
