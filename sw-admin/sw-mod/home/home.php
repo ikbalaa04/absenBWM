@@ -20,10 +20,12 @@ if(empty($connection)){
   $page_absent = isset($_GET['page_absent']) ? max(1, (int)$_GET['page_absent']) : 1;
   $page_login = isset($_GET['page_login']) ? max(1, (int)$_GET['page_login']) : 1;
   $page_cuty = isset($_GET['page_cuty']) ? max(1, (int)$_GET['page_cuty']) : 1;
+  $page_overtime = isset($_GET['page_overtime']) ? max(1, (int)$_GET['page_overtime']) : 1;
   $page_ranking = isset($_GET['page_ranking']) ? max(1, (int)$_GET['page_ranking']) : 1;
   $offset_absent = ($page_absent - 1) * $dashboard_limit;
   $offset_login = ($page_login - 1) * $dashboard_limit;
   $offset_cuty = ($page_cuty - 1) * $dashboard_limit;
+  $offset_overtime = ($page_overtime - 1) * $dashboard_limit;
   $offset_ranking = ($page_ranking - 1) * $dashboard_limit;
 
   if (!function_exists('dashboard_pagination')) {
@@ -405,6 +407,55 @@ echo'
           </div>
           </div>
           '.dashboard_pagination('page_cuty', $page_cuty, $total_cuty, $dashboard_limit).'
+        </div>
+      </div>
+
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="box box-solid">
+        <div class="box-header with-border">
+          <h3 class="box-title">Permohonan Lembur</h3>
+          <div class="box-tools pull-right">
+            <a href="./?mod=overtime" class="btn btn-success btn-flat">Data Lembur</a>
+          </div>
+        </div>
+          <div class="box-body no-padding">
+          <div class="table-responsive">
+          <table class="table">
+            <tbody>
+                <tr>
+                  <th style="width: 10px" class="text-center">No.</th>
+                  <th>Nama</th>
+                  <th>Tanggal</th>
+                  <th class="text-center">Durasi</th>
+                  <th>Pekerjaan</th>
+                  <th class="text-right">Status</th>
+                </tr>
+                ';
+                $query_overtime_count="SELECT overtime_requests.overtime_id FROM employees,overtime_requests WHERE employees.id=overtime_requests.employees_id AND overtime_requests.status='pending'";
+                $result_overtime_count = $connection->query($query_overtime_count);
+                $total_overtime = $result_overtime_count ? $result_overtime_count->num_rows : 0;
+                $query_overtime="SELECT employees.employees_name,overtime_requests.* FROM employees,overtime_requests WHERE employees.id=overtime_requests.employees_id AND overtime_requests.status='pending' order by overtime_requests.overtime_id DESC LIMIT $dashboard_limit OFFSET $offset_overtime";
+                $result_overtime = $connection->query($query_overtime);
+                if($result_overtime && $result_overtime->num_rows > 0){
+                $no=$offset_overtime;
+                while ($row_overtime= $result_overtime->fetch_assoc()) {
+                $no++;
+                  echo'
+                <tr>
+                  <td class="text-center">'.$no.'</td>
+                  <td>'.$row_overtime['employees_name'].'</td>
+                  <td>'.tgl_ind($row_overtime['overtime_date']).'</td>
+                  <td class="text-center"><label class="label label-warning">'.overtime_format_minutes($row_overtime['requested_minutes']).'</label></td>
+                  <td>'.htmlspecialchars($row_overtime['description'], ENT_QUOTES, 'UTF-8').'</td>
+                  <td class="text-right"><label class="label label-warning">Menunggu</label></td>
+                </tr>';}
+                }
+          echo'
+            </tbody>
+          </table>
+          </div>
+          </div>
+          '.dashboard_pagination('page_overtime', $page_overtime, $total_overtime, $dashboard_limit).'
         </div>
       </div>
   </div>

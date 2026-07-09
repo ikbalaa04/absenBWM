@@ -942,6 +942,13 @@ if (empty($error)) {
   if($connection->query($add) === false) {
     echo'Sepertinya sistem kami sedang error.';
   } else {
+    $overtime_id = mysqli_insert_id($connection);
+    $message = '<b>Pengajuan lembur baru</b>'."\n".
+      'Nama: '.telegram_escape($row_user['employees_name'])."\n".
+      'Tanggal: '.telegram_escape(tgl_ind($overtime_date))."\n".
+      'Durasi: '.telegram_escape(overtime_format_minutes($requested_minutes))."\n".
+      'Pekerjaan: '.telegram_escape($description);
+    telegram_send_admin($connection, $message, 'overtime-request-'.$overtime_id);
     echo'success';
   }
 } else {

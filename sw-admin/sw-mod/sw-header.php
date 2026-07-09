@@ -7,6 +7,9 @@ $result_notif = $connection->query($query);
 
 $query_cuty_notif ="SELECT employees.employees_name,cuty.* FROM employees,cuty WHERE employees.id=cuty.employees_id AND cuty.cuty_status='3' order by cuty.cuty_id";
 $result_cuty_notif  = $connection->query($query_cuty_notif);
+$query_overtime_notif ="SELECT employees.employees_name,overtime_requests.* FROM employees,overtime_requests WHERE employees.id=overtime_requests.employees_id AND overtime_requests.status='pending' order by overtime_requests.overtime_id DESC";
+$result_overtime_notif  = $connection->query($query_overtime_notif);
+$pending_request_total = ($result_cuty_notif ? $result_cuty_notif->num_rows : 0) + ($result_overtime_notif ? $result_overtime_notif->num_rows : 0);
 echo'
 <!DOCTYPE html>
 <html>
@@ -95,10 +98,10 @@ echo'<div class="wrapper">
         <li class="dropdown notifications-menu">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
               <i class="fa fa-calendar" aria-hidden="true"></i>
-              <span class="label label-warning">'.$result_cuty_notif->num_rows.'</span>
+              <span class="label label-warning">'.$pending_request_total.'</span>
             </a>
             <ul class="dropdown-menu">
-              <li class="header">Anda memiliki '.$result_cuty_notif->num_rows.' notifikasi</li>
+              <li class="header">Anda memiliki '.$pending_request_total.' notifikasi pengajuan</li>
               <li>
                 <!-- inner menu: contains the actual data -->
                 <ul class="menu">';
@@ -116,6 +119,19 @@ echo'<div class="wrapper">
                       '.$cuty_date.'
                     </a>
                   </li>';
+                }
+                if($result_overtime_notif && $result_overtime_notif->num_rows > 0){
+                  while ($row_overtime = $result_overtime_notif->fetch_assoc()) {
+                    echo'
+                    <li>
+                      <a href="./?mod=overtime">
+                        '.$row_overtime['employees_name'].'<br>
+                        Jenis Pengajuan : Lembur<br>
+                        Tanggal : '.tgl_ind($row_overtime['overtime_date']).'<br>
+                        Durasi : '.overtime_format_minutes($row_overtime['requested_minutes']).'
+                      </a>
+                    </li>';
+                  }
                 }
                 echo'
                 </ul>

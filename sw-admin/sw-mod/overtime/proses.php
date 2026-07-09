@@ -56,7 +56,20 @@ case 'approve':
   if (empty($error)) {
     $admin_id = mysqli_real_escape_string($connection, $row_user['user_id']);
     $update = "UPDATE overtime_requests SET status='approved', approved_minutes='$approved_minutes', approved_by='$admin_id', approved_at='$timeNow', updated_at='$timeNow' WHERE overtime_id='$overtime_id' AND status='pending'";
-    echo $connection->query($update) ? 'success' : 'Data tidak berhasil disimpan.';
+    if ($connection->query($update)) {
+      $query_notify = $connection->query("SELECT * FROM overtime_requests WHERE overtime_id='$overtime_id' LIMIT 1");
+      if ($query_notify && $query_notify->num_rows > 0) {
+        $notify = $query_notify->fetch_assoc();
+        $message = '<b>Pengajuan lembur disetujui</b>'."\n".
+          'Tanggal: '.telegram_escape(tgl_ind($notify['overtime_date']))."\n".
+          'Durasi disetujui: '.telegram_escape(overtime_format_minutes($notify['approved_minutes']))."\n".
+          'Pekerjaan: '.telegram_escape($notify['description']);
+        telegram_send_employee($connection, $notify['employees_id'], $message, 'overtime-status-'.$overtime_id.'-approved');
+      }
+      echo'success';
+    } else {
+      echo'Data tidak berhasil disimpan.';
+    }
   } else {
     echo implode('<br>', $error);
   }
@@ -71,6 +84,15 @@ case 'reject':
   $admin_id = mysqli_real_escape_string($connection, $row_user['user_id']);
   $update = "UPDATE overtime_requests SET status='rejected', rejected_by='$admin_id', rejected_at='$timeNow', updated_at='$timeNow' WHERE overtime_id='$overtime_id' AND status='pending'";
   if ($connection->query($update) && $connection->affected_rows > 0) {
+    $query_notify = $connection->query("SELECT * FROM overtime_requests WHERE overtime_id='$overtime_id' LIMIT 1");
+    if ($query_notify && $query_notify->num_rows > 0) {
+      $notify = $query_notify->fetch_assoc();
+      $message = '<b>Pengajuan lembur ditolak</b>'."\n".
+        'Tanggal: '.telegram_escape(tgl_ind($notify['overtime_date']))."\n".
+        'Durasi diajukan: '.telegram_escape(overtime_format_minutes($notify['requested_minutes']))."\n".
+        'Pekerjaan: '.telegram_escape($notify['description']);
+      telegram_send_employee($connection, $notify['employees_id'], $message, 'overtime-status-'.$overtime_id.'-rejected');
+    }
     echo'success';
   } else {
     echo'Pengajuan lembur tidak dapat ditolak.';
