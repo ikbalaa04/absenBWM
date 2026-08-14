@@ -305,10 +305,14 @@ if(empty($connection)){
     $ranking_year_options .= '<option value="'.$year_option.'"'.$selected.'>'.$year_option.'</option>';
   }
 
+  $weekly_active_preset = isset($_GET['weekly_preset']) ? $_GET['weekly_preset'] : 'current';
+  if (!in_array($weekly_active_preset, array('current','last','custom'), true)) {
+    $weekly_active_preset = 'current';
+  }
   $weekly_selected_date = isset($_GET['weekly_date']) ? trim($_GET['weekly_date']) : date('Y-m-d');
-  if (isset($_GET['weekly_preset']) && $_GET['weekly_preset'] === 'last') {
+  if ($weekly_active_preset === 'last') {
     $weekly_selected_date = date('Y-m-d', strtotime('-7 days'));
-  } elseif (isset($_GET['weekly_preset']) && $_GET['weekly_preset'] === 'current') {
+  } elseif ($weekly_active_preset === 'current') {
     $weekly_selected_date = date('Y-m-d');
   }
   $weekly_selected_timestamp = strtotime($weekly_selected_date);
@@ -344,6 +348,9 @@ if(empty($connection)){
     'ranking_month' => $ranking_selected_month,
     'ranking_year' => $ranking_selected_year
   )));
+  $weekly_custom_btn_class = $weekly_active_preset === 'custom' ? 'btn-primary' : 'btn-default';
+  $weekly_current_btn_class = $weekly_active_preset === 'current' ? 'btn-primary' : 'btn-default';
+  $weekly_last_btn_class = $weekly_active_preset === 'last' ? 'btn-primary' : 'btn-default';
 
 
 echo'
@@ -472,7 +479,7 @@ echo'
       }
       echo'
 
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" id="weekly-work-box">
         <div class="box box-solid">
         <div class="box-header with-border">
           <h3 class="box-title">Pemenuhan Jam Minimal Mingguan</h3>
@@ -481,8 +488,9 @@ echo'
           </div>
         </div>
           <div class="box-body">
-            <form method="get" action="./" class="form-inline">
+            <form method="get" action="./" class="form-inline weekly-work-filter-form">
               <input type="hidden" name="mod" value="home">
+              <input type="hidden" name="weekly_preset" value="custom">
               <input type="hidden" name="ranking_month" value="'.$ranking_selected_month.'">
               <input type="hidden" name="ranking_year" value="'.$ranking_selected_year.'">
               <input type="hidden" name="page_weekly_work" value="1">
@@ -490,14 +498,14 @@ echo'
                 <label>Tanggal Acuan Minggu</label>
                 <input type="date" name="weekly_date" class="form-control input-sm" value="'.htmlspecialchars($weekly_selected_date, ENT_QUOTES, 'UTF-8').'">
               </div>
-              <button type="submit" class="btn btn-primary btn-sm">Custom Date</button>
-              <a href="'.$weekly_current_url.'" class="btn btn-default btn-sm">Minggu Ini</a>
-              <a href="'.$weekly_last_url.'" class="btn btn-default btn-sm">Minggu Lalu</a>
+              <button type="submit" class="btn '.$weekly_custom_btn_class.' btn-sm weekly-work-preset" data-preset="custom">Custom Date</button>
+              <a href="'.$weekly_current_url.'" class="btn '.$weekly_current_btn_class.' btn-sm weekly-work-preset" data-preset="current">Minggu Ini</a>
+              <a href="'.$weekly_last_url.'" class="btn '.$weekly_last_btn_class.' btn-sm weekly-work-preset" data-preset="last">Minggu Lalu</a>
               <span class="text-muted" style="margin-left:8px">Sistem menghitung Senin-Minggu dari tanggal acuan. Tanggal efektif aplikasi: '.tgl_ind($ranking_settings['ranking_start_date']).'</span>
             </form>
           </div>
           <div class="box-body no-padding">
-            '.dashboard_weekly_work_table($weekly_work_page_rows, $offset_weekly_work).dashboard_pagination('page_weekly_work', $page_weekly_work, $total_weekly_work_rows, $dashboard_limit, array('weekly_date' => $weekly_selected_date, 'ranking_month' => $ranking_selected_month, 'ranking_year' => $ranking_selected_year)).'
+            '.dashboard_weekly_work_table($weekly_work_page_rows, $offset_weekly_work).dashboard_pagination('page_weekly_work', $page_weekly_work, $total_weekly_work_rows, $dashboard_limit, array('weekly_date' => $weekly_selected_date, 'weekly_preset' => $weekly_active_preset, 'ranking_month' => $ranking_selected_month, 'ranking_year' => $ranking_selected_year)).'
           </div>
         </div>
       </div>
