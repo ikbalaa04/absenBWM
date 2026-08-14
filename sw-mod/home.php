@@ -330,23 +330,73 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                                 <th scope="col">Tanggal</th>
                                 <th scope="col">Jam Masuk</th>
                                 <th scope="col">Jam Pulang</th>
+                                <th scope="col">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>';
-                        $query_absen="SELECT presence_date,time_in,time_out FROM presence WHERE MONTH(presence_date) ='$month' AND employees_id='$row_user[id]'
-                        UNION ALL
-                        SELECT attendance_date AS presence_date,attendance_time AS time_in,'Dalam tugas' AS time_out FROM assignment_attendance WHERE MONTH(attendance_date) ='$month' AND employees_id='$row_user[id]'
-                        ORDER BY presence_date DESC LIMIT 6";
+                        $week_start_home = date('Y-m-d', strtotime('-6 days', strtotime($date)));
+                        $ranking_settings_home = attendance_ranking_get_settings($connection);
+                        if (!empty($ranking_settings_home['ranking_start_date']) && strtotime($ranking_settings_home['ranking_start_date']) > strtotime($week_start_home)) {
+                            $week_start_home = $ranking_settings_home['ranking_start_date'];
+                        }
+                        $home_history = array();
+                        $employee_id_home = mysqli_real_escape_string($connection, $row_user['id']);
+                        $query_absen="SELECT 'normal' AS record_type,presence_date,time_in,time_out FROM presence WHERE presence_date BETWEEN '$week_start_home' AND '$date' AND employees_id='$employee_id_home' ORDER BY presence_id DESC";
                         $result_absen = $connection->query($query_absen);
-                        if($result_absen->num_rows > 0){
+                        if($result_absen && $result_absen->num_rows > 0){
                             while ($row_absen= $result_absen->fetch_assoc()) {
+                                if (empty($home_history[$row_absen['presence_date']])) {
+                                  $home_history[$row_absen['presence_date']] = $row_absen;
+                                }
+                            }
+                        }
+                        $query_assignment_home="SELECT 'assignment' AS record_type,attendance_date AS presence_date,attendance_time AS time_in,'Dalam tugas' AS time_out FROM assignment_attendance WHERE attendance_date BETWEEN '$week_start_home' AND '$date' AND employees_id='$employee_id_home' ORDER BY assignment_attendance_id DESC";
+                        $result_assignment_home = $connection->query($query_assignment_home);
+                        if($result_assignment_home && $result_assignment_home->num_rows > 0){
+                            while ($row_assignment_home= $result_assignment_home->fetch_assoc()) {
+                                if (empty($home_history[$row_assignment_home['presence_date']])) {
+                                  $home_history[$row_assignment_home['presence_date']] = $row_assignment_home;
+                                }
+                            }
+                        }
+                        $home_cursor = strtotime($date);
+                        $home_until = strtotime($week_start_home);
+                        while ($home_cursor && $home_until && $home_cursor >= $home_until) {
+                          $history_date = date('Y-m-d', $home_cursor);
+                          $date_label = tgl_ind($history_date);
+                          if (!empty($home_history[$history_date])) {
+                            $row_absen = $home_history[$history_date];
+                            $record_type = $row_absen['record_type'];
+                            $correction_type = $record_type === 'assignment' ? 'assignment' : 'checkin_checkout';
                             echo'
                             <tr>
-                                <th scope="row">'.tgl_ind($row_absen['presence_date']).'</th>
+                                <th scope="row">'.$date_label.'</th>
                                 <td>'.$row_absen['time_in'].'</td>
                                 <td>'.$row_absen['time_out'].'</td>
+                                <td><button type="button" class="btn btn-warning btn-sm btn-attendance-correction" data-date="'.$history_date.'" data-date-label="'.$date_label.'" data-record-type="'.$record_type.'" data-correction-type="'.$correction_type.'" data-time-in="'.$row_absen['time_in'].'" data-time-out="'.$row_absen['time_out'].'">Perbaiki</button></td>
                             </tr>';
-                        }}
+                          } else {
+                            $work_day_info_home = attendance_employee_work_day_rule($connection, $row_user, $history_date, 'office');
+                            if ($work_day_info_home['is_work_day']) {
+                              echo'
+                              <tr>
+                                  <th scope="row">'.$date_label.'</th>
+                                  <td><span class="badge badge-secondary">Belum absen</span></td>
+                                  <td><span class="badge badge-secondary">Belum absen</span></td>
+                                  <td><button type="button" class="btn btn-warning btn-sm btn-attendance-correction" data-date="'.$history_date.'" data-date-label="'.$date_label.'" data-record-type="normal" data-correction-type="checkin_checkout" data-time-in="" data-time-out="">Perbaiki</button></td>
+                              </tr>';
+                            } else {
+                              echo'
+                              <tr>
+                                  <th scope="row">'.$date_label.'</th>
+                                  <td><span class="badge badge-info">Libur</span></td>
+                                  <td><span class="badge badge-secondary">-</span></td>
+                                  <td><button type="button" class="btn btn-secondary btn-sm" disabled>Libur</button></td>
+                              </tr>';
+                            }
+                          }
+                          $home_cursor = strtotime('-1 day', $home_cursor);
+                        }
                         echo'
                         </tbody>
                     </table>

@@ -21,15 +21,19 @@ if(empty($connection)){
   $page_login = isset($_GET['page_login']) ? max(1, (int)$_GET['page_login']) : 1;
   $page_cuty = isset($_GET['page_cuty']) ? max(1, (int)$_GET['page_cuty']) : 1;
   $page_overtime = isset($_GET['page_overtime']) ? max(1, (int)$_GET['page_overtime']) : 1;
-  $page_ranking = isset($_GET['page_ranking']) ? max(1, (int)$_GET['page_ranking']) : 1;
+  $page_ranking_staff = isset($_GET['page_ranking_staff']) ? max(1, (int)$_GET['page_ranking_staff']) : 1;
+  $page_ranking_management = isset($_GET['page_ranking_management']) ? max(1, (int)$_GET['page_ranking_management']) : 1;
+  $page_weekly_work = isset($_GET['page_weekly_work']) ? max(1, (int)$_GET['page_weekly_work']) : 1;
   $offset_absent = ($page_absent - 1) * $dashboard_limit;
   $offset_login = ($page_login - 1) * $dashboard_limit;
   $offset_cuty = ($page_cuty - 1) * $dashboard_limit;
   $offset_overtime = ($page_overtime - 1) * $dashboard_limit;
-  $offset_ranking = ($page_ranking - 1) * $dashboard_limit;
+  $offset_ranking_staff = ($page_ranking_staff - 1) * $dashboard_limit;
+  $offset_ranking_management = ($page_ranking_management - 1) * $dashboard_limit;
+  $offset_weekly_work = ($page_weekly_work - 1) * $dashboard_limit;
 
   if (!function_exists('dashboard_pagination')) {
-    function dashboard_pagination($param, $current_page, $total_rows, $limit) {
+    function dashboard_pagination($param, $current_page, $total_rows, $limit, $extra_query = array()) {
       $total_pages = (int)ceil($total_rows / $limit);
       if ($total_pages <= 1) {
         return '';
@@ -40,11 +44,184 @@ if(empty($connection)){
         $active = ($i == $current_page) ? ' class="active"' : '';
         $query = $_GET;
         $query['mod'] = 'home';
+        foreach ($extra_query as $key => $value) {
+          $query[$key] = $value;
+        }
         $query[$param] = $i;
         $html .= '<li'.$active.'><a href="./?'.http_build_query($query).'">'.$i.'</a></li>';
       }
       $html .= '</ul></div>';
 
+      return $html;
+    }
+  }
+  if (!function_exists('dashboard_ranking_table')) {
+    function dashboard_ranking_table($rows, $offset) {
+      $html = '<div class="table-responsive">
+            <table class="table table-striped">
+              <tbody>
+                <tr>
+                  <th style="width: 10px" class="text-center">Rank</th>
+                  <th>Nama</th>
+                  <th>Jabatan</th>
+                  <th class="text-center">Poin</th>
+                  <th class="text-center">Hadir</th>
+                  <th class="text-center">Tepat Waktu</th>
+                  <th class="text-center">Terlambat</th>
+                  <th class="text-center">Tugas</th>
+                  <th class="text-center">Izin/Sakit/Cuti</th>
+                  <th class="text-center">Alpha</th>
+                  <th class="text-right">Aksi</th>
+                </tr>';
+      if (count($rows) > 0) {
+        $rank_no = $offset;
+        foreach ($rows as $ranking_row) {
+          $rank_no++;
+          $summary = $ranking_row['summary'];
+          $rank_label = $rank_no <= 3 ? 'label-success' : 'label-default';
+          $izin_sakit_cuti = (int)$summary['permission'] + (int)$summary['sick'] + (int)$summary['leave'] + (int)$summary['hourly_permission'];
+          $html .= '
+                <tr>
+                  <td class="text-center"><span class="label '.$rank_label.'">'.$rank_no.'</span></td>
+                  <td>'.htmlspecialchars($ranking_row['employees_name'], ENT_QUOTES, 'UTF-8').'</td>
+                  <td>'.htmlspecialchars(isset($ranking_row['position_name']) ? $ranking_row['position_name'] : '-', ENT_QUOTES, 'UTF-8').'</td>
+                  <td class="text-center"><strong>'.(int)$ranking_row['score'].'</strong></td>
+                  <td class="text-center">'.(int)$summary['present'].'</td>
+                  <td class="text-center">'.(int)$summary['ontime'].'</td>
+                  <td class="text-center">'.(int)$summary['late'].'</td>
+                  <td class="text-center">'.(int)$summary['assignment'].'</td>
+                  <td class="text-center">'.$izin_sakit_cuti.'</td>
+                  <td class="text-center">'.(int)$summary['absent'].'</td>
+                  <td class="text-right"><a href="./?mod=absensi&op=views&id='.epm_encode($ranking_row['employees_id']).'" class="btn btn-warning btn-xs"><i class="fa fa-external-link-square" aria-hidden="true"></i></a></td>
+                </tr>';
+        }
+      } else {
+        $html .= '
+                <tr>
+                  <td colspan="11" class="text-center text-muted">Belum ada data ranking pada periode ini.</td>
+                </tr>';
+      }
+      $html .= '
+              </tbody>
+            </table>
+          </div>';
+      return $html;
+    }
+  }
+  if (!function_exists('dashboard_week_bounds')) {
+    function dashboard_week_bounds($date) {
+      $timestamp = strtotime($date);
+      if (!$timestamp) {
+        $timestamp = time();
+      }
+      $day_index = (int)date('N', $timestamp);
+      return array(
+        'start' => date('Y-m-d', strtotime('-'.($day_index - 1).' days', $timestamp)),
+        'end' => date('Y-m-d', strtotime('+'.(7 - $day_index).' days', $timestamp))
+      );
+    }
+  }
+  if (!function_exists('dashboard_weekly_work_minutes')) {
+    function dashboard_weekly_work_minutes($connection, $employees_id, $week_start, $week_end) {
+      $employees_id = mysqli_real_escape_string($connection, $employees_id);
+      $week_start = mysqli_real_escape_string($connection, $week_start);
+      $week_end = mysqli_real_escape_string($connection, $week_end);
+      $minutes = 0;
+      $days = 0;
+      $query = "SELECT presence_date,rule_time_in,rule_time_out,rule_min_work_minutes FROM presence WHERE employees_id='$employees_id' AND presence_date BETWEEN '$week_start' AND '$week_end' AND present_id='1'";
+      $result = $connection->query($query);
+      if ($result) {
+        while ($row = $result->fetch_assoc()) {
+          $days++;
+          $minutes += attendance_daily_credit_minutes($row['presence_date'], $row['rule_time_in'], $row['rule_time_out'], $row['rule_min_work_minutes']);
+        }
+      }
+      return array('minutes' => (int)$minutes, 'days' => $days);
+    }
+  }
+  if (!function_exists('dashboard_weekly_work_rows')) {
+    function dashboard_weekly_work_rows($connection, $week_start, $week_end) {
+      $rows = array();
+      $query = "SELECT employees.id,employees.employees_name,employees.shift_id,employees.attendance_mode,position.position_name,shift.shift_name
+        FROM employees
+        INNER JOIN position ON position.position_id=employees.position_id
+        INNER JOIN shift ON shift.shift_id=employees.shift_id
+        WHERE employees.employees_status='active'
+        ORDER BY employees.employees_name ASC";
+      $result = $connection->query($query);
+      if (!$result) {
+        return $rows;
+      }
+      while ($employee = $result->fetch_assoc()) {
+        $target_minutes = attendance_shift_weekly_work_minutes($connection, $employee['shift_id'], isset($employee['attendance_mode']) ? $employee['attendance_mode'] : '');
+        $actual = dashboard_weekly_work_minutes($connection, $employee['id'], $week_start, $week_end);
+        $actual_minutes = (int)$actual['minutes'];
+        $remaining_minutes = max(0, $target_minutes - $actual_minutes);
+        $percentage = $target_minutes > 0 ? min(100, (int)floor(($actual_minutes / $target_minutes) * 100)) : 100;
+        $rows[] = array(
+          'employees_id' => $employee['id'],
+          'employees_name' => $employee['employees_name'],
+          'position_name' => $employee['position_name'],
+          'shift_name' => $employee['shift_name'],
+          'target_minutes' => $target_minutes,
+          'actual_minutes' => $actual_minutes,
+          'remaining_minutes' => $remaining_minutes,
+          'days' => (int)$actual['days'],
+          'percentage' => $percentage,
+          'fulfilled' => $target_minutes <= 0 || $actual_minutes >= $target_minutes
+        );
+      }
+      return $rows;
+    }
+  }
+  if (!function_exists('dashboard_weekly_work_table')) {
+    function dashboard_weekly_work_table($rows, $offset) {
+      $html = '<div class="table-responsive">
+            <table class="table table-striped">
+              <tbody>
+                <tr>
+                  <th style="width: 10px" class="text-center">No.</th>
+                  <th>Nama</th>
+                  <th>Jabatan</th>
+                  <th>Shift</th>
+                  <th class="text-center">Hari Hadir</th>
+                  <th class="text-center">Target Mingguan</th>
+                  <th class="text-center">Terpenuhi</th>
+                  <th class="text-center">Sisa</th>
+                  <th class="text-center">Progress</th>
+                  <th class="text-center">Status</th>
+                  <th class="text-right">Aksi</th>
+                </tr>';
+      if (count($rows) > 0) {
+        $no = $offset;
+        foreach ($rows as $row) {
+          $no++;
+          $status = $row['fulfilled'] ? '<span class="label label-success">Terpenuhi</span>' : '<span class="label label-warning">Belum Terpenuhi</span>';
+          $html .= '
+                <tr>
+                  <td class="text-center">'.$no.'</td>
+                  <td>'.htmlspecialchars($row['employees_name'], ENT_QUOTES, 'UTF-8').'</td>
+                  <td>'.htmlspecialchars($row['position_name'], ENT_QUOTES, 'UTF-8').'</td>
+                  <td>'.htmlspecialchars($row['shift_name'], ENT_QUOTES, 'UTF-8').'</td>
+                  <td class="text-center">'.(int)$row['days'].'</td>
+                  <td class="text-center">'.attendance_format_minutes($row['target_minutes']).'</td>
+                  <td class="text-center">'.attendance_format_minutes($row['actual_minutes']).'</td>
+                  <td class="text-center">'.attendance_format_minutes($row['remaining_minutes']).'</td>
+                  <td class="text-center">'.(int)$row['percentage'].'%</td>
+                  <td class="text-center">'.$status.'</td>
+                  <td class="text-right"><a href="./?mod=absensi&op=views&id='.epm_encode($row['employees_id']).'" class="btn btn-warning btn-xs"><i class="fa fa-external-link-square" aria-hidden="true"></i></a></td>
+                </tr>';
+        }
+      } else {
+        $html .= '
+                <tr>
+                  <td colspan="11" class="text-center text-muted">Belum ada data pemenuhan jam kerja pada minggu ini.</td>
+                </tr>';
+      }
+      $html .= '
+              </tbody>
+            </table>
+          </div>';
       return $html;
     }
   }
@@ -70,12 +247,28 @@ if(empty($connection)){
   $ranking_period_available = strtotime($ranking_from) <= strtotime($ranking_to);
   $ranking_label_from = $ranking_period_available ? $ranking_from : $ranking_month_from;
   $ranking_rows = ($ranking_enabled && $ranking_period_available) ? attendance_ranking_calculate($connection, $ranking_from, $ranking_to, 0) : array();
-  $total_ranking_rows = count($ranking_rows);
-  if ($total_ranking_rows > 0 && $offset_ranking >= $total_ranking_rows) {
-    $page_ranking = max(1, (int)ceil($total_ranking_rows / $dashboard_limit));
-    $offset_ranking = ($page_ranking - 1) * $dashboard_limit;
+  $ranking_staff_rows = array();
+  $ranking_management_rows = array();
+  foreach ($ranking_rows as $ranking_row) {
+    if (isset($ranking_row['ranking_group']) && $ranking_row['ranking_group'] === 'management') {
+      $ranking_management_rows[] = $ranking_row;
+    } else {
+      $ranking_staff_rows[] = $ranking_row;
+    }
   }
-  $ranking_page_rows = array_slice($ranking_rows, $offset_ranking, $dashboard_limit);
+  $total_ranking_staff_rows = count($ranking_staff_rows);
+  $total_ranking_management_rows = count($ranking_management_rows);
+  if ($total_ranking_staff_rows > 0 && $offset_ranking_staff >= $total_ranking_staff_rows) {
+    $page_ranking_staff = max(1, (int)ceil($total_ranking_staff_rows / $dashboard_limit));
+    $offset_ranking_staff = ($page_ranking_staff - 1) * $dashboard_limit;
+  }
+  if ($total_ranking_management_rows > 0 && $offset_ranking_management >= $total_ranking_management_rows) {
+    $page_ranking_management = max(1, (int)ceil($total_ranking_management_rows / $dashboard_limit));
+    $offset_ranking_management = ($page_ranking_management - 1) * $dashboard_limit;
+  }
+  $ranking_staff_page_rows = array_slice($ranking_staff_rows, $offset_ranking_staff, $dashboard_limit);
+  $ranking_management_page_rows = array_slice($ranking_management_rows, $offset_ranking_management, $dashboard_limit);
+  $ranking_active_tab = (isset($_GET['ranking_tab']) && $_GET['ranking_tab'] === 'management') ? 'management' : 'staff';
   $ranking_month_names = array(
     1 => 'Januari',
     2 => 'Februari',
@@ -111,6 +304,27 @@ if(empty($connection)){
     $selected = $year_option === $ranking_selected_year ? ' selected' : '';
     $ranking_year_options .= '<option value="'.$year_option.'"'.$selected.'>'.$year_option.'</option>';
   }
+
+  $weekly_selected_date = isset($_GET['weekly_date']) ? trim($_GET['weekly_date']) : date('Y-m-d');
+  $weekly_selected_timestamp = strtotime($weekly_selected_date);
+  if (!$weekly_selected_timestamp) {
+    $weekly_selected_date = date('Y-m-d');
+    $weekly_selected_timestamp = strtotime($weekly_selected_date);
+  }
+  if (!empty($ranking_settings['ranking_start_date']) && strtotime($weekly_selected_date) < strtotime($ranking_settings['ranking_start_date'])) {
+    $weekly_selected_date = $ranking_settings['ranking_start_date'];
+    $weekly_selected_timestamp = strtotime($weekly_selected_date);
+  }
+  $weekly_bounds = dashboard_week_bounds($weekly_selected_date);
+  $weekly_effective_start = !empty($ranking_settings['ranking_start_date']) && strtotime($ranking_settings['ranking_start_date']) > strtotime($weekly_bounds['start']) ? $ranking_settings['ranking_start_date'] : $weekly_bounds['start'];
+  $weekly_effective_end = $weekly_bounds['end'];
+  $weekly_work_rows = dashboard_weekly_work_rows($connection, $weekly_effective_start, $weekly_effective_end);
+  $total_weekly_work_rows = count($weekly_work_rows);
+  if ($total_weekly_work_rows > 0 && $offset_weekly_work >= $total_weekly_work_rows) {
+    $page_weekly_work = max(1, (int)ceil($total_weekly_work_rows / $dashboard_limit));
+    $offset_weekly_work = ($page_weekly_work - 1) * $dashboard_limit;
+  }
+  $weekly_work_page_rows = array_slice($weekly_work_rows, $offset_weekly_work, $dashboard_limit);
 
 
 echo'
@@ -196,7 +410,7 @@ echo'
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <div class="box box-solid">
         <div class="box-header with-border">
-          <h3 class="box-title">Top Ranking Absensi</h3>
+          <h3 class="box-title">Ranking Absensi</h3>
           <div class="box-tools pull-right">
             <span class="label label-primary">'.tgl_ind($ranking_label_from).' - '.tgl_ind($ranking_to).'</span>
           </div>
@@ -204,7 +418,8 @@ echo'
           <div class="box-body">
             <form method="get" action="./" class="form-inline">
               <input type="hidden" name="mod" value="home">
-              <input type="hidden" name="page_ranking" value="1">
+              <input type="hidden" name="page_ranking_staff" value="1">
+              <input type="hidden" name="page_ranking_management" value="1">
               <div class="form-group">
                 <label>Bulan</label>
                 <select name="ranking_month" class="form-control input-sm">'.$ranking_month_options.'</select>
@@ -219,58 +434,52 @@ echo'
             </form>
           </div>
           <div class="box-body no-padding">
-            <div class="table-responsive">
-            <table class="table table-striped">
-              <tbody>
-                <tr>
-                  <th style="width: 10px" class="text-center">Rank</th>
-                  <th>Nama</th>
-                  <th class="text-center">Poin</th>
-                  <th class="text-center">Hadir</th>
-                  <th class="text-center">Tepat Waktu</th>
-                  <th class="text-center">Terlambat</th>
-                  <th class="text-center">Tugas</th>
-                  <th class="text-center">Izin/Sakit/Cuti</th>
-                  <th class="text-center">Alpha</th>
-                  <th class="text-right">Aksi</th>
-                </tr>';
-        if(count($ranking_page_rows) > 0){
-          $rank_no = $offset_ranking;
-          foreach($ranking_page_rows as $ranking_row){
-            $rank_no++;
-            $summary = $ranking_row['summary'];
-            $rank_label = $rank_no <= 3 ? 'label-success' : 'label-default';
-            $izin_sakit_cuti = (int)$summary['permission'] + (int)$summary['sick'] + (int)$summary['leave'] + (int)$summary['hourly_permission'];
-            echo'
-                <tr>
-                  <td class="text-center"><span class="label '.$rank_label.'">'.$rank_no.'</span></td>
-                  <td>'.htmlspecialchars($ranking_row['employees_name'], ENT_QUOTES, 'UTF-8').'</td>
-                  <td class="text-center"><strong>'.(int)$ranking_row['score'].'</strong></td>
-                  <td class="text-center">'.(int)$summary['present'].'</td>
-                  <td class="text-center">'.(int)$summary['ontime'].'</td>
-                  <td class="text-center">'.(int)$summary['late'].'</td>
-                  <td class="text-center">'.(int)$summary['assignment'].'</td>
-                  <td class="text-center">'.$izin_sakit_cuti.'</td>
-                  <td class="text-center">'.(int)$summary['absent'].'</td>
-                  <td class="text-right"><a href="./?mod=absensi&op=views&id='.epm_encode($ranking_row['employees_id']).'" class="btn btn-warning btn-xs"><i class="fa fa-external-link-square" aria-hidden="true"></i></a></td>
-                </tr>';
-          }
-        } else {
-          echo'
-                <tr>
-                  <td colspan="10" class="text-center text-muted">Belum ada data ranking pada periode ini.</td>
-                </tr>';
-        }
-        echo'
-              </tbody>
-            </table>
-            '.dashboard_pagination('page_ranking', $page_ranking, $total_ranking_rows, $dashboard_limit).'
+            <ul class="nav nav-tabs">
+              <li class="'.($ranking_active_tab === 'staff' ? 'active' : '').'"><a href="#ranking-staff" data-toggle="tab">Staff <span class="label label-default">'.$total_ranking_staff_rows.'</span></a></li>
+              <li class="'.($ranking_active_tab === 'management' ? 'active' : '').'"><a href="#ranking-management" data-toggle="tab">Manajemen <span class="label label-default">'.$total_ranking_management_rows.'</span></a></li>
+            </ul>
+            <div class="tab-content">
+              <div class="tab-pane '.($ranking_active_tab === 'staff' ? 'active' : '').'" id="ranking-staff">
+                '.dashboard_ranking_table($ranking_staff_page_rows, $offset_ranking_staff).dashboard_pagination('page_ranking_staff', $page_ranking_staff, $total_ranking_staff_rows, $dashboard_limit, array('ranking_tab' => 'staff')).'
+              </div>
+              <div class="tab-pane '.($ranking_active_tab === 'management' ? 'active' : '').'" id="ranking-management">
+                '.dashboard_ranking_table($ranking_management_page_rows, $offset_ranking_management).dashboard_pagination('page_ranking_management', $page_ranking_management, $total_ranking_management_rows, $dashboard_limit, array('ranking_tab' => 'management')).'
+              </div>
+            </div>
           </div>
         </div>
       </div>
       </div>';
       }
       echo'
+
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="box box-solid">
+        <div class="box-header with-border">
+          <h3 class="box-title">Pemenuhan Jam Minimal Mingguan</h3>
+          <div class="box-tools pull-right">
+            <span class="label label-primary">'.tgl_ind($weekly_effective_start).' - '.tgl_ind($weekly_effective_end).'</span>
+          </div>
+        </div>
+          <div class="box-body">
+            <form method="get" action="./" class="form-inline">
+              <input type="hidden" name="mod" value="home">
+              <input type="hidden" name="ranking_month" value="'.$ranking_selected_month.'">
+              <input type="hidden" name="ranking_year" value="'.$ranking_selected_year.'">
+              <input type="hidden" name="page_weekly_work" value="1">
+              <div class="form-group">
+                <label>Minggu</label>
+                <input type="date" name="weekly_date" class="form-control input-sm" value="'.htmlspecialchars($weekly_selected_date, ENT_QUOTES, 'UTF-8').'">
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm">Tampilkan</button>
+              <span class="text-muted" style="margin-left:8px">Tanggal efektif aplikasi: '.tgl_ind($ranking_settings['ranking_start_date']).'</span>
+            </form>
+          </div>
+          <div class="box-body no-padding">
+            '.dashboard_weekly_work_table($weekly_work_page_rows, $offset_weekly_work).dashboard_pagination('page_weekly_work', $page_weekly_work, $total_weekly_work_rows, $dashboard_limit, array('weekly_date' => $weekly_selected_date, 'ranking_month' => $ranking_selected_month, 'ranking_year' => $ranking_selected_year)).'
+          </div>
+        </div>
+      </div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <div class="box box-solid">

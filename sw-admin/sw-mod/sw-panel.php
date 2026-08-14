@@ -39,7 +39,7 @@ echo'<aside class="main-sidebar">
           </li>';
       }
 
-      if($mod =='cuty' OR $mod=='overtime'){echo'<li class="active treeview">'; }else{echo'<li class="treeview">';}
+      if($mod =='cuty' OR $mod=='overtime' OR $mod=='attendance-correction'){echo'<li class="active treeview">'; }else{echo'<li class="treeview">';}
       echo'
             <a href="#">
               <i class="fa fa-calendar" aria-hidden="true"></i> <span>Pengajuan</span>
@@ -51,7 +51,9 @@ echo'<aside class="main-sidebar">
               if($mod =='cuty'){echo'<li class="active">'; }else{echo'<li>';}
               echo'<a href="./?mod=cuty"><i class="fa fa-circle-o"></i> Izin/Cuti</a></li>';
               if($mod =='overtime'){echo'<li class="active">'; }else{echo'<li>';}
-              echo'<a href="./?mod=overtime"><i class="fa fa-circle-o"></i> Lembur</a></li>
+              echo'<a href="./?mod=overtime"><i class="fa fa-circle-o"></i> Lembur</a></li>';
+              if($mod =='attendance-correction'){echo'<li class="active">'; }else{echo'<li>';}
+              echo'<a href="./?mod=attendance-correction"><i class="fa fa-circle-o"></i> Perbaikan Absensi</a></li>
             </ul>
           </li>';
 

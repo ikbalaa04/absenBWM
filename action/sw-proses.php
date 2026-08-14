@@ -1024,6 +1024,74 @@ if ($connection->query($update) && $connection->affected_rows > 0) {
 }
 break;
 
+case 'add-attendance-correction':
+$error = array();
+$allowed_types = array('checkin','checkout','checkin_checkout','assignment');
+$correction_date = !empty($_POST['correction_date']) ? attendance_correction_parse_date($_POST['correction_date']) : '';
+$correction_type = !empty($_POST['correction_type']) ? $_POST['correction_type'] : '';
+$requested_time_in = !empty($_POST['requested_time_in']) ? attendance_correction_parse_time($_POST['requested_time_in']) : '';
+$requested_time_out = !empty($_POST['requested_time_out']) ? attendance_correction_parse_time($_POST['requested_time_out']) : '';
+
+if ($correction_date === '') {
+  $error[] = 'Tanggal perbaikan tidak valid.';
+}
+if (!in_array($correction_type, $allowed_types, true)) {
+  $error[] = 'Jenis perbaikan tidak valid.';
+}
+if (in_array($correction_type, array('checkin','checkin_checkout','assignment'), true) && $requested_time_in === '') {
+  $error[] = 'Jam masuk wajib diisi.';
+}
+if (in_array($correction_type, array('checkout','checkin_checkout'), true) && $requested_time_out === '') {
+  $error[] = 'Jam pulang wajib diisi.';
+}
+if ($correction_type === 'checkin_checkout' && $requested_time_in !== '' && $requested_time_out !== '' && $requested_time_out < $requested_time_in) {
+  $error[] = 'Jam pulang tidak boleh lebih awal dari jam masuk.';
+}
+if (empty($_POST['reason'])) {
+  $error[] = 'Alasan perbaikan wajib diisi.';
+} else {
+  $reason = mysqli_real_escape_string($connection, strip_tags($_POST['reason']));
+}
+if ($correction_date !== '' && strtotime($correction_date) > strtotime($date)) {
+  $error[] = 'Tanggal perbaikan tidak boleh lebih dari hari ini.';
+}
+if ($correction_date !== '') {
+  $correction_ranking_settings = attendance_ranking_get_settings($connection);
+  if (!empty($correction_ranking_settings['ranking_start_date']) && strtotime($correction_date) < strtotime($correction_ranking_settings['ranking_start_date'])) {
+    $error[] = 'Tanggal perbaikan tidak boleh sebelum tanggal efektif aplikasi, yaitu '.tgl_ind($correction_ranking_settings['ranking_start_date']).'.';
+  }
+}
+if (empty($error)) {
+  $employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+  $pending = $connection->query("SELECT correction_id FROM attendance_correction_requests WHERE employees_id='$employee_id' AND correction_date='$correction_date' AND correction_type='$correction_type' AND status='pending' LIMIT 1");
+  if ($pending && $pending->num_rows > 0) {
+    $error[] = 'Masih ada pengajuan perbaikan yang menunggu untuk tanggal dan jenis tersebut.';
+  }
+}
+if (empty($error)) {
+  $employee_id = mysqli_real_escape_string($connection, $row_user['id']);
+  $type_sql = mysqli_real_escape_string($connection, $correction_type);
+  $time_in_sql = $requested_time_in === '' ? "NULL" : "'".mysqli_real_escape_string($connection, $requested_time_in)."'";
+  $time_out_sql = $requested_time_out === '' ? "NULL" : "'".mysqli_real_escape_string($connection, $requested_time_out)."'";
+  $add = "INSERT INTO attendance_correction_requests (employees_id,correction_date,correction_type,requested_time_in,requested_time_out,reason,status,created_at,updated_at)
+    VALUES('$employee_id','$correction_date','$type_sql',$time_in_sql,$time_out_sql,'$reason','pending','$timeNow','$timeNow')";
+  if ($connection->query($add)) {
+    $correction_id = mysqli_insert_id($connection);
+    $message = '<b>Pengajuan perbaikan absensi baru</b>'."\n".
+      'Nama: '.telegram_escape($row_user['employees_name'])."\n".
+      'Tanggal: '.telegram_escape(tgl_ind($correction_date))."\n".
+      'Jenis: '.telegram_escape(attendance_correction_type_label($correction_type))."\n".
+      'Alasan: '.telegram_escape($reason);
+    telegram_send_admin($connection, $message, 'attendance-correction-'.$correction_id);
+    echo'success';
+  } else {
+    echo'Pengajuan tidak berhasil disimpan.';
+  }
+} else {
+  echo implode('<br>', $error);
+}
+break;
+
 // ------------- Absen Penugasan -------------*/
 case 'assignment-attendance':
 $error = array();
@@ -1329,7 +1397,7 @@ echo'<table class="table rounded" id="swdatatable">
 
             <td class="hidden-sm">'.$row_aa['present_name'].' '.$location_badge.''.$information.'</td>
             <td class="text-center">
-              <button type="button" class="btn btn-success btn-sm modal-update" data-id="'.$row_absen['presence_id'].'" data-masuk="'.$row_absen['time_in'].'" data-pulang="'.$row_absen['time_out'].'" data-date="'.tgl_indo($row_absen['presence_date']).'" data-information="'.$row_absen['information'].'" data-status="'.$row_absen['present_id'].'" data-toggle="modal" data-target="#modal-show">Ubah</button>
+              <button type="button" class="btn btn-warning btn-sm btn-attendance-correction" data-date="'.$row_absen['presence_date'].'" data-date-label="'.tgl_ind($row_absen['presence_date']).'" data-record-type="normal" data-correction-type="checkin_checkout" data-time-in="'.$row_absen['time_in'].'" data-time-out="'.$row_absen['time_out'].'">Perbaiki</button>
             </td>
 	        </tr>';
 	    }}
@@ -1348,14 +1416,20 @@ echo'<table class="table rounded" id="swdatatable">
               <span class="badge badge-primary">'.$row_assignment['attendance_time'].'</span></a> <span class="badge badge-primary">Tugas</span></td>
               <td><span class="badge badge-secondary">-</span></td>
               <td class="hidden-sm">'.$assignment_info.'</td>
-              <td class="text-center"><button type="button" class="btn btn-secondary btn-sm" disabled>Tugas</button></td>
+              <td class="text-center"><button type="button" class="btn btn-warning btn-sm btn-attendance-correction" data-date="'.$row_assignment['attendance_date'].'" data-date-label="'.tgl_ind($row_assignment['attendance_date']).'" data-record-type="assignment" data-correction-type="assignment" data-time-in="'.$row_assignment['attendance_time'].'" data-time-out="">Perbaiki</button></td>
           </tr>';
         }
       }
+      $ranking_settings_history = attendance_ranking_get_settings($connection);
+      $history_effective_start = !empty($ranking_settings_history['ranking_start_date']) && strtotime($ranking_settings_history['ranking_start_date']) > strtotime($history_start) ? $ranking_settings_history['ranking_start_date'] : $history_start;
       $history_cursor = strtotime($history_start);
       $history_until = strtotime($history_end);
       while ($history_cursor && $history_cursor <= $history_until) {
         $history_date = date('Y-m-d', $history_cursor);
+        if (strtotime($history_date) < strtotime($history_effective_start) || strtotime($history_date) > strtotime($date)) {
+          $history_cursor = strtotime('+1 day', $history_cursor);
+          continue;
+        }
         $work_day_info = attendance_employee_work_day_rule($connection, $row_user, $history_date, 'office');
         $off_day_label = $work_day_info['is_work_day'] ? '' : $work_day_info['label'];
         if ($off_day_label !== '' && empty($history_used_dates[$history_date])) {
@@ -1368,6 +1442,17 @@ echo'<table class="table rounded" id="swdatatable">
               <td><span class="badge badge-secondary">-</span></td>
               <td class="hidden-sm">'.$off_day_label.'</td>
               <td class="text-center"><button type="button" class="btn btn-secondary btn-sm" disabled>Libur</button></td>
+          </tr>';
+        } elseif ($off_day_label === '' && empty($history_used_dates[$history_date])) {
+          $no++;
+          echo'
+          <tr>
+              <th class="text-center">'.$no.'</th>
+              <th scope="row">'.tgl_ind($history_date).'</th>
+              <td><span class="badge badge-secondary">Belum absen</span></td>
+              <td><span class="badge badge-secondary">Belum absen</span></td>
+              <td class="hidden-sm">Hari kerja tanpa riwayat absensi</td>
+              <td class="text-center"><button type="button" class="btn btn-warning btn-sm btn-attendance-correction" data-date="'.$history_date.'" data-date-label="'.tgl_ind($history_date).'" data-record-type="normal" data-correction-type="checkin_checkout" data-time-in="" data-time-out="">Perbaiki</button></td>
           </tr>';
         }
         $history_cursor = strtotime('+1 day', $history_cursor);

@@ -9,7 +9,9 @@ $query_cuty_notif ="SELECT employees.employees_name,cuty.* FROM employees,cuty W
 $result_cuty_notif  = $connection->query($query_cuty_notif);
 $query_overtime_notif ="SELECT employees.employees_name,overtime_requests.* FROM employees,overtime_requests WHERE employees.id=overtime_requests.employees_id AND overtime_requests.status='pending' order by overtime_requests.overtime_id DESC";
 $result_overtime_notif  = $connection->query($query_overtime_notif);
-$pending_request_total = ($result_cuty_notif ? $result_cuty_notif->num_rows : 0) + ($result_overtime_notif ? $result_overtime_notif->num_rows : 0);
+$query_correction_notif ="SELECT employees.employees_name,attendance_correction_requests.* FROM employees,attendance_correction_requests WHERE employees.id=attendance_correction_requests.employees_id AND attendance_correction_requests.status='pending' order by attendance_correction_requests.correction_id DESC";
+$result_correction_notif  = $connection->query($query_correction_notif);
+$pending_request_total = ($result_cuty_notif ? $result_cuty_notif->num_rows : 0) + ($result_overtime_notif ? $result_overtime_notif->num_rows : 0) + ($result_correction_notif ? $result_correction_notif->num_rows : 0);
 echo'
 <!DOCTYPE html>
 <html>
@@ -129,6 +131,19 @@ echo'<div class="wrapper">
                         Jenis Pengajuan : Lembur<br>
                         Tanggal : '.tgl_ind($row_overtime['overtime_date']).'<br>
                         Durasi : '.overtime_format_minutes($row_overtime['requested_minutes']).'
+                      </a>
+                    </li>';
+                  }
+                }
+                if($result_correction_notif && $result_correction_notif->num_rows > 0){
+                  while ($row_correction = $result_correction_notif->fetch_assoc()) {
+                    echo'
+                    <li>
+                      <a href="./?mod=attendance-correction">
+                        '.$row_correction['employees_name'].'<br>
+                        Jenis Pengajuan : Perbaikan Absensi<br>
+                        Tanggal : '.tgl_ind($row_correction['correction_date']).'<br>
+                        Jenis Absen : '.attendance_correction_type_label($row_correction['correction_type']).'
                       </a>
                     </li>';
                   }

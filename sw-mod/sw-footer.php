@@ -43,6 +43,54 @@ echo'
         </a>
     </div>
 <!-- * App Bottom Menu -->';
+if($mod =='home' OR $mod=='history'){
+echo'
+<div class="modal fade action-sheet inset" id="modal-attendance-correction" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" style="z-index:10000">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Ajukan Perbaikan Absensi</h5>
+        <a href="javascript:void(0);" class="close" style="position:absolute;right:15px;top:10px;" data-dismiss="modal" aria-hidden="true"><ion-icon name="close-outline"></ion-icon></a>
+      </div>
+      <div class="modal-body">
+        <div class="action-sheet-content">
+          <form id="form-attendance-correction" autocomplete="off">
+            <input type="hidden" name="correction_date" id="correction_date">
+            <div class="form-group basic">
+              <label class="label">Tanggal</label>
+              <input type="text" class="form-control" id="correction_date_label" readonly>
+            </div>
+            <div class="form-group basic">
+              <label class="label">Jenis Absen</label>
+              <select class="form-control custom-select" name="correction_type" id="correction_type" required>
+                <option value="checkin">Masuk</option>
+                <option value="checkout">Pulang</option>
+                <option value="checkin_checkout">Masuk & Pulang</option>
+                <option value="assignment">Penugasan</option>
+              </select>
+            </div>
+            <div class="form-group basic correction-time-in">
+              <label class="label">Jam Masuk / Penugasan</label>
+              <input type="time" class="form-control" name="requested_time_in" id="requested_time_in">
+            </div>
+            <div class="form-group basic correction-time-out">
+              <label class="label">Jam Pulang</label>
+              <input type="time" class="form-control" name="requested_time_out" id="requested_time_out">
+            </div>
+            <div class="form-group basic">
+              <label class="label">Alasan</label>
+              <textarea rows="3" class="form-control" name="reason" required></textarea>
+            </div>
+            <div class="form-group basic">
+              <button type="submit" class="btn btn-danger btn-block btn-lg">Ajukan Perbaikan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>';
+}
 }
 ob_end_flush();
 echo'
@@ -63,7 +111,7 @@ echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/sweetalert.min.js?v='.filemtime(__DIR__ . '/sw-assets/js/sweetalert.min.js').'"></script>
 <script src="'.$base_url.'sw-mod/sw-assets/js/webcamjs/webcam.min.js?v='.filemtime(__DIR__ . '/sw-assets/js/webcamjs/webcam.min.js').'"></script>
 <script>window.swBaseUrl = "'.$base_url.'";</script>';
-if($mod =='history' OR $mod=='cuty' OR $mod=='overtime'){
+if($mod =='history' OR $mod=='cuty' OR $mod=='overtime' OR $mod=='home'){
 echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="'.$base_url.'sw-mod/sw-assets/js/plugins/datatables/dataTables.bootstrap.min.js"></script>
@@ -79,6 +127,51 @@ echo'
 }
 echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/sw-script.js?v='.filemtime(__DIR__ . '/sw-assets/js/sw-script.js').'"></script>';
+if($mod =='home' OR $mod=='history'){
+echo'
+<script>
+function refreshCorrectionTimeFields(){
+  var type = $("#correction_type").val();
+  $(".correction-time-in").toggle(type === "checkin" || type === "checkin_checkout" || type === "assignment");
+  $(".correction-time-out").toggle(type === "checkout" || type === "checkin_checkout");
+}
+$(document).on("change", "#correction_type", refreshCorrectionTimeFields);
+$(document).on("click", ".btn-attendance-correction", function(){
+  var button = $(this);
+  var type = button.data("correction-type") || "checkin_checkout";
+  $("#form-attendance-correction")[0].reset();
+  $("#correction_date").val(button.data("date"));
+  $("#correction_date_label").val(button.data("date-label") || button.data("date"));
+  $("#requested_time_in").val(button.data("time-in") && button.data("time-in") !== "00:00:00" ? String(button.data("time-in")).substring(0,5) : "");
+  $("#requested_time_out").val(button.data("time-out") && button.data("time-out") !== "00:00:00" ? String(button.data("time-out")).substring(0,5) : "");
+  $("#correction_type").val(type);
+  if (button.data("record-type") === "assignment") {
+    $("#correction_type").val("assignment");
+  }
+  refreshCorrectionTimeFields();
+  $("#modal-attendance-correction").modal("show");
+});
+$("#form-attendance-correction").on("submit", function(e){
+  e.preventDefault();
+  $.ajax({
+    url: window.swBaseUrl+"action/sw-proses.php?action=add-attendance-correction",
+    type: "POST",
+    data: $(this).serialize(),
+    beforeSend:function(){ $(".loading").show(); },
+    success:function(data){
+      if(data === "success"){
+        $("#modal-attendance-correction").modal("hide");
+        swal({title:"Berhasil!", text:"Pengajuan perbaikan absensi dikirim.", icon:"success", timer:1800});
+        setTimeout(function(){ location.reload(); }, 1800);
+      } else {
+        swal({title:"Oops!", text:data, icon:"error", timer:3000});
+      }
+    },
+    complete:function(){ $(".loading").hide(); }
+  });
+});
+</script>';
+}
 if($mod =='overtime'){
 echo'
 <script>

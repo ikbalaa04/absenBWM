@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS `attendance_correction_requests` (
+  `correction_id` int(11) NOT NULL AUTO_INCREMENT,
+  `employees_id` int(11) NOT NULL,
+  `correction_date` date NOT NULL,
+  `correction_type` enum('checkin','checkout','checkin_checkout','assignment') NOT NULL DEFAULT 'checkin',
+  `requested_time_in` time DEFAULT NULL,
+  `requested_time_out` time DEFAULT NULL,
+  `reason` text NULL,
+  `status` enum('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
+  `approved_by` int(11) DEFAULT NULL,
+  `approved_at` datetime DEFAULT NULL,
+  `rejected_by` int(11) DEFAULT NULL,
+  `rejected_at` datetime DEFAULT NULL,
+  `applied_presence_id` int(11) DEFAULT NULL,
+  `applied_assignment_attendance_id` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`correction_id`),
+  KEY `employees_id` (`employees_id`),
+  KEY `correction_date` (`correction_date`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

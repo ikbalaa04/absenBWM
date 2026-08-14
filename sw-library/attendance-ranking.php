@@ -156,6 +156,9 @@ if (!function_exists('attendance_ranking_deadline_passed')) {
     if (empty($target_time) || $target_time == '00:00:00') {
       return false;
     }
+    if ($grace_minutes === null || $grace_minutes === '') {
+      return strtotime($work_date) < strtotime(date('Y-m-d'));
+    }
 
     $target_timestamp = strtotime($work_date.' '.$target_time);
     $current_timestamp = time();
@@ -165,6 +168,24 @@ if (!function_exists('attendance_ranking_deadline_passed')) {
 
     $deadline_timestamp = strtotime('+'.(int)$grace_minutes.' minutes', $target_timestamp);
     return $deadline_timestamp && $current_timestamp > $deadline_timestamp;
+  }
+}
+
+if (!function_exists('attendance_ranking_grace_settings')) {
+  function attendance_ranking_grace_settings($connection) {
+    $settings = array(
+      'checkin' => 120,
+      'checkout' => 120
+    );
+
+    $result = $connection->query("SELECT attendance_checkin_grace_minutes,attendance_checkout_grace_minutes FROM sw_site LIMIT 1");
+    if ($result && $result->num_rows > 0) {
+      $row = $result->fetch_assoc();
+      $settings['checkin'] = (isset($row['attendance_checkin_grace_minutes']) && $row['attendance_checkin_grace_minutes'] !== '') ? (int)$row['attendance_checkin_grace_minutes'] : null;
+      $settings['checkout'] = (isset($row['attendance_checkout_grace_minutes']) && $row['attendance_checkout_grace_minutes'] !== '') ? (int)$row['attendance_checkout_grace_minutes'] : null;
+    }
+
+    return $settings;
   }
 }
 
@@ -178,16 +199,56 @@ if (!function_exists('attendance_ranking_has_hourly_leave')) {
   }
 }
 
+if (!function_exists('attendance_ranking_week_bounds')) {
+  function attendance_ranking_week_bounds($date) {
+    $timestamp = strtotime($date);
+    if (!$timestamp) {
+      return array('start' => $date, 'end' => $date);
+    }
+
+    $day_index = (int)date('N', $timestamp);
+    return array(
+      'start' => date('Y-m-d', strtotime('-'.($day_index - 1).' days', $timestamp)),
+      'end' => date('Y-m-d', strtotime('+'.(7 - $day_index).' days', $timestamp))
+    );
+  }
+}
+
+if (!function_exists('attendance_ranking_weekly_minutes_until')) {
+  function attendance_ranking_weekly_minutes_until($connection, $employees_id, $week_start, $cutoff_date) {
+    if (strtotime($cutoff_date) < strtotime($week_start)) {
+      return 0;
+    }
+
+    $employees_id = mysqli_real_escape_string($connection, $employees_id);
+    $week_start = mysqli_real_escape_string($connection, $week_start);
+    $cutoff_date = mysqli_real_escape_string($connection, $cutoff_date);
+    $minutes = 0;
+
+    $query = "SELECT presence_date,rule_time_in,rule_time_out,rule_min_work_minutes FROM presence WHERE employees_id='$employees_id' AND presence_date BETWEEN '$week_start' AND '$cutoff_date' AND present_id='1'";
+    $result = $connection->query($query);
+    if ($result) {
+      while ($row = $result->fetch_assoc()) {
+        $minutes += attendance_daily_credit_minutes($row['presence_date'], $row['rule_time_in'], $row['rule_time_out'], $row['rule_min_work_minutes']);
+      }
+    }
+
+    return (int)$minutes;
+  }
+}
+
 if (!function_exists('attendance_ranking_calculate')) {
   function attendance_ranking_calculate($connection, $date_from, $date_to, $limit = 10) {
     $settings = attendance_ranking_get_settings($connection);
+    $grace_settings = attendance_ranking_grace_settings($connection);
     $date_from_sql = mysqli_real_escape_string($connection, $date_from);
     $date_to_sql = mysqli_real_escape_string($connection, $date_to);
     $rankings = array();
 
-    $query_employees = "SELECT employees.id,employees.employees_name,employees.shift_id,employees.attendance_mode,shift.time_in AS shift_time_in,shift.time_out AS shift_time_out,shift.checkout_required
+    $query_employees = "SELECT employees.id,employees.employees_name,employees.shift_id,employees.attendance_mode,position.position_name,shift.time_in AS shift_time_in,shift.time_out AS shift_time_out,shift.checkout_required
       FROM employees
       INNER JOIN shift ON shift.shift_id=employees.shift_id
+      INNER JOIN position ON position.position_id=employees.position_id
       WHERE employees.employees_status='active'
       ORDER BY employees.employees_name ASC";
     $result_employees = $connection->query($query_employees);
@@ -277,7 +338,7 @@ if (!function_exists('attendance_ranking_calculate')) {
                   $summary['leave_early']++;
                   $score += (int)$settings['point_leave_early'];
                 }
-              } elseif (attendance_ranking_deadline_passed($presence['presence_date'], $rule_time_out, 120, $rule_time_in)) {
+              } elseif (attendance_ranking_deadline_passed($presence['presence_date'], $rule_time_out, $grace_settings['checkout'], $rule_time_in)) {
                 $summary['missing_checkout']++;
                 $score += (int)$settings['point_missing_checkout'];
               }
@@ -332,8 +393,17 @@ if (!function_exists('attendance_ranking_calculate')) {
         }
         $ranking_rule = $work_day_info['rule'];
         $ranking_time_in = !empty($ranking_rule['time_in']) ? $ranking_rule['time_in'] : $employee['shift_time_in'];
-        if (!attendance_ranking_deadline_passed($ranking_date, $ranking_time_in, 120)) {
+        if (!attendance_ranking_deadline_passed($ranking_date, $ranking_time_in, $grace_settings['checkin'])) {
           continue;
+        }
+        $weekly_target_minutes = attendance_shift_weekly_work_minutes($connection, $employee['shift_id'], isset($employee['attendance_mode']) ? $employee['attendance_mode'] : '');
+        if ($weekly_target_minutes > 0) {
+          $week_bounds = attendance_ranking_week_bounds($ranking_date);
+          $previous_date = date('Y-m-d', strtotime('-1 day', strtotime($ranking_date)));
+          $weekly_minutes = attendance_ranking_weekly_minutes_until($connection, $employee['id'], $week_bounds['start'], $previous_date);
+          if ($weekly_minutes >= $weekly_target_minutes) {
+            continue;
+          }
         }
         $summary['absent']++;
         $score += (int)$settings['point_absent_without_note'];
@@ -342,6 +412,8 @@ if (!function_exists('attendance_ranking_calculate')) {
       $rankings[] = array(
         'employees_id' => $employee['id'],
         'employees_name' => $employee['employees_name'],
+        'position_name' => isset($employee['position_name']) ? $employee['position_name'] : '',
+        'ranking_group' => (isset($employee['position_name']) && stripos($employee['position_name'], 'Manajemen') !== false) ? 'management' : 'staff',
         'score' => $score,
         'first_checkin_timestamp' => $first_checkin_timestamp,
         'summary' => $summary

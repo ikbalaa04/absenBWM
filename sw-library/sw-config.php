@@ -98,5 +98,7 @@ require_once __DIR__.'/attendance-ranking.php';
 attendance_ranking_ensure_schema($connection);
 require_once __DIR__.'/overtime-rules.php';
 overtime_ensure_schema($connection);
+require_once __DIR__.'/attendance-correction.php';
+attendance_correction_ensure_schema($connection);
 require_once __DIR__.'/telegram-notifications.php';
 telegram_ensure_schema($connection);
