@@ -14,6 +14,7 @@ if (!function_exists('attendance_correction_ensure_schema')) {
       requested_time_in time DEFAULT NULL,
       requested_time_out time DEFAULT NULL,
       reason text NULL,
+      proof_file varchar(150) NOT NULL DEFAULT '',
       status enum('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
       approved_by int(11) DEFAULT NULL,
       approved_at datetime DEFAULT NULL,
@@ -28,6 +29,11 @@ if (!function_exists('attendance_correction_ensure_schema')) {
       KEY correction_date (correction_date),
       KEY status (status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    $columns = $connection->query("SHOW COLUMNS FROM attendance_correction_requests LIKE 'proof_file'");
+    if ($columns && $columns->num_rows == 0) {
+      $connection->query("ALTER TABLE attendance_correction_requests ADD proof_file varchar(150) NOT NULL DEFAULT '' AFTER reason");
+    }
 
     $done = true;
   }
@@ -96,6 +102,47 @@ if (!function_exists('attendance_correction_parse_time')) {
       return $time_value;
     }
     return '';
+  }
+}
+
+if (!function_exists('attendance_correction_upload_proof')) {
+  function attendance_correction_upload_proof($field_name, $employees_id, $upload_dir = '../sw-content/absent/') {
+    if (empty($_FILES[$field_name]['name']) || empty($_FILES[$field_name]['tmp_name'])) {
+      return array('file' => '', 'error' => 'Foto bukti wajib diupload.');
+    }
+
+    $file_name = $_FILES[$field_name]['name'];
+    $size = $_FILES[$field_name]['size'];
+    $upload_error = $_FILES[$field_name]['error'];
+    $tmp_name = $_FILES[$field_name]['tmp_name'];
+    $extension = strtolower(getExtension($file_name));
+    $valid = array('jpg', 'jpeg', 'png');
+
+    if ($upload_error !== UPLOAD_ERR_OK) {
+      return array('file' => '', 'error' => 'Foto bukti gagal diupload, coba ulangi.');
+    }
+    if (!in_array($extension, $valid)) {
+      return array('file' => '', 'error' => 'Foto bukti harus berformat JPG, JPEG, atau PNG.');
+    }
+    if ($size > 5000000) {
+      return array('file' => '', 'error' => 'Foto bukti maksimal 5MB.');
+    }
+    if (getimagesize($tmp_name) === false) {
+      return array('file' => '', 'error' => 'File bukti bukan gambar valid.');
+    }
+    if (!is_dir($upload_dir)) {
+      @mkdir($upload_dir, 0755, true);
+    }
+    if (!is_dir($upload_dir) || !is_writable($upload_dir)) {
+      return array('file' => '', 'error' => 'Folder upload foto bukti belum siap.');
+    }
+
+    $safe_name = date('Y-m-d').'-correction-'.time().'-'.(int)$employees_id.'-'.mt_rand(1000, 9999).'.'.$extension;
+    if (!move_uploaded_file($tmp_name, rtrim($upload_dir, '/').'/'.$safe_name)) {
+      return array('file' => '', 'error' => 'Foto bukti gagal disimpan di server.');
+    }
+
+    return array('file' => $safe_name, 'error' => '');
   }
 }
 ?>

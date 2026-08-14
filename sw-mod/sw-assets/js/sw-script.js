@@ -394,11 +394,43 @@ $('#update-password').submit(function (e) {
 });
 
 /* --------- LOAD DATA HISTORY ---------------*/
+function applyHistoryPeriod() {
+    if (!$('.history_period').length) {
+        return;
+    }
+    var period = $('.history_period').val() || 'last_week';
+    var $period = $('.history_period');
+    if (period === 'this_week') {
+        $('.start_date').val($period.data('this-week-start'));
+        $('.end_date').val($period.data('this-week-end'));
+    } else if (period === 'prev_week') {
+        $('.start_date').val($period.data('prev-week-start'));
+        $('.end_date').val($period.data('prev-week-end'));
+    } else if (period === 'last_week') {
+        $('.start_date').val($period.data('last-week-start'));
+        $('.end_date').val($period.data('last-week-end'));
+    }
+    $('.history-custom-date').toggle(period === 'custom');
+}
+
+function currentHistoryRange() {
+    applyHistoryPeriod();
+    return {
+        from: $('.start_date').val(),
+        to: $('.end_date').val()
+    };
+}
+
 loadData();
 function loadData() {
+    if (!$('.loaddata').length) {
+        return;
+    }
+    var range = currentHistoryRange();
     $.ajax({
         url: swProcessUrl+'?action=history',
         type: 'POST',
+        data: {from: range.from, to: range.to},
         success: function(data) {
           $('.loaddata').html(data);
         }
@@ -406,12 +438,19 @@ function loadData() {
 }
 
 $('.btn-clear').click(function (e) {
+    if ($('.history_period').length) {
+        $('.history_period').val('last_week');
+        applyHistoryPeriod();
+    }
     loadData();
-    $('.start_date').val();
-    $('.start_date').val();
+});
+
+$('.history_period').change(function () {
+    applyHistoryPeriod();
 });
 
 $('.btn-sortir').click(function (e) {
+        applyHistoryPeriod();
         var from = $('.start_date').val();
         var to   = $('.end_date').val();
 

@@ -38,11 +38,16 @@ function attendance_correction_apply_presence($connection, $request, $timeNow) {
 
   $time_in = '00:00:00';
   $time_out = '00:00:00';
+  $proof_file = !empty($request['proof_file']) ? mysqli_real_escape_string($connection, $request['proof_file']) : '';
+  $picture_in = '';
+  $picture_out = '';
   if ($request['correction_type'] === 'checkin' || $request['correction_type'] === 'checkin_checkout') {
     $time_in = $request['requested_time_in'];
+    $picture_in = $proof_file;
   }
   if ($request['correction_type'] === 'checkout' || $request['correction_type'] === 'checkin_checkout') {
     $time_out = $request['requested_time_out'];
+    $picture_out = $proof_file;
   }
   $attendance_mode = mysqli_real_escape_string($connection, $attendance_mode_value);
   $location_type_sql = mysqli_real_escape_string($connection, $location_type);
@@ -57,7 +62,7 @@ function attendance_correction_apply_presence($connection, $request, $timeNow) {
       latitude_longtitude_in,latitude_longtitude_out,information,attendance_mode,
       attendance_location_type,location_valid,rule_time_in,rule_time_out,rule_min_work_minutes
     ) VALUES (
-      '$employees_id','$correction_date','$time_in','$time_out','','',1,
+      '$employees_id','$correction_date','$time_in','$time_out','$picture_in','$picture_out',1,
       '','','$info','$attendance_mode','$location_type_sql',1,'$rule_time_in','$rule_time_out','$rule_min_work_minutes'
     )";
   if (!$connection->query($add)) {
@@ -86,9 +91,10 @@ function attendance_correction_apply_assignment($connection, $request, $timeNow)
     return array(false, 'Absensi penugasan pada tanggal tersebut sudah ada.');
   }
   $attendance_time = mysqli_real_escape_string($connection, $request['requested_time_in']);
+  $proof_file = !empty($request['proof_file']) ? mysqli_real_escape_string($connection, $request['proof_file']) : '';
   $information = mysqli_real_escape_string($connection, 'Perbaikan absensi penugasan - '.$assignment['assignment_number']);
   $add = "INSERT INTO assignment_attendance (assignment_id,employees_id,attendance_date,attendance_time,picture,latitude_longtitude,information,created_at)
-    VALUES('$assignment_id','$employees_id','$correction_date','$attendance_time','','','$information','$timeNow')";
+    VALUES('$assignment_id','$employees_id','$correction_date','$attendance_time','$proof_file','','$information','$timeNow')";
   if (!$connection->query($add)) {
     return array(false, 'Gagal menambahkan absensi penugasan.');
   }

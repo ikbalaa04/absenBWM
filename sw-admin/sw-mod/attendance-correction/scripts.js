@@ -9,6 +9,63 @@ $(document).ready(function() {
     $(".loading").delay(1500).fadeOut(500);
   }
 
+  function appendDetailRow(table, label, value){
+    var row = document.createElement('tr');
+    var labelCell = document.createElement('th');
+    var valueCell = document.createElement('td');
+    labelCell.style.width = '130px';
+    labelCell.textContent = label;
+    valueCell.textContent = value || '-';
+    row.appendChild(labelCell);
+    row.appendChild(valueCell);
+    table.appendChild(row);
+  }
+
+  $(document).on('click', '.detail-attendance-correction', function(){
+    var detail = {};
+    try {
+      detail = JSON.parse($(this).attr('data-detail') || '{}');
+    } catch (e) {
+      detail = {};
+    }
+
+    var wrapper = document.createElement('div');
+    wrapper.className = 'text-left';
+
+    if (detail.foto) {
+      var imageLink = document.createElement('a');
+      imageLink.href = detail.foto;
+      imageLink.target = '_blank';
+      var image = document.createElement('img');
+      image.src = detail.foto;
+      image.alt = 'Foto bukti perbaikan absensi';
+      image.style.width = '100%';
+      image.style.maxHeight = '320px';
+      image.style.objectFit = 'contain';
+      image.style.borderRadius = '6px';
+      image.style.marginBottom = '12px';
+      imageLink.appendChild(image);
+      wrapper.appendChild(imageLink);
+    }
+
+    var table = document.createElement('table');
+    table.className = 'table table-bordered table-striped';
+    appendDetailRow(table, 'Nama', detail.nama);
+    appendDetailRow(table, 'Tanggal', detail.tanggal);
+    appendDetailRow(table, 'Jenis', detail.jenis);
+    appendDetailRow(table, 'Jam Masuk', detail.jam_masuk);
+    appendDetailRow(table, 'Jam Pulang', detail.jam_pulang);
+    appendDetailRow(table, 'Status', detail.status);
+    appendDetailRow(table, 'Alasan', detail.alasan);
+    wrapper.appendChild(table);
+
+    swal({
+      title: 'Detail Perbaikan Absensi',
+      content: wrapper,
+      button: 'Tutup'
+    });
+  });
+
   $(document).on('click', '.approve-attendance-correction', function(){
     var id = $(this).data('id');
     swal({

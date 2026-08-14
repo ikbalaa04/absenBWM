@@ -306,6 +306,11 @@ if(empty($connection)){
   }
 
   $weekly_selected_date = isset($_GET['weekly_date']) ? trim($_GET['weekly_date']) : date('Y-m-d');
+  if (isset($_GET['weekly_preset']) && $_GET['weekly_preset'] === 'last') {
+    $weekly_selected_date = date('Y-m-d', strtotime('-7 days'));
+  } elseif (isset($_GET['weekly_preset']) && $_GET['weekly_preset'] === 'current') {
+    $weekly_selected_date = date('Y-m-d');
+  }
   $weekly_selected_timestamp = strtotime($weekly_selected_date);
   if (!$weekly_selected_timestamp) {
     $weekly_selected_date = date('Y-m-d');
@@ -325,6 +330,20 @@ if(empty($connection)){
     $offset_weekly_work = ($page_weekly_work - 1) * $dashboard_limit;
   }
   $weekly_work_page_rows = array_slice($weekly_work_rows, $offset_weekly_work, $dashboard_limit);
+  $weekly_current_url = './?'.http_build_query(array_merge($_GET, array(
+    'mod' => 'home',
+    'weekly_preset' => 'current',
+    'page_weekly_work' => 1,
+    'ranking_month' => $ranking_selected_month,
+    'ranking_year' => $ranking_selected_year
+  )));
+  $weekly_last_url = './?'.http_build_query(array_merge($_GET, array(
+    'mod' => 'home',
+    'weekly_preset' => 'last',
+    'page_weekly_work' => 1,
+    'ranking_month' => $ranking_selected_month,
+    'ranking_year' => $ranking_selected_year
+  )));
 
 
 echo'
@@ -468,11 +487,13 @@ echo'
               <input type="hidden" name="ranking_year" value="'.$ranking_selected_year.'">
               <input type="hidden" name="page_weekly_work" value="1">
               <div class="form-group">
-                <label>Minggu</label>
+                <label>Tanggal Acuan Minggu</label>
                 <input type="date" name="weekly_date" class="form-control input-sm" value="'.htmlspecialchars($weekly_selected_date, ENT_QUOTES, 'UTF-8').'">
               </div>
-              <button type="submit" class="btn btn-primary btn-sm">Tampilkan</button>
-              <span class="text-muted" style="margin-left:8px">Tanggal efektif aplikasi: '.tgl_ind($ranking_settings['ranking_start_date']).'</span>
+              <button type="submit" class="btn btn-primary btn-sm">Custom Date</button>
+              <a href="'.$weekly_current_url.'" class="btn btn-default btn-sm">Minggu Ini</a>
+              <a href="'.$weekly_last_url.'" class="btn btn-default btn-sm">Minggu Lalu</a>
+              <span class="text-muted" style="margin-left:8px">Sistem menghitung Senin-Minggu dari tanggal acuan. Tanggal efektif aplikasi: '.tgl_ind($ranking_settings['ranking_start_date']).'</span>
             </form>
           </div>
           <div class="box-body no-padding">

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS `attendance_correction_requests` (
   `requested_time_in` time DEFAULT NULL,
   `requested_time_out` time DEFAULT NULL,
   `reason` text NULL,
+  `proof_file` varchar(150) NOT NULL DEFAULT '',
   `status` enum('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
   `approved_by` int(11) DEFAULT NULL,
   `approved_at` datetime DEFAULT NULL,

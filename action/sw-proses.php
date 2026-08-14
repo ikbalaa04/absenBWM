@@ -1052,6 +1052,15 @@ if (empty($_POST['reason'])) {
 } else {
   $reason = mysqli_real_escape_string($connection, strip_tags($_POST['reason']));
 }
+$proof_file = '';
+if (empty($error)) {
+  $proof_upload = attendance_correction_upload_proof('proof_file', $row_user['id']);
+  if (!empty($proof_upload['error'])) {
+    $error[] = $proof_upload['error'];
+  } else {
+    $proof_file = $proof_upload['file'];
+  }
+}
 if ($correction_date !== '' && strtotime($correction_date) > strtotime($date)) {
   $error[] = 'Tanggal perbaikan tidak boleh lebih dari hari ini.';
 }
@@ -1073,21 +1082,29 @@ if (empty($error)) {
   $type_sql = mysqli_real_escape_string($connection, $correction_type);
   $time_in_sql = $requested_time_in === '' ? "NULL" : "'".mysqli_real_escape_string($connection, $requested_time_in)."'";
   $time_out_sql = $requested_time_out === '' ? "NULL" : "'".mysqli_real_escape_string($connection, $requested_time_out)."'";
-  $add = "INSERT INTO attendance_correction_requests (employees_id,correction_date,correction_type,requested_time_in,requested_time_out,reason,status,created_at,updated_at)
-    VALUES('$employee_id','$correction_date','$type_sql',$time_in_sql,$time_out_sql,'$reason','pending','$timeNow','$timeNow')";
+  $proof_file_sql = mysqli_real_escape_string($connection, $proof_file);
+  $add = "INSERT INTO attendance_correction_requests (employees_id,correction_date,correction_type,requested_time_in,requested_time_out,reason,proof_file,status,created_at,updated_at)
+    VALUES('$employee_id','$correction_date','$type_sql',$time_in_sql,$time_out_sql,'$reason','$proof_file_sql','pending','$timeNow','$timeNow')";
   if ($connection->query($add)) {
     $correction_id = mysqli_insert_id($connection);
     $message = '<b>Pengajuan perbaikan absensi baru</b>'."\n".
       'Nama: '.telegram_escape($row_user['employees_name'])."\n".
       'Tanggal: '.telegram_escape(tgl_ind($correction_date))."\n".
       'Jenis: '.telegram_escape(attendance_correction_type_label($correction_type))."\n".
+      'Foto bukti: Ada'."\n".
       'Alasan: '.telegram_escape($reason);
     telegram_send_admin($connection, $message, 'attendance-correction-'.$correction_id);
     echo'success';
   } else {
+    if ($proof_file !== '' && file_exists('../sw-content/absent/'.$proof_file)) {
+      @unlink('../sw-content/absent/'.$proof_file);
+    }
     echo'Pengajuan tidak berhasil disimpan.';
   }
 } else {
+  if ($proof_file !== '' && file_exists('../sw-content/absent/'.$proof_file)) {
+    @unlink('../sw-content/absent/'.$proof_file);
+  }
   echo implode('<br>', $error);
 }
 break;
@@ -1293,24 +1310,18 @@ break;
 
 /* -------  LOAD DATA HISTORY ----------*/
 case 'history':
-if(isset($_POST['from']) OR isset($_POST['to'])){
-      $from = date('Y-m-d', strtotime($_POST['from']));
-      $to   = date('Y-m-d', strtotime($_POST['to']));
+$from = (!empty($_POST['from']) && strtotime($_POST['from'])) ? date('Y-m-d', strtotime($_POST['from'])) : date('Y-m-d', strtotime('-6 days', strtotime($date)));
+$to = (!empty($_POST['to']) && strtotime($_POST['to'])) ? date('Y-m-d', strtotime($_POST['to'])) : $date;
+if (strtotime($from) > strtotime($to)) {
+  $tmp_history_date = $from;
+  $from = $to;
+  $to = $tmp_history_date;
+}
 
-      $filter ="presence_date BETWEEN '$from' AND '$to'";
-      $history_start = $from;
-      $history_end = $to;
-  }
-	else{
-	      $filter ="MONTH(presence_date) ='$month'";
-	      $history_start = date('Y-'.$month.'-01');
-	      $history_end = date('Y-m-t', strtotime($history_start));
-	}
-    if(isset($_POST['from']) OR isset($_POST['to'])){
-      $assignment_filter ="assignment_attendance.attendance_date BETWEEN '$from' AND '$to'";
-    } else {
-      $assignment_filter ="MONTH(assignment_attendance.attendance_date) ='$month'";
-    }
+$filter ="presence_date BETWEEN '$from' AND '$to'";
+$history_start = $from;
+$history_end = $to;
+$assignment_filter ="assignment_attendance.attendance_date BETWEEN '$from' AND '$to'";
 
 echo'<table class="table rounded" id="swdatatable">
     <thead>

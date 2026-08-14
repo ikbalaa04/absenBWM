@@ -13,17 +13,41 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
         session_destroy();
         header("location:./");
 }else{
+  $history_last_week_start = date('d-m-Y', strtotime('-6 days', strtotime($date)));
+  $history_last_week_end = date('d-m-Y', strtotime($date));
+  $history_this_week_start = date('d-m-Y', strtotime('monday this week', strtotime($date)));
+  $history_this_week_end = date('d-m-Y', strtotime('sunday this week', strtotime($date)));
+  $history_prev_week_start = date('d-m-Y', strtotime('monday last week', strtotime($date)));
+  $history_prev_week_end = date('d-m-Y', strtotime('sunday last week', strtotime($date)));
   echo'<!-- App Capsule -->
     <div id="appCapsule">
     <div class="section mt-2">
     <div class="card">
     <div class="card-body">
         <div class="row text-center">
-        <div class="col-sm-4 col-md-4">
+        <div class="col-sm-4 col-md-3">
+            <div class="form-group basic">
+                <div class="input-wrapper">
+                    <select class="form-control custom-select history_period" name="history_period"
+                      data-last-week-start="'.$history_last_week_start.'"
+                      data-last-week-end="'.$history_last_week_end.'"
+                      data-this-week-start="'.$history_this_week_start.'"
+                      data-this-week-end="'.$history_this_week_end.'"
+                      data-prev-week-start="'.$history_prev_week_start.'"
+                      data-prev-week-end="'.$history_prev_week_end.'">
+                       <option value="last_week">Minggu Terakhir</option>
+                       <option value="this_week">Minggu Ini</option>
+                       <option value="prev_week">Minggu Sebelumnya</option>
+                       <option value="custom">Custom Tanggal</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4 col-md-3 history-custom-date">
             <div class="form-group basic">
                 <div class="input-wrapper">
                     <div class="input-group">
-                        <input type="text" class="form-control datepicker start_date" name="start_date" placeholder="Tanggal Awal" required>
+                        <input type="text" class="form-control datepicker start_date" name="start_date" placeholder="Tanggal Awal" value="'.$history_last_week_start.'" required>
                         <div class="input-group-addon">
                             <ion-icon name="calendar-outline"></ion-icon>
                         </div>
@@ -32,11 +56,11 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
             </div>
         </div>
 
-        <div class="col-sm-4  col-md-4">
+        <div class="col-sm-4 col-md-3 history-custom-date">
             <div class="form-group basic">
                 <div class="input-wrapper">
                     <div class="input-group">
-                        <input type="text" name="end_date" class="form-control datepicker end_date" value="'.tanggal_ind($date).'">
+                        <input type="text" name="end_date" class="form-control datepicker end_date" value="'.$history_last_week_end.'">
                         <div class="input-group-addon">
                             <ion-icon name="calendar-outline"></ion-icon>
                         </div>
@@ -45,7 +69,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                 </div>
             </div> 
         </div>
-        <div class="col-sm-4 col-md-4 justify-content-between">
+        <div class="col-sm-12 col-md-3 justify-content-between">
            <button type="button" class="btn btn-danger mt-1 btn-sortir"><ion-icon name="checkmark-outline"></ion-icon>Tampilkan</button>
            <button type="button" class="btn btn-warning mt-1" data-toggle="modal" data-target="#modal-print"><ion-icon name="print-outline"></ion-icon> Cetak</button>
            <button type="button" class="btn btn-success mt-1 btn-clear"><ion-icon name="repeat-outline"></ion-icon> Clear</button>

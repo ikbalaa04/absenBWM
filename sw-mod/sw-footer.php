@@ -54,7 +54,7 @@ echo'
       </div>
       <div class="modal-body">
         <div class="action-sheet-content">
-          <form id="form-attendance-correction" autocomplete="off">
+          <form id="form-attendance-correction" autocomplete="off" enctype="multipart/form-data">
             <input type="hidden" name="correction_date" id="correction_date">
             <div class="form-group basic">
               <label class="label">Tanggal</label>
@@ -76,6 +76,11 @@ echo'
             <div class="form-group basic correction-time-out">
               <label class="label">Jam Pulang</label>
               <input type="time" class="form-control" name="requested_time_out" id="requested_time_out">
+            </div>
+            <div class="form-group basic">
+              <label class="label">Foto Bukti</label>
+              <input type="file" class="form-control" name="proof_file" accept="image/jpeg,image/jpg,image/png" required>
+              <small class="text-muted">Format JPG, JPEG, atau PNG. Maksimal 5MB.</small>
             </div>
             <div class="form-group basic">
               <label class="label">Alasan</label>
@@ -153,10 +158,13 @@ $(document).on("click", ".btn-attendance-correction", function(){
 });
 $("#form-attendance-correction").on("submit", function(e){
   e.preventDefault();
+  var formData = new FormData(this);
   $.ajax({
     url: window.swBaseUrl+"action/sw-proses.php?action=add-attendance-correction",
     type: "POST",
-    data: $(this).serialize(),
+    data: formData,
+    contentType: false,
+    processData: false,
     beforeSend:function(){ $(".loading").show(); },
     success:function(data){
       if(data === "success"){

@@ -33,8 +33,9 @@ echo'
                   <th>Jam Masuk</th>
                   <th>Jam Pulang</th>
                   <th>Alasan</th>
+                  <th>Foto Bukti</th>
                   <th>Status</th>
-                  <th style="width:170px" class="text-center">Aksi</th>
+                  <th style="width:230px" class="text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody>';
@@ -48,6 +49,20 @@ echo'
     while ($row= $result->fetch_assoc()) {
       $no++;
       $status_class = attendance_correction_status_class($row['status']);
+      $proof_file = isset($row['proof_file']) ? $row['proof_file'] : '';
+      $proof_url = $proof_file !== '' ? '../sw-content/absent/'.rawurlencode($proof_file) : '';
+      $proof_preview = $proof_url !== '' ? '<a class="image-link" href="'.$proof_url.'" target="_blank"><img src="'.$proof_url.'" width="45" height="45" style="object-fit:cover;border-radius:4px;"></a>' : '-';
+      $detail_data = array(
+        'nama' => $row['employees_name'],
+        'tanggal' => tgl_ind($row['correction_date']),
+        'jenis' => attendance_correction_type_label($row['correction_type']),
+        'jam_masuk' => !empty($row['requested_time_in']) ? substr($row['requested_time_in'],0,5) : '-',
+        'jam_pulang' => !empty($row['requested_time_out']) ? substr($row['requested_time_out'],0,5) : '-',
+        'alasan' => $row['reason'],
+        'status' => attendance_correction_status_label($row['status']),
+        'foto' => $proof_url
+      );
+      $detail_json = htmlspecialchars(json_encode($detail_data, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP), ENT_QUOTES, 'UTF-8');
       echo'
                 <tr>
                   <td class="text-center">'.$no.'</td>
@@ -57,11 +72,13 @@ echo'
                   <td>'.(!empty($row['requested_time_in']) ? substr($row['requested_time_in'],0,5) : '-').'</td>
                   <td>'.(!empty($row['requested_time_out']) ? substr($row['requested_time_out'],0,5) : '-').'</td>
                   <td>'.nl2br(htmlspecialchars($row['reason'], ENT_QUOTES, 'UTF-8')).'</td>
+                  <td class="text-center">'.$proof_preview.'</td>
                   <td><span class="label label-'.$status_class.'">'.attendance_correction_status_label($row['status']).'</span></td>
                   <td class="text-center">
                     <div class="btn-group">';
       if($level_user==1 || $level_user==2){
         echo'
+                      <button type="button" class="btn btn-xs btn-info detail-attendance-correction" data-detail="'.$detail_json.'" title="Detail"><i class="fa fa-search"></i> Detail</button>
                       <div class="btn-group">
                         <button type="button" class="btn btn-warning btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Proses
                           <span class="caret"></span>
