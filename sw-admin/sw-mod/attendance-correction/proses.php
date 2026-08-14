@@ -57,6 +57,40 @@ function attendance_correction_apply_presence($connection, $request, $timeNow) {
   $rule_time_in = mysqli_real_escape_string($connection, $rule_time_in);
   $rule_time_out = mysqli_real_escape_string($connection, $rule_time_out);
 
+  $existing = $connection->query("SELECT presence_id,information FROM presence WHERE employees_id='$employees_id' AND presence_date='$correction_date' ORDER BY presence_id DESC LIMIT 1");
+  if ($existing && $existing->num_rows > 0) {
+    $row_existing = $existing->fetch_assoc();
+    $presence_id = (int)$row_existing['presence_id'];
+    $updates = array(
+      "present_id=1",
+      "information='$info'",
+      "attendance_mode='$attendance_mode'",
+      "attendance_location_type='$location_type_sql'",
+      "location_valid=1",
+      "rule_time_in='$rule_time_in'",
+      "rule_time_out='$rule_time_out'",
+      "rule_min_work_minutes='$rule_min_work_minutes'"
+    );
+    if ($request['correction_type'] === 'checkin' || $request['correction_type'] === 'checkin_checkout') {
+      $updates[] = "time_in='$time_in'";
+      if ($picture_in !== '') {
+        $updates[] = "picture_in='$picture_in'";
+      }
+    }
+    if ($request['correction_type'] === 'checkout' || $request['correction_type'] === 'checkin_checkout') {
+      $updates[] = "time_out='$time_out'";
+      if ($picture_out !== '') {
+        $updates[] = "picture_out='$picture_out'";
+      }
+    }
+
+    $update = "UPDATE presence SET ".implode(',', $updates)." WHERE presence_id='$presence_id' LIMIT 1";
+    if (!$connection->query($update)) {
+      return array(false, 'Gagal memperbarui data absensi.');
+    }
+    return array(true, $presence_id);
+  }
+
   $add = "INSERT INTO presence (
       employees_id,presence_date,time_in,time_out,picture_in,picture_out,present_id,
       latitude_longtitude_in,latitude_longtitude_out,information,attendance_mode,

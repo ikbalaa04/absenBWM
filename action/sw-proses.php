@@ -1342,12 +1342,33 @@ echo'<table class="table rounded" id="swdatatable">
     $row_shift = $result_shift->fetch_assoc();
 	    $shift_time_in  = $row_shift['time_in'];
 	    $shift_time_out = $row_shift['time_out'];
-	    $checkout_required = (int)$row_shift['checkout_required'];
+    $checkout_required = (int)$row_shift['checkout_required'];
     $newtimestamp   = strtotime(''.$shift_time_in.' + 05 minute');
     $newtimestamp   = date('H:i:s', $newtimestamp);
 
-    $query_absen ="SELECT presence_id,presence_date,picture_in,time_in,picture_out,time_out,present_id,attendance_location_type,rule_time_in,rule_time_out, latitude_longtitude_in, latitude_longtitude_out,information,TIMEDIFF(TIME(time_in),COALESCE(rule_time_in,'$shift_time_in')) AS selisih,if (time_in>COALESCE(rule_time_in,'$shift_time_in'),'Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status, if (time_out<COALESCE(rule_time_out,'$shift_time_out'),'Pulang Cepat','Tepat Waktu') AS status_pulang FROM presence WHERE employees_id='$row_user[id]' AND $filter ORDER BY presence_id DESC";
+    $query_absen ="SELECT presence_history.*,TIMEDIFF(TIME(time_in),COALESCE(rule_time_in,'$shift_time_in')) AS selisih,if (time_in>COALESCE(rule_time_in,'$shift_time_in'),'Telat',if(time_in='00:00:00','Tidak Masuk','Tepat Waktu')) AS status, if (time_out<COALESCE(rule_time_out,'$shift_time_out'),'Pulang Cepat','Tepat Waktu') AS status_pulang
+      FROM (
+        SELECT
+          MAX(presence_id) AS presence_id,
+          presence_date,
+          COALESCE(SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(picture_in,'') ORDER BY presence_id DESC SEPARATOR ','), ',', 1),'') AS picture_in,
+          COALESCE(SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(time_in,'00:00:00') ORDER BY presence_id DESC SEPARATOR ','), ',', 1),'00:00:00') AS time_in,
+          COALESCE(SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(picture_out,'') ORDER BY presence_id DESC SEPARATOR ','), ',', 1),'') AS picture_out,
+          COALESCE(SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(time_out,'00:00:00') ORDER BY presence_id DESC SEPARATOR ','), ',', 1),'00:00:00') AS time_out,
+          SUBSTRING_INDEX(GROUP_CONCAT(present_id ORDER BY presence_id DESC SEPARATOR ','), ',', 1) AS present_id,
+          COALESCE(SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(attendance_location_type,'') ORDER BY presence_id DESC SEPARATOR ','), ',', 1),'office') AS attendance_location_type,
+          COALESCE(SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(rule_time_in,'') ORDER BY presence_id DESC SEPARATOR ','), ',', 1),'$shift_time_in') AS rule_time_in,
+          COALESCE(SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(rule_time_out,'') ORDER BY presence_id DESC SEPARATOR ','), ',', 1),'$shift_time_out') AS rule_time_out,
+          COALESCE(SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(latitude_longtitude_in,'') ORDER BY presence_id DESC SEPARATOR ','), ',', 1),'') AS latitude_longtitude_in,
+          COALESCE(SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(latitude_longtitude_out,'') ORDER BY presence_id DESC SEPARATOR ','), ',', 1),'') AS latitude_longtitude_out,
+          COALESCE(SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(information,'') ORDER BY presence_id DESC SEPARATOR ','), ',', 1),'') AS information
+        FROM presence
+        WHERE employees_id='$row_user[id]' AND $filter
+        GROUP BY presence_date
+      ) AS presence_history
+      ORDER BY presence_date DESC,presence_id DESC";
     $result_absen = $connection->query($query_absen);
+    $late_total = 0;
 	    if($result_absen->num_rows > 0){
 	        while ($row_absen = $result_absen->fetch_assoc()) {
           $history_used_dates[$row_absen['presence_date']] = true;
@@ -1366,6 +1387,9 @@ echo'<table class="table rounded" id="swdatatable">
               $row_absen['status'] = 'Tepat Waktu';
               $row_absen['selisih'] = '00:00:00';
               $information .= '<br><span class="badge badge-info">Izin per jam disetujui</span>';
+            }
+            if ($row_absen['status'] == 'Telat') {
+              $late_total++;
             }
             $location_badge = $row_absen['attendance_location_type'] == 'outside' ? ' <span class="badge badge-primary">Luar Kantor</span>' : ' <span class="badge badge-info">Kantor</span>';
 
@@ -1472,26 +1496,14 @@ echo'<table class="table rounded" id="swdatatable">
 	    </tbody>
 	</table>
 <hr>';
-      $query_hadir="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='1' ORDER BY presence_id DESC";
+      $query_hadir="SELECT DISTINCT presence_date FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='1' ORDER BY presence_date DESC";
       $hadir= $connection->query($query_hadir);
 
-      $query_sakit="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='2' ORDER BY presence_id";
+      $query_sakit="SELECT DISTINCT presence_date FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='2' ORDER BY presence_date";
       $sakit = $connection->query($query_sakit);
 
-      $query_izin="SELECT presence_id FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='3' ORDER BY presence_id";
+      $query_izin="SELECT DISTINCT presence_date FROM presence WHERE employees_id='$row_user[id]' AND $filter AND present_id='3' ORDER BY presence_date";
       $izin = $connection->query($query_izin);
-
-	      $late_total = 0;
-	      $query_telat ="SELECT presence_date,time_in,rule_time_in FROM presence WHERE employees_id='$row_user[id]' AND $filter AND time_in>COALESCE(rule_time_in,'$shift_time_in')";
-	      $telat = $connection->query($query_telat);
-	      if ($telat) {
-	        while ($row_telat = $telat->fetch_assoc()) {
-	          $rule_time_in_late = !empty($row_telat['rule_time_in']) ? $row_telat['rule_time_in'] : $shift_time_in;
-	          if (attendance_late_minutes_after_hourly_leave($connection, $row_user['id'], $row_telat['presence_date'], $row_telat['time_in'], $rule_time_in_late) > 0) {
-	            $late_total++;
-	          }
-	        }
-	      }
         $query_tugas ="SELECT assignment_attendance_id FROM assignment_attendance WHERE employees_id='$row_user[id]' AND ".str_replace('assignment_attendance.', '', $assignment_filter);
         $tugas = $connection->query($query_tugas);
 echo'
