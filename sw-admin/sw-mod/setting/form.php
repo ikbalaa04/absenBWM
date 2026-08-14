@@ -135,6 +135,33 @@ case 'setting':
           </div>
         </div>
         <hr>
+        <h4>Pendaftaran Google</h4>
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Status</label>
+          <div class="col-sm-3">
+            <select name="google_register_enabled" class="form-control">
+              <option value="0" '.((int)(isset($google_register_enabled) ? $google_register_enabled : 0) === 0 ? 'selected' : '').'>Non Aktif</option>
+              <option value="1" '.((int)(isset($google_register_enabled) ? $google_register_enabled : 0) === 1 ? 'selected' : '').'>Aktif</option>
+            </select>
+          </div>
+          <div class="col-sm-5"><p class="text-muted">Jika aktif, tombol Masuk Dengan Google tampil dan email Google baru dapat mengajukan pendaftaran.</p></div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Google Client ID</label>
+          <div class="col-sm-6">
+            <input type="text" name="google_client_id" class="form-control" value="'.setting_h(isset($google_client_id) ? $google_client_id : '').'" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Google Client Secret</label>
+          <div class="col-sm-6">
+            <input type="password" name="google_client_secret" class="form-control" value="'.setting_h(isset($google_client_secret) ? $google_client_secret : '').'" autocomplete="new-password">
+            <p class="text-muted">Callback URL di Google Console: '.setting_h($base_url).'action/sw-google.php</p>
+          </div>
+        </div>
+        <hr>
         <div class="form-group">
           <label class="col-sm-2 control-label">Logo Website</label>
           <div class="col-sm-6">';

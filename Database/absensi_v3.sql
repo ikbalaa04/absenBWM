@@ -202,15 +202,18 @@ CREATE TABLE `sw_site` (
   `site_email` varchar(30) NOT NULL,
   `site_email_domain` varchar(50) NOT NULL,
   `attendance_checkin_grace_minutes` int(5) NOT NULL DEFAULT 120,
-  `attendance_checkout_grace_minutes` int(5) DEFAULT 120
+  `attendance_checkout_grace_minutes` int(5) DEFAULT 120,
+  `google_register_enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `google_client_id` varchar(255) NOT NULL DEFAULT '',
+  `google_client_secret` varchar(255) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `sw_site`
 --
 
-INSERT INTO `sw_site` (`site_id`, `site_url`, `site_name`, `site_company`, `site_manager`, `site_director`, `site_phone`, `site_address`, `site_description`, `site_logo`, `site_email`, `site_email_domain`, `attendance_checkin_grace_minutes`, `attendance_checkout_grace_minutes`) VALUES
-(1, 'http://localhost/product/absensi.v3', 'Absensi v.3', 'Indecon', 'Intan Permata Sari', 'Indecon', '089666665781', 'Alamat kantor', 'Absensi v.3', 'whiteswlogowebpng.png', 'info@example.com', 'info@domain.com', 120, 120);
+INSERT INTO `sw_site` (`site_id`, `site_url`, `site_name`, `site_company`, `site_manager`, `site_director`, `site_phone`, `site_address`, `site_description`, `site_logo`, `site_email`, `site_email_domain`, `attendance_checkin_grace_minutes`, `attendance_checkout_grace_minutes`, `google_register_enabled`, `google_client_id`, `google_client_secret`) VALUES
+(1, 'http://localhost/product/absensi.v3', 'Absensi v.3', 'Indecon', 'Intan Permata Sari', 'Indecon', '089666665781', 'Alamat kantor', 'Absensi v.3', 'whiteswlogowebpng.png', 'info@example.com', 'info@domain.com', 120, 120, 0, '', '');
 
 -- --------------------------------------------------------
 

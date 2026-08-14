@@ -6,6 +6,25 @@ if ($mod ==''){
     include_once 'sw-mod/sw-header.php';
 $selected_role = (isset($_GET['role']) && $_GET['role'] == 'admin') ? 'admin' : 'user';
 if(!isset($_COOKIE['COOKIES_MEMBER']) || $selected_role == 'admin'){
+    $google_alert = '';
+    if (!empty($_GET['google'])) {
+        $google_messages = array(
+            'disabled' => 'Pendaftaran Google belum aktif.',
+            'invalid' => 'Email Google tidak valid.',
+            'unverified' => 'Email Google belum terverifikasi.',
+            'inactive' => 'Akun Anda belum aktif. Hubungi HRD/Admin.',
+            'pending' => 'Pendaftaran Google berhasil dikirim. Tunggu HRD/Admin mengaktifkan akun.',
+            'error' => 'Pendaftaran Google gagal diproses.'
+        );
+        $google_key = $_GET['google'];
+        if (isset($google_messages[$google_key])) {
+            $google_alert = '<div class="alert alert-warning">'.$google_messages[$google_key].'</div>';
+        }
+    }
+    $google_login_button = '';
+    if ($selected_role == 'user' && !empty($google_register_enabled) && !empty($google_client_id) && !empty($google_client_secret)) {
+        $google_login_button = '<a href="'.$base_url.'action/sw-google.php" class="btn btn-danger btn-block user-login-links"><ion-icon name="logo-google"></ion-icon> Masuk Dengan Google</a>';
+    }
 
 	 echo'
  
@@ -17,6 +36,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) || $selected_role == 'admin'){
             <h4>Isi formulir untuk masuk</h4>
         </div>
         <div class="section mb-5 p-2">
+            '.$google_alert.'
 
             <form id="form-login">
                 <div class="card">
@@ -59,7 +79,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) || $selected_role == 'admin'){
 
                 <div class="form-button-group transparent">
                    <button type="submit" class="btn btn-success btn-block"><ion-icon name="log-in-outline"></ion-icon> Masuk</button>
-                   <a href="'.$base_url.'action/sw-google.php" class="btn btn-danger btn-block user-login-links"><ion-icon name="logo-google"></ion-icon> Masuk Dengan Google</a>
+                   '.$google_login_button.'
                 </div>
 
             </form>

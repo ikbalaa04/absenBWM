@@ -105,6 +105,13 @@ if (!preg_match('/^[A-Za-z0-9_\-]{16,64}$/', $telegram_webhook_secret)) {
 }
 $telegram_webhook_secret = mysqli_real_escape_string($connection, $telegram_webhook_secret);
 
+$google_register_enabled = (!empty($_POST['google_register_enabled']) && $_POST['google_register_enabled'] == '1') ? 1 : 0;
+$google_client_id = isset($_POST['google_client_id']) ? mysqli_real_escape_string($connection, trim($_POST['google_client_id'])) : '';
+$google_client_secret = isset($_POST['google_client_secret']) ? mysqli_real_escape_string($connection, trim($_POST['google_client_secret'])) : '';
+if ($google_register_enabled === 1 && ($google_client_id === '' || $google_client_secret === '')) {
+  $error[] = 'Google Client ID dan Client Secret wajib diisi jika pendaftaran Google aktif.';
+}
+
 $site_logo    = $_FILES['site_logo']["name"];
 $file_tmp = $_FILES['site_logo']['tmp_name']; 
 $ukuran_file  = $_FILES['site_logo']['size'];
@@ -157,7 +164,10 @@ if($site_logo == ''){
                       telegram_admin_chat_ids='$telegram_admin_chat_ids',
                       telegram_reminder_minutes='$telegram_reminder_minutes',
                       telegram_cron_token='$telegram_cron_token',
-                      telegram_webhook_secret='$telegram_webhook_secret'
+                      telegram_webhook_secret='$telegram_webhook_secret',
+                      google_register_enabled='$google_register_enabled',
+                      google_client_id='$google_client_id',
+                      google_client_secret='$google_client_secret'
                       $letter_header_sql WHERE site_id='1'"; 
     if($connection->query($update) === false) { 
       die($connection->error.__LINE__); 
@@ -210,7 +220,10 @@ if($ukuran_file < 1044070){
                       telegram_admin_chat_ids='$telegram_admin_chat_ids',
                       telegram_reminder_minutes='$telegram_reminder_minutes',
                       telegram_cron_token='$telegram_cron_token',
-                      telegram_webhook_secret='$telegram_webhook_secret'
+                      telegram_webhook_secret='$telegram_webhook_secret',
+                      google_register_enabled='$google_register_enabled',
+                      google_client_id='$google_client_id',
+                      google_client_secret='$google_client_secret'
                       $letter_header_sql WHERE site_id='1'" or die($connection->error.__LINE__); 
       if($connection->query($update) === false) { 
         echo'Data tidak berhasil disimpan!';

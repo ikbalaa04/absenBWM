@@ -53,6 +53,15 @@ if ($connection->connect_error){
 		if (empty($site_columns['telegram_webhook_secret'])) {
 			$connection->query("ALTER TABLE sw_site ADD telegram_webhook_secret varchar(64) NOT NULL DEFAULT '' AFTER telegram_cron_token");
 		}
+		if (empty($site_columns['google_register_enabled'])) {
+			$connection->query("ALTER TABLE sw_site ADD google_register_enabled tinyint(1) NOT NULL DEFAULT 0 AFTER telegram_webhook_secret");
+		}
+		if (empty($site_columns['google_client_id'])) {
+			$connection->query("ALTER TABLE sw_site ADD google_client_id varchar(255) NOT NULL DEFAULT '' AFTER google_register_enabled");
+		}
+		if (empty($site_columns['google_client_secret'])) {
+			$connection->query("ALTER TABLE sw_site ADD google_client_secret varchar(255) NOT NULL DEFAULT '' AFTER google_client_id");
+		}
 		$query_site  = "SELECT * FROM sw_site LIMIT 1";
 		$result_site = $connection->query($query_site);
 		$row_site    = $result_site->fetch_assoc();

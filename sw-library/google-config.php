@@ -5,8 +5,8 @@ include_once __DIR__ . '/sw-config.php';
 include_once __DIR__ . '/google-client/Google_Client.php';
 include_once __DIR__ . '/google-client/contrib/Google_Oauth2Service.php';
 
-$client_id = '482205120603-hf6aqm1mgr29ubsi2qttcrmfhmm2uklb.apps.googleusercontent.com'; // Google client ID
-$client_secret = '7EjMuD8XO88nR-5mtqYhh4Y3'; // Google Client Secret
+$client_id = !empty($google_client_id) ? $google_client_id : ''; // Google client ID
+$client_secret = !empty($google_client_secret) ? $google_client_secret : ''; // Google Client Secret
 $redirect_url = $base_url.'action/sw-google.php'; // Callback URL
 
 // Call Google API
